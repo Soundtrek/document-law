@@ -16,7 +16,7 @@ Juanity Law must be designed to support a **POPIA-aware operating model**, but a
 
 Users receive only the capabilities needed for their company role, person/company relationship and resource.
 
-Company membership or `admin` status must not automatically imply access to all sensitive employee/person information.
+Company membership, `OWNER` or generic `admin` status must not automatically imply access to all sensitive employee/person information.
 
 ### Server authority
 
@@ -24,8 +24,9 @@ The browser is never authoritative for:
 
 - company membership;
 - person/company relationship;
-- role;
+- functional role grants;
 - entitlement;
+- record-definition policy;
 - sensitivity/classification;
 - ownership/control claims;
 - access decisions;
@@ -58,7 +59,7 @@ Exact legal policies and processing roles require approval/review before product
 
 ### Defence in depth
 
-Identity, authorisation, classification, storage access, auditing, network boundaries and backups each provide separate controls.
+Identity, authorisation, configuration policy, classification, storage access, auditing, network boundaries and backups each provide separate controls.
 
 ## Identity
 
@@ -77,6 +78,33 @@ Provider-specific claims are translated into an application actor at the boundar
 
 A person's identity/account must remain separate from company/employer control.
 
+## Company membership and functional roles
+
+Do not model company access as only `user` versus `admin`.
+
+The system must support many-to-many role assignment: one person may hold several functions, and one function may be held by several people.
+
+Working role concepts include:
+
+- `OWNER` — company governance, membership/role administration and approved company settings;
+- `HR`;
+- `PAYROLL`;
+- `CLERK` / records;
+- `LEGAL`;
+- `MANAGER`;
+- `BILLING`;
+- other Juanity-approved roles.
+
+A small company owner may be assigned `OWNER + HR + PAYROLL + CLERK` while a large company may split those roles across different members.
+
+Important security rule:
+
+> `OWNER` grants governance powers; it is not an unconditional `read_all_sensitive_records` capability.
+
+If the owner performs HR, Payroll or Legal functions, the corresponding functional role is assigned explicitly.
+
+The company owner/governance role may invite/remove staff and assign/revoke approved functional roles, including to themselves. Every role grant/revocation must be server-authorised and auditable.
+
 ## Authorisation
 
 Authorisation should be capability-based and server enforced.
@@ -84,7 +112,8 @@ Authorisation should be capability-based and server enforced.
 Example non-document capabilities:
 
 - `company.manage`
-- `company.users.manage`
+- `company.members.invite`
+- `company.members.manage_roles`
 - `relationship.create`
 - `relationship.view`
 - `relationship.manage`
@@ -92,41 +121,51 @@ Example non-document capabilities:
 - `request.complete`
 - `activity.view`
 - `billing.manage`
-- `admin.manage_users`
+- `platform.definitions.manage`
 
-Document capabilities are intentionally deferred.
+Future record/document capabilities may resolve through approved definitions, for example create/view/download/admin actions against a definition/category/context.
 
 Every protected command/query should identify as appropriate:
 
 ```text
 actor
 company/account context
+company membership
+functional role grants
 person
 person/company relationship
 resource
+definition/version policy where relevant
 classification/sensitivity
 required capability
 ```
 
 and fail closed if required context is incomplete.
 
-## Company-role separation
+## Configurable policy must not configure away security
 
-Do not model company access as only `user` versus `admin`.
+Juanity Platform Admin may configure business policy such as record definitions, categories, allowed functional roles, acknowledgement behaviour, notifications and approved retention-policy references.
 
-The permission system must be capable of supporting restricted functions such as:
+However, configuration must not disable system invariants such as:
 
-- company administration;
-- HR;
-- payroll;
-- legal;
-- management;
-- audit/investigation;
-- billing.
+- tenant/company isolation;
+- deny-by-default server authorisation;
+- safe identity/session handling;
+- private object storage as the default security boundary;
+- prohibition on trusting client-supplied roles/claims;
+- required audit of privileged membership/role changes;
+- sensitive logging restrictions;
+- approved definition-version integrity.
 
-The final role catalogue is configurable/product design, but the architecture must support separation of duties.
+Company-level administrators may only configure options Juanity explicitly exposes within safe bounds.
 
-Example principle: a payroll user may legitimately need payslip/payroll access without being entitled to disciplinary/legal records.
+## Definition versioning and policy integrity
+
+Record/request/workflow definitions must be versioned.
+
+A later definition edit must not silently reclassify or expand access to historic records without an explicit approved migration/policy step.
+
+Security testing must include definition-version behaviour once record instances exist.
 
 ## Data classification
 
@@ -212,9 +251,23 @@ Company receives only the approved relationship-scoped result
 
 This principle helps avoid unnecessary exposure of unrelated personal information.
 
+## Staff invitation and removal security
+
+Company staff invitation must be company-scoped and auditable.
+
+Minimum expectations:
+
+- invitation is issued by an actor with membership-management capability;
+- invitation identifies one company only;
+- assigned roles are validated against Juanity-approved roles;
+- accepting an invitation does not create cross-company access;
+- disabling/removing a company member promptly revokes active company access;
+- historical audit context remains;
+- role/membership changes trigger appropriate session/cache invalidation where needed.
+
 ## Offboarding
 
-Ending a relationship is a security event.
+Ending a person/company relationship is a security event.
 
 The system must support:
 
@@ -225,14 +278,19 @@ The system must support:
 - explicit retention handling rather than automatic deletion;
 - audit history of termination/access changes.
 
+Disabling/removing a company staff member is a separate security event and must revoke that staff member's company capabilities without deleting historical records or audit attribution.
+
 Final former-employee record access and retention rules are deferred to the document/data-governance design.
 
 ## Audit
 
 Security-relevant actions should emit durable events where appropriate, including:
 
-- company-user membership changes;
-- role/capability changes;
+- company-member invitations;
+- invitation acceptance/cancellation/expiry;
+- membership disable/removal;
+- role/capability grants and revocations;
+- definition creation/version/activation changes;
 - relationship creation/status/end;
 - privileged admin actions;
 - authentication/security events imported where practical;
@@ -241,11 +299,11 @@ Security-relevant actions should emit durable events where appropriate, includin
 
 Once documents exist, the design must determine which of these require high-fidelity audit records:
 
-- document view;
-- document download;
+- document/record view;
+- document/record download;
 - share/access grant;
 - access revocation;
-- document replacement;
+- replacement/versioning;
 - deletion/retention action;
 - sensitive record export.
 
@@ -257,6 +315,8 @@ The platform must preserve enough trustworthy operational/audit information to i
 - affected people/relationships;
 - affected resources;
 - actor/account;
+- company membership/roles at the relevant time;
+- definition/version governing the resource where applicable;
 - access/download events;
 - timestamps;
 - permission changes;
@@ -265,6 +325,14 @@ The platform must preserve enough trustworthy operational/audit information to i
 A formal POPIA/security-compromise response process, notification decision process and responsible roles must be approved before production handling of regulated data.
 
 Do not assume that disaster recovery and security-incident response are the same process.
+
+## 3-click / 10-second safety boundary
+
+The product's 3-click / 10-second rule applies to frequent routine actions, but must not remove necessary security controls.
+
+Authentication challenges, explicit sensitive-data confirmation, meaningful legal acknowledgement and other justified security/legal steps may exceed the routine-action target.
+
+The preferred way to keep daily work fast is **smart defaults from approved definitions**, not skipping authorisation or asking users to manually reconfigure security on every action.
 
 ## Rate limiting and abuse controls
 
@@ -295,6 +363,10 @@ Minimum release gate:
 - horizontal/vertical privilege-escalation tests;
 - IDOR/resource-reference tests;
 - company-role separation tests;
+- multi-role member tests;
+- owner-without-functional-role negative tests;
+- invitation/role-change/revocation tests;
+- definition-version policy tests once records exist;
 - admin-path review;
 - session/logout/recovery review;
 - MFA/privileged-auth review;
