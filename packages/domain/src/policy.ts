@@ -4,7 +4,7 @@ import type {
   PersonCompanyRelationship,
   RecordDefinitionVersion,
   RecordEntry,
-} from "./model.js";
+} from "./model";
 
 const addUtcMonths = (iso: string, months: number): string => {
   const date = new Date(iso);
