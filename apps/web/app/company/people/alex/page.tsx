@@ -59,7 +59,7 @@ export default function CompanyEmployeeProfilePage() {
           <h2>Keep routine work inside three clicks</h2>
           <div className="actions">
             <Link className="button" href="/company/people/alex/add-record">Add record</Link>
-            <Link className="button secondary" href="/legal-access">Grant Legal Access</Link>
+            <Link className="button secondary" href="/company/people/alex/grant-legal-access">Grant Legal Access</Link>
           </div>
           <p className="muted">Record type, visibility, retention and review behaviour come from the active Governance definition rather than being reconfigured here.</p>
         </article>
