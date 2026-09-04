@@ -49,6 +49,39 @@ The person sees the record in their Info Center/company relationship. Authorised
 
 See [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md).
 
+## Storage architecture
+
+Document knowledge and document binaries are separated.
+
+```text
+PostgreSQL
+├── accounts / people / companies / relationships
+├── record definitions and versions
+├── record metadata
+├── permissions / retention / review
+├── legal access grants
+├── audit/activity
+└── RecordFile storage references + checksums
+
+Private S3-compatible object storage
+└── actual document/file binaries
+```
+
+Production object storage is intended to be **separate from the Juanity application VM** and independently recoverable. Juanity uses a provider-neutral storage adapter so the physical storage provider or region can change without redesigning the Document Knowledge Engine.
+
+Core rules:
+
+- buckets/containers are private;
+- no permanent public document URLs;
+- Juanity authorises access before object retrieval;
+- object keys are opaque and do not contain names, company names or document descriptions;
+- real uploads pass through quarantine, validation, malware scanning and checksum before becoming trusted/available;
+- PostgreSQL remains authoritative for access context, retention and review knowledge;
+- object-store lifecycle rules may support retention but do not replace Juanity policy;
+- primary object storage is not itself a backup.
+
+See [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md).
+
 ## Record policy is configurable
 
 Juanity Governance defines versioned record/request/workflow policy instead of hard-coding every record type.
@@ -137,7 +170,7 @@ Planning baseline:
 - OIDC-compatible identity provider; Keycloak remains the leading self-hosted option
 - email-based sign-in from V1 with stable internal account IDs
 - future linked social/federated identity providers
-- S3-compatible private object storage
+- private S3-compatible object storage behind a provider-neutral adapter
 - document-processing/background worker when required
 - Redis/BullMQ when asynchronous jobs are required
 - ClamAV for external uploads
@@ -155,6 +188,7 @@ The existing NUC is not a Juanity Law runtime target.
 - [`docs/PROJECT-CHARTER.md`](docs/PROJECT-CHARTER.md) — product scope
 - [`docs/APPLICATION-FRAMEWORK.md`](docs/APPLICATION-FRAMEWORK.md) — domain/application frame
 - [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md) — approved engine model
+- [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md) — private S3-compatible binary-storage architecture
 - [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md) — definitions, roles and 3-click rule
 - [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md) — email identity and Governance access
 - [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md) — Moodle and social-login readiness
@@ -172,4 +206,6 @@ The existing NUC is not a Juanity Law runtime target.
 
 Moodle integration and social-login providers are future features, but the V1 identity/domain boundaries must be built so they can be added without replacing Juanity Account/Person IDs or duplicating company/relationship authority.
 
-Production retention values, final POPIA/legal policy wording, production hosting/provider choices and live infrastructure configuration remain controlled approval gates rather than hard-coded assumptions.
+The storage boundary is approved: PostgreSQL holds document knowledge/metadata and private, independently recoverable S3-compatible object storage holds file binaries.
+
+Production retention values, final POPIA/legal policy wording, production hosting/storage-provider choices and live infrastructure configuration remain controlled approval gates rather than hard-coded assumptions.
