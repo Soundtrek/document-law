@@ -17,6 +17,8 @@ Juanity Law has two primary working surfaces:
 
 The same design tokens and component language should serve both, while navigation and information density differ.
 
+A third restricted surface is **Juanity Platform Admin**, used to define approved record/workflow configuration and product policy. It is not a normal company admin screen.
+
 ## Core visual principles
 
 ### 1. Light by default
@@ -63,6 +65,7 @@ A card should group a coherent unit such as:
 - request;
 - personal information section;
 - company people summary;
+- company member/role summary;
 - activity group;
 - account/billing summary.
 
@@ -74,6 +77,7 @@ Pills work well for:
 
 - compact workflow navigation;
 - relationship status;
+- role labels;
 - filters;
 - completion indicators;
 - action state.
@@ -93,6 +97,54 @@ The UI should be capable of:
 - avoiding sensitive values in notification previews.
 
 Exact document behaviour remains part of the document-engine design.
+
+## 3-click / 10-second rule
+
+Juanity Law uses a formal routine-work UX target:
+
+> **A frequent routine action should be reachable from the relevant context in no more than three deliberate clicks/taps and normally be completable in about ten seconds, excluding meaningful typing, file selection/upload, reading legal content or required security steps.**
+
+This rule applies to daily repeated workflows, not every complex administration or high-risk security flow.
+
+The main technique is **contextual actions + smart defaults**, not removal of security checks.
+
+### Good examples
+
+```text
+Employee relationship
+  → Add record
+  → Choose record type/file
+  → Send
+```
+
+```text
+Employee relationship
+  → Request
+  → Choose request type
+  → Send
+```
+
+```text
+Needs Action
+  → Provide
+  → Use existing / Upload
+  → Submit
+```
+
+```text
+Company Members
+  → Invite
+  → Staff member + roles
+  → Send invitation
+```
+
+### Avoid
+
+```text
+People → Person → HR → Records → Category → Actions → Add
+```
+
+when the same approved action can safely be placed on the person/company relationship page.
 
 ## Person shell
 
@@ -121,7 +173,54 @@ Info Center | People | Actions | Activity | Admin
 
 Billing and company settings may live under Admin/Settings rather than overcrowding primary navigation.
 
+Company member management belongs in company Admin/Settings and should be reachable quickly for the owner/governance role.
+
 Once the document domain is approved, document/record destinations can be added according to the final workflow.
+
+## Company membership UI
+
+The UI must support both a one-person company and a larger team without changing the underlying model.
+
+Example:
+
+```text
+COMPANY MEMBERS
+
+Susan Owner
+Owner · HR · Payroll · Clerk
+[ Manage roles ]
+
+David Smith
+HR
+[ Manage roles ]
+
+Mary Jones
+Payroll
+[ Manage roles ]
+
+[ Invite staff member ]
+```
+
+Rules:
+
+- one member may show several role pills;
+- role pills describe functional access, not legal seniority;
+- `Owner` is visibly distinct as governance responsibility;
+- role assignment/removal should clearly show the security consequence;
+- do not show controls the current actor cannot use;
+- hiding a control is not the security boundary; server policy remains authoritative.
+
+### Invite flow
+
+Target routine flow:
+
+```text
+1. Invite staff member
+2. Enter email / select user + choose one or more roles
+3. Send invitation
+```
+
+For a one-person company, the owner should be able to manage their own functional roles from the same membership UI without creating artificial extra users.
 
 ## Person Info Center composition
 
@@ -149,7 +248,7 @@ Here is what needs your attention.
 │ MY INFORMATION                   │
 │ Contact details                  │
 │ Personal details                 │
-│ [document sections later]        │
+│ [record/document sections later] │
 └──────────────────────────────────┘
 
 ┌──────────────────────────────────┐
@@ -191,13 +290,15 @@ COMPANY INFO CENTER
 │ RECENT ACTIVITY                  │
 │ Request completed                │
 │ Relationship ended               │
-│ Company user role changed        │
+│ Company member role changed      │
 └──────────────────────────────────┘
 ```
 
+The Company Info Center should adapt to the logged-in member's permitted functions. Payroll users should see payroll-relevant actions; HR users should see HR-relevant actions; a multi-role user may see both without needing separate accounts.
+
 ## Person/company relationship page
 
-This becomes the contextual home for the relationship.
+This becomes the contextual home for the relationship and the main place for high-frequency company actions.
 
 ### Person view
 
@@ -219,16 +320,63 @@ Overview | Actions | Activity | [Records later]
 PERSON NAME
 Active employee
 
+[ Request info ] [ Add record ] [ More ]
+
 Overview | Actions | Activity | [Employment records later]
 
 [ Relationship status ]
-[ Approved employment context ]
 [ Outstanding requests ]
 [ Authorised information ]
 [ Timeline ]
 ```
 
+The exact visible quick actions are derived from the current company member's functional roles and the approved definitions available to those roles.
+
 The company view must not imply that the company can browse all information held in the person's private Info Center.
+
+## Smart-default interaction pattern
+
+When a user chooses a Juanity-approved record/request definition, the UI should inherit approved defaults such as:
+
+- context;
+- audience;
+- classification;
+- allowed functional roles;
+- acknowledgement/Needs Action behaviour;
+- notification policy;
+- audit expectations;
+- retention-policy reference once approved.
+
+Do not ask routine users to repeatedly choose security/policy fields that Juanity already defined.
+
+The user should only provide instance-specific information needed to complete the action.
+
+## Juanity Platform Admin UI
+
+Platform Admin may include configuration areas such as:
+
+```text
+Record Definitions
+Request / Workflow Definitions
+Categories
+Functional Roles / Capability Defaults
+Policy / Notification Templates
+Products / Entitlements
+Definition Versions
+```
+
+Record-definition editing must make versioning explicit. Editing an existing definition should not visually imply that historic records are silently rewritten.
+
+Possible pattern:
+
+```text
+Payslip
+Current definition: v3
+
+[ View versions ] [ Create new version ] [ Deactivate ]
+```
+
+Advanced admin configuration is not required to satisfy the 3-click rule; correctness and safe review take priority.
 
 ## People list
 
