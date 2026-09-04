@@ -2,7 +2,9 @@
 
 ## Goal
 
-Use a conservative, self-hostable stack that supports secure legal workflows without forcing early infrastructure complexity.
+Use a conservative, self-hostable stack that supports sensitive employment/legal workflows without forcing early infrastructure complexity.
+
+The stack must support strong company isolation, person independence, relationship-scoped access, auditability and later secure document handling.
 
 ## Proposed application stack
 
@@ -55,9 +57,12 @@ law-web/API ──> queue ──> law-worker
 ├── packages/
 │   ├── database/
 │   ├── identity/
-│   ├── organisations/
-│   ├── matters/
+│   ├── people/
+│   ├── companies/
+│   ├── relationships/
 │   ├── requests/
+│   ├── permissions/
+│   ├── classification/
 │   ├── audit/
 │   ├── billing/
 │   ├── storage/
@@ -71,11 +76,35 @@ law-web/API ──> queue ──> law-worker
 
 The document package/service is intentionally not named here until its domain boundary is approved.
 
+A future `matters/` or `cases/` package is added only if an actual legal workflow requires it; it is not a mandatory root domain.
+
+## Core relational direction
+
+At framework level, PostgreSQL should be able to represent:
+
+```text
+Person
+Company
+CompanyUser / CompanyMembership
+PersonCompanyRelationship
+Request / Action
+ActivityEvent
+Product / Price
+CompanySubscription
+Entitlement
+```
+
+This is not the final database schema. It establishes the dependency direction only.
+
+Do not model sensitive document records until the document-engine design gate is approved.
+
 ## Adapter boundaries
 
 ### Identity
 
 Application code asks for an authenticated actor. Provider-specific OIDC claims are translated at the edge.
+
+The identity provider authenticates the account; Juanity Law determines company membership, relationship context and product permissions.
 
 ### Payments
 
@@ -86,10 +115,12 @@ Gateway adapter
       ↓
 Billing service
       ↓
-Subscription / payment state
+Company subscription / payment state
       ↓
 Entitlements
 ```
+
+The initial commercial direction is free person accounts and paid company workspaces.
 
 ### Storage
 
@@ -103,6 +134,8 @@ S3-compatible adapter
 
 No public bucket URLs as an authorisation mechanism.
 
+Sensitive storage must later support private objects, controlled temporary access, audit integration, quarantine/scanning and protected backups according to the approved document model.
+
 ### Email
 
 ```text
@@ -112,6 +145,28 @@ Notification/mail service
       ↓
 SMTP adapter
 ```
+
+Notifications must not leak sensitive employment/legal content into email by default. Prefer concise notifications that direct the authenticated user back to the portal.
+
+### Audit
+
+Application/domain services emit structured security/business events through an audit boundary. Audit storage/export may remain in PostgreSQL initially, provided access and immutability expectations are explicitly handled.
+
+## Data classification boundary
+
+Classification is an application/security concept rather than a storage-provider feature.
+
+Working classes:
+
+```text
+PUBLIC
+INTERNAL
+PERSONAL
+SENSITIVE
+HIGHLY_SENSITIVE
+```
+
+Authorisation and future document handling may consume classification as a policy input.
 
 ## What is deliberately excluded now
 
@@ -126,6 +181,7 @@ SMTP adapter
 - LMS integration
 - e-signature provider
 - AI document analysis
+- mandatory Matter/case architecture
 
 ## Version policy
 
@@ -140,3 +196,5 @@ For the first dedicated Law development VM, start with approximately:
 - 80–100 GB SSD
 
 This is a starting assumption, not a production capacity commitment. Measure before sizing production.
+
+The production hosting region/provider and storage location must be chosen with security, privacy, legal/compliance, backup and operational requirements in mind rather than convenience alone.
