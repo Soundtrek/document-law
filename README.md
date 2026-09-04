@@ -15,6 +15,7 @@ Person  ↔  PersonCompanyRelationship  ↔  Company
 - Juanity Governance defines versioned record types, retention/review policy and approved role access rather than hard-coding every document workflow.
 - Routine work follows the **3-click / 10-second rule** where security and the nature of the task permit it.
 - External lawyers/legal professionals receive explicit scoped access grants rather than becoming company members.
+- The architecture is prepared for **future Moodle-based company training/onboarding/certification** and **social/federated login**, without making either a V1 dependency.
 
 ## Document Knowledge Engine V1
 
@@ -72,7 +73,9 @@ See [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS
 
 ## Authentication and privileged access
 
-Email address is the primary login identifier from the start.
+Email address is the primary human-facing login/contact identifier from the start, but Juanity accounts use a stable internal account ID rather than treating email as the permanent database identity.
+
+This lets one person later link approved social/federated identities such as Google, Microsoft or Apple to the same Juanity account without duplicating their Person, company memberships or records.
 
 There is no generic `/admin` surface. Juanity-only privileged controls live under **Governance** (`/governance` initially).
 
@@ -87,6 +90,28 @@ See [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE
 A lawyer/legal professional may receive an explicit, revocable and time-bound access grant to a defined Person ↔ Company relationship and approved records.
 
 They do not become a company member and do not inherit broader company or personal access.
+
+## Future learning and training
+
+Juanity is expected to add company onboarding, training and certification later, with **Moodle currently the leading LMS direction**.
+
+The intended boundary is:
+
+```text
+Juanity Law
+identity + company + employee relationship + entitlements
+        │
+      SSO/API
+        │
+      Moodle
+courses + assessments + progress + certification
+```
+
+Juanity remains the authority for people, companies, relationships and access. Moodle remains the learning-delivery engine.
+
+Training completion/certification can later update the employee's Info Center/profile, and certificate files can enter the normal Document Knowledge Engine rather than creating a separate LMS document system.
+
+See [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md).
 
 ## Security and privacy direction
 
@@ -110,7 +135,8 @@ Planning baseline:
 - Next.js + React + TypeScript
 - PostgreSQL + Prisma
 - OIDC-compatible identity provider; Keycloak remains the leading self-hosted option
-- email-based sign-in identity
+- email-based sign-in from V1 with stable internal account IDs
+- future linked social/federated identity providers
 - S3-compatible private object storage
 - document-processing/background worker when required
 - Redis/BullMQ when asynchronous jobs are required
@@ -119,6 +145,7 @@ Planning baseline:
 - Caddy
 - Docker / Docker Compose
 - payment gateway adapter layer
+- future Moodle integration through SSO/API boundaries
 
 The existing NUC is not a Juanity Law runtime target.
 
@@ -130,6 +157,7 @@ The existing NUC is not a Juanity Law runtime target.
 - [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md) — approved engine model
 - [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md) — definitions, roles and 3-click rule
 - [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md) — email identity and Governance access
+- [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md) — Moodle and social-login readiness
 - [`docs/STACK-DESIGN.md`](docs/STACK-DESIGN.md) — technical stack
 - [`docs/BUILD-PLAN.md`](docs/BUILD-PLAN.md) — phased implementation
 - [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md) — safe pre-VM build scope
@@ -141,5 +169,7 @@ The existing NUC is not a Juanity Law runtime target.
 ## Current status
 
 **Document Knowledge Engine V1 architecture approved — ready for implementation.**
+
+Moodle integration and social-login providers are future features, but the V1 identity/domain boundaries must be built so they can be added without replacing Juanity Account/Person IDs or duplicating company/relationship authority.
 
 Production retention values, final POPIA/legal policy wording, production hosting/provider choices and live infrastructure configuration remain controlled approval gates rather than hard-coded assumptions.
