@@ -1,337 +1,158 @@
-# Code We Can Build Before the Law VM
+# Code We Can Build Before a Dedicated Law VM
 
 ## Objective
 
-Maximise useful implementation before provisioning infrastructure, while preserving production-grade privacy/security boundaries so the VM phase is integration rather than rewrite.
+Build as much of Juanity Law as possible from the GitHub repository before a dedicated Law VM is required, while preserving production-grade boundaries.
 
-## Safe code tranche A — foundation
+The Document Knowledge Engine V1 architecture is approved. The current goal is implementation, not another architecture hold.
 
-Build immediately:
+## Repository-first build
 
-- workspace/monorepo configuration;
-- Next.js application shell;
-- TypeScript strict configuration;
-- lint/format/test configuration;
-- environment validation contract;
-- common error/result types;
-- shared UI tokens/components;
-- route/layout structure;
-- CI for typecheck/lint/unit tests.
+The following can be built and validated without any persistent Juanity runtime host:
 
-No infrastructure compromise is required for this work.
+- Next.js + React + TypeScript application shell;
+- strict TypeScript/lint/test/CI setup;
+- stable `Account` + `AccountIdentity` identity model;
+- Person, Company, CompanyMember and functional-role model;
+- PersonCompanyRelationship and offboarding model;
+- Governance capabilities and `/governance` shell;
+- RecordDefinition + immutable RecordDefinitionVersion;
+- Record + RecordFile metadata model;
+- retention/review calculation;
+- LegalAccessGrant;
+- permission/policy services;
+- Person and Company Info Center projections;
+- synthetic fixtures/seeds;
+- storage, scan, mail, payment and identity adapter interfaces;
+- focused positive/negative security tests;
+- future social-login and Moodle integration seams.
 
-## Safe code tranche B — domain modules
+## Storage before real S3
 
-Build domain/application logic for:
+Before persistent object storage is provisioned, use a provider-neutral `StorageProvider` contract with an in-memory or explicitly development-only adapter.
 
-### People
+Domain code must not depend on:
 
-- persistent person account/domain record;
-- profile/preferences required by the app;
-- account status;
-- development identity provider adapter;
-- Person Info Center projection interfaces.
+- local absolute filesystem paths;
+- provider-specific S3 URLs;
+- a public bucket;
+- the application VM's filesystem as the production document store.
 
-Do not couple a person's login lifecycle to an employer/company relationship.
+The production target remains private, separate S3-compatible object storage.
 
-### Companies
+## Optional NUC development runtime
 
-- company lifecycle/status;
-- company members/membership;
-- invitation state model;
-- role/capability assignment interfaces;
-- billing owner/governance context;
-- Company Info Center projection interfaces.
+The existing NUC may now be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom.
 
-### Company membership and functional roles
+This is an optional convenience, not an architectural dependency.
 
-Build the framework so:
+### Start small
 
-- one company member may hold many functional roles;
-- one functional role may be held by many members;
-- `OWNER` is a governance role rather than an automatic sensitive-data bypass;
-- an owner may assign approved roles to themselves;
-- an owner may invite/remove company staff and grant/revoke approved roles;
-- role/membership events produce audit events;
-- disabling a member revokes active company capabilities.
-
-Working synthetic roles may include:
-
-- Owner;
-- HR;
-- Payroll;
-- Clerk / Records;
-- Legal;
-- Manager;
-- Billing.
-
-Do not hard-code these as an unchangeable final role catalogue; use a controlled role-definition/capability boundary suitable for Juanity Platform Admin.
-
-### Person / Company Relationships
-
-- create relationship;
-- relationship type/status;
-- approved contextual metadata;
-- start/end lifecycle;
-- active/former relationship distinction;
-- server-side relationship visibility policy interfaces;
-- offboarding state transition;
-- activity generation.
-
-Do not delete the person account when a relationship ends.
-
-### Configurable definitions
-
-Safe to build the policy/configuration framework for:
-
-- `RecordDefinition` identity and metadata;
-- `RequestDefinition` / workflow-definition primitives;
-- category/context/direction fields;
-- classification reference;
-- allowed functional-role policy references;
-- acknowledgement/Needs Action/notification flags or policy hooks;
-- active/inactive lifecycle;
-- immutable/versioned definition records;
-- create-new-version workflow;
-- audit events for definition changes.
-
-Important: this is a **configuration/policy layer**, not the final document storage engine.
-
-Do not implement final record object storage, legal retention execution or external share semantics yet.
-
-### Requests / actions
-
-- create/assign/complete/cancel/expire state model;
-- due dates where approved;
-- company/person relationship linkage;
-- link to a versioned request/workflow definition where used;
-- response metadata without implementing the final document attachment model;
-- activity generation.
-
-### Activity / audit
-
-- append-oriented event interface;
-- user-friendly activity projections;
-- actor/company/person/relationship/resource context metadata;
-- company membership/role events;
-- definition/version events;
-- sensitivity/access event hooks for later document design.
-
-### Billing / entitlements
-
-- products;
-- prices;
-- company subscriptions;
-- payment-record domain;
-- entitlement grants/limits;
-- fake gateway adapter for tests.
-
-Initial commercial assumption:
-
-- person account: free;
-- company workspace: paid.
-
-Do not hard-code final commercial package values while the product model is still being designed.
-
-### Data classification
-
-Safe to define the framework concept and working labels:
-
-- public;
-- internal;
-- personal;
-- sensitive;
-- highly sensitive.
-
-Do not use this as a substitute for the later approved legal/document taxonomy.
-
-## Safe code tranche C — UI
-
-Build against development fixtures/adapters:
-
-### Person side
-
-- Person Info Center;
-- Needs Action panel;
-- My Information shell;
-- My Companies / Employment Relationships list;
-- relationship detail shell;
-- request/action views;
-- recent activity;
-- account shell.
-
-### Company side
-
-- Company Info Center;
-- People / Employees list;
-- person relationship detail shell;
-- contextual `Request info` and reserved `Add record` actions;
-- Company Members list;
-- Invite Staff flow;
-- multi-select functional-role assignment;
-- owner self-role management;
-- requests/actions dashboard;
-- recent activity/audit shell;
-- billing/subscription shell;
-- generic admin settings shell.
-
-### Juanity Platform Admin
-
-Safe to build a configuration UI shell for:
-
-- Record Definitions;
-- Request / Workflow Definitions;
-- Categories;
-- Functional Roles / Capability Defaults;
-- definition versions;
-- activate/deactivate actions;
-- Products / Entitlements.
-
-Use synthetic example definitions only. Do not represent example policy as legal approval.
-
-The final record/document navigation and file behaviours can remain hidden/reserved until the document storage domain is approved.
-
-## Safe code tranche D — permission system
-
-Build and test:
-
-- capability registry for approved non-document capabilities;
-- policy evaluation interface;
-- company membership checks;
-- many-to-many functional role grants;
-- person/company relationship access checks;
-- definition-policy hooks;
-- admin privilege checks;
-- sensitivity/classification policy hook;
-- deny-by-default behaviour;
-- test matrix for horizontal/vertical access attempts.
-
-Specific tests should prove:
-
-- Company A cannot read Company B relationships.
-- Person A cannot read Person B relationship data.
-- A normal company user cannot gain access by changing route/body identifiers.
-- `OWNER` without an HR/Payroll/Legal functional role does not automatically receive those role-specific capabilities.
-- One member can hold several roles and receives the combined authorised capabilities without duplicate accounts.
-- Revoking a role removes the corresponding capability.
-- Disabling a company member removes active company access.
-- An ended person/company relationship can lose active capabilities without deleting historical context.
-- Editing a definition creates a new version instead of silently mutating old policy.
-
-This work must not depend on the identity provider vendor.
-
-## Safe code tranche E — infrastructure contracts
-
-Define and test interfaces/adapters for:
-
-- identity provider;
-- mail sender;
-- payment gateway;
-- storage provider;
-- clock/time provider where useful for deterministic tests;
-- audit sink;
-- job dispatcher.
-
-Development implementations may be in-memory/logging/filesystem where safe, provided domain code consumes only the interface.
-
-Do not put realistic sensitive employment/legal data into development fixtures. Use clearly synthetic examples.
-
-## 3-click / 10-second pre-VM UI proof
-
-We can validate common fixture workflows before the VM.
-
-Target paths:
+Prefer this sequence:
 
 ```text
-Company Members → Invite → Staff + roles → Send
-Relationship → Request → Request type → Send
-Needs Action → Provide → Use existing/upload placeholder → Submit
-Relationship → Add record → Definition/file placeholder → Send
+Stage A
+law-web
++
+PostgreSQL
+
+Stage B — only if resources remain healthy
++ S3-compatible development storage
+
+Stage C — only when needed and resources permit
++ Redis/BullMQ
++ worker
++ ClamAV
 ```
 
-The record file operation itself may remain mocked/reserved, but the interaction architecture can be proven.
+Do not start every planned container merely because it exists in the architecture.
 
-The rule excludes substantial typing, file upload duration, legal reading and justified security steps.
+### Resource gate
 
-## Optional local persistence
+Before adding Juanity services to the NUC, inspect at minimum:
 
-If a developer workstation can comfortably run PostgreSQL, use it for migration/integration validation. The codebase must not require the existing NUC.
+- free disk space and filesystem utilisation;
+- available RAM and swap pressure;
+- current Docker/container memory footprint;
+- CPU/load baseline;
+- current database/storage usage;
+- whether existing production/dev projects are already close to limits.
 
-A temporary SQLite substitution is **not** preferred if it would hide PostgreSQL-specific constraints or migration behaviour.
+If Juanity materially destabilises existing workloads, stop the NUC runtime experiment and continue repository-first until the dedicated Law VM is available.
 
-## Stop line before the VM
+### NUC boundaries
 
-Move to the dedicated Law development VM before declaring these behaviours integrated:
+Even if development runs successfully on the NUC:
 
-- real OIDC login/account recovery/MFA;
-- real outbound email invitations;
-- real payment sandbox callbacks/webhooks;
-- public webhook ingress;
-- persistent S3-compatible object storage;
-- real external file uploads;
-- malware scanning;
-- external document/recipient links;
-- Caddy/TLS/domain behaviour;
-- backup automation;
-- restore drills;
-- infrastructure monitoring;
+- it is **not** the Juanity production host;
+- it is **not** the sole backup destination;
+- it is **not** the production object-storage architecture;
+- real client/employee sensitive data must not be loaded into it for development;
+- synthetic data only until the production security/compliance environment is approved;
+- deployments must remain reproducible from Git and configuration rather than hand-tuned to the NUC.
+
+## What can be real on the temporary NUC dev runtime
+
+If resources permit, we may use:
+
+- PostgreSQL for schema/migration/integration validation;
+- the actual Next.js application;
+- synthetic seeded companies/people/relationships;
+- development email capture rather than real sensitive email;
+- development object storage once space permits;
+- focused permission/role/relationship integration tests.
+
+A temporary SQLite substitution is not preferred where it would hide PostgreSQL-specific migration or constraint behaviour.
+
+## Stop line before production-style integration
+
+A dedicated Law development VM remains the preferred environment before declaring these behaviours production-like/integrated:
+
+- real OIDC account recovery and enforced MFA;
+- public internet-facing invitations;
+- real outbound transactional email;
+- persistent separate S3-compatible storage architecture;
+- real quarantine and malware scanning;
+- production-style signed object access;
+- payment sandbox/public webhooks;
+- production-like TLS/domain configuration;
+- automated backup/replication and restore drills;
 - production-like secret management;
-- production-like sensitive-access logging.
+- infrastructure monitoring;
+- production retention execution/destruction;
+- Moodle integration;
+- production social/federated login providers.
 
-## Document-engine stop line
+## Pre-VM / temporary-NUC implementation milestone
 
-Before final record/document storage implementation, complete and approve the legal/employment document domain design.
-
-The surrounding configuration engine is now an approved direction, but the remaining discussion must cover at minimum:
-
-1. personal vs company vs relationship-context record instances;
-2. how a record instance binds/snapshots its definition version;
-3. technical storage ownership vs legal/control terminology;
-4. document/request/share distinctions;
-5. linkage to the person/company relationship;
-6. versioning, replacement and supersession of record contents;
-7. recipient model;
-8. company functional-role access;
-9. access/view/download controls;
-10. expiry/revocation;
-11. acknowledgement/evidence requirements;
-12. audit trail and sensitive-view/download logging;
-13. data classification;
-14. retention/destruction/legal hold if required;
-15. former-employee/offboarding behaviour;
-16. upload quarantine/scanning;
-17. storage/index/checksum model;
-18. later signing/redaction boundaries;
-19. POPIA/privacy requirements requiring legal/compliance approval.
-
-## Target pre-VM milestone
-
-A valuable first end-to-end framework workflow:
+A strong milestone is:
 
 ```text
-Development company owner login
+Stable Account + email identity
   ↓
-Owner assigns HR/Payroll/etc. roles to self
+Company + multi-role members
   ↓
-Owner invites another company member and assigns role(s)
+Person ↔ Company relationship
   ↓
-Create Person ↔ Company relationship
+Governance-defined record definition/version
   ↓
-Authorised role creates a definition-driven request/action
+Company adds synthetic record to employee profile
   ↓
-Person sees Needs Action
+RecordFile metadata + opaque storage key + checksum
   ↓
-Person completes the action
+Person sees record in Info Center
   ↓
-Company sees completion
+Authorised company role sees record
   ↓
-Activity/audit timeline records it
+Unauthorised role is denied
   ↓
-Revoke a company role and prove access changes
+Legal grant remains scoped
   ↓
-End person/company relationship
-  ↓
-Person account remains intact and active relationship access is revoked
+Retention/review dates + audit events generated
 ```
 
-If that works cleanly, the application framework is ready for final document-engine storage design and subsequent VM integration.
+If this works cleanly, most of the application domain has been proven before the dedicated Law VM.
+
+## Guiding rule
+
+**Use the NUC if it helps us move faster, but never let Juanity become dependent on it.**
