@@ -9,6 +9,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://juanity:juanity@localhost:5432/juanity_law
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,7 +18,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.19.0
+          node-version: 22
 
       - name: Install dependencies
         run: npm install
@@ -25,8 +27,6 @@ jobs:
         run: npm run db:generate
 
       - name: Validate Prisma schema
-        env:
-          DATABASE_URL: postgresql://juanity:juanity@localhost:5432/juanity_law
         run: npm run db:validate
 
       - name: Unit tests
