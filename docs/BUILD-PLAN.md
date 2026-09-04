@@ -13,16 +13,16 @@ Status: **in progress**
 Deliverables:
 
 - project charter;
-- application framework;
+- person/company/relationship application framework;
 - stack design;
-- UI direction;
-- security invariants;
+- Info Center UI direction;
+- security/privacy invariants;
 - disaster recovery plan;
 - prompt capture discipline;
 - decision log;
 - AI/Codex working rules.
 
-Exit gate: owner agrees the platform frame is correct enough to start coding around the document domain.
+Exit gate: owner agrees the platform frame is correct enough to start coding around the still-undecided document domain.
 
 ## Phase 1 — Code skeleton without full runtime stack
 
@@ -32,10 +32,11 @@ Build:
 - Next.js application shell;
 - shared TypeScript config/lint/test setup;
 - UI tokens and shell components;
-- route skeletons;
-- domain interfaces/types for organisations, users, matters, requests, activity, billing and entitlements;
+- person and company route skeletons;
+- domain interfaces/types for people, companies, company users, relationships, requests, activity, billing and entitlements;
 - application-service boundaries;
 - permission-policy interface;
+- data-classification primitives;
 - infrastructure interfaces for identity, storage, mail and payments;
 - mock/dev adapters where needed;
 - focused unit tests.
@@ -46,59 +47,89 @@ Exit gate: application compiles and core domain contracts are coherent without r
 
 ## Phase 2 — Framework vertical slice
 
-Implement one meaningful non-document workflow:
+Implement a meaningful non-document workflow:
 
 ```text
-Create organisation
+Create person account (development identity)
   ↓
-Create / invite user (development identity path)
+Create company
   ↓
-Create matter
+Create authorised company user
   ↓
-Add participant
+Create person/company relationship
   ↓
-Create action/request
+Create request/action for that relationship
   ↓
-Complete action/request
+Person sees Needs Action in their Info Center
   ↓
-Activity timeline records the state changes
+Person completes request/action
+  ↓
+Company sees completion
+  ↓
+Activity/audit records the state changes
 ```
 
 Also build:
 
-- client Info Center shell;
-- internal workspace shell;
+- Person Info Center shell;
+- Company Info Center/workspace shell;
+- relationship list/detail shell;
+- relationship lifecycle/status;
 - role/capability checks;
-- billing/entitlement domain skeleton;
+- company billing/entitlement domain skeleton;
 - admin shell;
 - responsive UI tests.
 
-Exit gate: framework demonstrates end-to-end domain flow without relying on the undecided document engine.
+Exit gate: framework demonstrates the Person ↔ Company ↔ Relationship flow without relying on the undecided document engine.
 
-## Phase 3 — Document engine design gate
+## Phase 3 — Privacy and permission proof
 
-Pause implementation expansion and design the legal document domain explicitly.
+Before adding sensitive document workflows, prove the access model with non-document fixtures.
+
+Validate:
+
+- one company cannot access another company's relationships;
+- one person cannot access another person's relationship data;
+- company membership does not imply universal sensitive-record access;
+- role/capability restrictions are server enforced;
+- relationship termination revokes active relationship capabilities as intended;
+- the person's account remains independent after relationship termination;
+- privileged changes generate audit events;
+- sensitive fields are not unnecessarily logged.
+
+Exit gate: tenancy, relationship scoping and least-privilege rules are coherent enough to support the document-engine design.
+
+## Phase 4 — Document engine design gate
+
+Pause document implementation expansion and design the legal/employment document domain explicitly.
 
 Topics to approve before coding:
 
-- document ownership;
-- matter relationship;
-- versioning;
-- upload/request/share lifecycle;
+- personal vs company vs relationship-context records;
+- legal/control language versus technical storage ownership;
+- document lifecycle;
+- request/upload/share distinctions;
+- relationship to a person/company relationship;
+- optional future legal matter/case context;
+- versioning, replacement and supersession;
 - recipient identity and access;
+- company role access;
 - view/download controls;
 - expiry/revocation;
-- acknowledgements;
-- audit evidence;
+- acknowledgement/receipt/evidence;
+- audit requirements for sensitive access;
+- data classification;
 - retention/destruction;
+- former-employee access/offboarding;
 - object storage model;
 - quarantine/malware workflow;
-- legal-specific metadata;
-- future signing/redaction boundaries.
+- legal/employment-specific metadata;
+- future signing/redaction boundaries;
+- POPIA/privacy operating requirements requiring legal review.
 
 Only after approval should the document module/service contract be finalised.
 
-## Phase 4 — Dedicated Law development VM
+## Phase 5 — Dedicated Law development VM
 
 Provision when real integrations become useful.
 
@@ -114,28 +145,35 @@ Add:
 - payment sandbox and webhook ingress;
 - automated backups;
 - restore testing;
-- external link/access testing.
+- external link/access testing;
+- security/access logging appropriate to the approved document design.
 
 The existing NUC is not the runtime target.
 
-## Phase 5 — Commercial and security hardening
+## Phase 6 — Commercial, POPIA and security hardening
 
 Before production:
 
 - payment production configuration;
 - MFA policy;
 - session/security review;
-- tenant isolation tests;
+- company/tenant isolation tests;
+- relationship isolation tests;
 - privilege-escalation tests;
+- sensitive-role access matrix review;
 - upload/download abuse tests;
 - rate limiting;
 - backup/restore rehearsal;
 - disaster recovery drill;
+- incident/breach-response runbook review;
 - log/monitoring baseline;
-- data retention approval;
-- privacy/legal review;
+- data classification/retention approval;
+- privacy notice and processing-role review;
+- operator/sub-processor arrangements where applicable;
+- data-subject/access/correction workflow review where applicable;
 - production secrets management;
-- vulnerability/dependency review.
+- vulnerability/dependency review;
+- formal legal/compliance review before relying on the platform for regulated production data.
 
 ## Build sequence rule
 
@@ -144,7 +182,7 @@ Prefer vertical slices over building every database table first.
 A feature is considered complete only when its:
 
 - domain rule;
-- permission rule;
+- permission/privacy rule;
 - persistence or adapter contract;
 - UI state;
 - activity/audit consequence;
