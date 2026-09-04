@@ -2,7 +2,7 @@
 
 ## Objective
 
-Maximise useful implementation before provisioning infrastructure, while preserving production-grade boundaries so the VM phase is integration rather than rewrite.
+Maximise useful implementation before provisioning infrastructure, while preserving production-grade privacy/security boundaries so the VM phase is integration rather than rewrite.
 
 ## Safe code tranche A — foundation
 
@@ -24,68 +24,107 @@ No infrastructure compromise is required for this work.
 
 Build domain/application logic for:
 
-### Organisations
+### People
 
-- organisation lifecycle;
-- membership;
-- role/capability assignment interfaces;
-- status.
-
-### Users / actors
-
-- local actor mapping;
+- persistent person account/domain record;
 - profile/preferences required by the app;
-- development identity provider adapter.
+- account status;
+- development identity provider adapter;
+- Person Info Center projection interfaces.
 
-### Matters
+Do not couple a person's login lifecycle to an employer/company relationship.
 
-- create/update/status;
-- participant relationships;
-- matter visibility policy interfaces.
+### Companies
+
+- company lifecycle/status;
+- company users/membership;
+- role/capability assignment interfaces;
+- billing owner context;
+- Company Info Center projection interfaces.
+
+### Person / Company Relationships
+
+- create relationship;
+- relationship type/status;
+- approved contextual metadata;
+- start/end lifecycle;
+- active/former relationship distinction;
+- server-side relationship visibility policy interfaces;
+- offboarding state transition;
+- activity generation.
+
+Do not delete the person account when a relationship ends.
 
 ### Requests / actions
 
 - create/assign/complete/cancel/expire state model;
 - due dates where approved;
-- matter linkage;
+- company/person relationship linkage;
+- response metadata without implementing the final document attachment model;
 - activity generation.
 
 ### Activity / audit
 
-- append-only event interface;
+- append-oriented event interface;
 - user-friendly activity projections;
-- actor/resource/context metadata.
+- actor/company/person/relationship/resource context metadata;
+- sensitivity/access event hooks for later document design.
 
 ### Billing / entitlements
 
 - products;
 - prices;
-- subscriptions;
+- company subscriptions;
 - payment-record domain;
 - entitlement grants/limits;
 - fake gateway adapter for tests.
 
+Initial commercial assumption:
+
+- person account: free;
+- company workspace: paid.
+
 Do not hard-code final commercial package values while the product model is still being designed.
+
+### Data classification
+
+Safe to define the framework concept and working labels:
+
+- public;
+- internal;
+- personal;
+- sensitive;
+- highly sensitive.
+
+Do not use this as a substitute for the later approved legal/document taxonomy.
 
 ## Safe code tranche C — UI
 
 Build against development fixtures/adapters:
 
-- client Info Center;
-- My Matters list;
-- matter detail shell;
-- needs-action panel;
+### Person side
+
+- Person Info Center;
+- Needs Action panel;
+- My Information shell;
+- My Companies / Employment Relationships list;
+- relationship detail shell;
 - request/action views;
 - recent activity;
-- account shell;
+- account shell.
+
+### Company side
+
+- Company Info Center;
+- People / Employees list;
+- person relationship detail shell;
+- company-user/role administration;
+- requests/actions dashboard;
+- recent activity/audit shell;
 - billing/subscription shell;
-- internal workspace shell;
-- matters administration;
-- clients/organisation administration;
-- users/role administration;
 - generic admin settings shell.
 
-The document navigation entry can remain hidden/reserved until the document domain is approved.
+The document navigation entries can remain hidden/reserved until the document domain is approved.
 
 ## Safe code tranche D — permission system
 
@@ -93,11 +132,21 @@ Build and test:
 
 - capability registry for approved non-document capabilities;
 - policy evaluation interface;
-- organisation membership checks;
-- matter access checks;
+- company membership checks;
+- person/company relationship access checks;
+- role separation interfaces;
 - admin privilege checks;
+- sensitivity/classification policy hook;
 - deny-by-default behaviour;
 - test matrix for horizontal/vertical access attempts.
+
+Specific tests should prove:
+
+- Company A cannot read Company B relationships.
+- Person A cannot read Person B relationship data.
+- A normal company user cannot gain access by changing route/body identifiers.
+- Company admin status does not bypass an explicit sensitive-resource policy.
+- An ended relationship can lose active capabilities without deleting historical context.
 
 This work must not depend on the identity provider vendor.
 
@@ -114,6 +163,8 @@ Define and test interfaces/adapters for:
 - job dispatcher.
 
 Development implementations may be in-memory/logging/filesystem where safe, provided domain code consumes only the interface.
+
+Do not put realistic sensitive employment/legal data into development fixtures. Use clearly synthetic examples.
 
 ## Optional local persistence
 
@@ -137,50 +188,58 @@ Move to the dedicated Law development VM before declaring these behaviours integ
 - backup automation;
 - restore drills;
 - infrastructure monitoring;
-- production-like secret management.
+- production-like secret management;
+- production-like sensitive-access logging.
 
 ## Document-engine stop line
 
-Before any document-engine implementation beyond neutral interfaces, complete and approve the legal document domain design.
+Before any document-engine implementation beyond neutral interfaces, complete and approve the legal/employment document domain design.
 
 That discussion must cover at minimum:
 
-1. ownership and tenancy;
-2. relationship to matters;
+1. personal vs company vs relationship-context records;
+2. technical storage ownership vs legal/control terminology;
 3. document/request/share distinctions;
-4. versioning and replacement;
-5. recipient model;
-6. access/view/download controls;
-7. expiry/revocation;
-8. acknowledgement/evidence requirements;
-9. audit trail;
-10. retention/destruction;
-11. upload quarantine/scanning;
-12. storage/index/checksum model;
-13. later signing/redaction boundaries.
+4. linkage to the person/company relationship;
+5. versioning, replacement and supersession;
+6. recipient model;
+7. company role access;
+8. access/view/download controls;
+9. expiry/revocation;
+10. acknowledgement/evidence requirements;
+11. audit trail and sensitive-view/download logging;
+12. data classification;
+13. retention/destruction/legal hold if required;
+14. former-employee/offboarding behaviour;
+15. upload quarantine/scanning;
+16. storage/index/checksum model;
+17. later signing/redaction boundaries;
+18. POPIA/privacy requirements requiring legal/compliance approval.
 
 ## Target pre-VM milestone
 
 A valuable first end-to-end workflow that does not depend on documents:
 
 ```text
-Development login
+Development person login
   ↓
-Create organisation
+Create company / company-user fixture
   ↓
-Create matter
+Create Person ↔ Company relationship
   ↓
-Add participant
+Company creates a request/action
   ↓
-Create request/action
+Person sees Needs Action
   ↓
-Client sees Needs Action
+Person completes the action
   ↓
-Client completes action
+Company sees completion
   ↓
-Matter timeline records it
+Activity/audit timeline records it
   ↓
-Entitlement/permission rules remain enforced
+End relationship
+  ↓
+Person account remains intact and active relationship access is revoked
 ```
 
 If that works cleanly, the application framework is ready for the document-engine design and subsequent VM integration.
