@@ -2,9 +2,9 @@
 
 ## Build philosophy
 
-Build as much of Juanity Law as possible before provisioning the dedicated runtime VM, **but do not fake production-critical boundaries in a way that creates later rewrites**.
+Build as much of Juanity Law as possible directly from the GitHub repository before provisioning a dedicated Law VM, **without weakening production-critical boundaries**.
 
-The Document Knowledge Engine V1 architecture is approved. Moodle and social/federated login are known future requirements, but they are **integration targets, not V1 runtime dependencies**.
+The Document Knowledge Engine V1 architecture is approved. Moodle and social/federated login are known future requirements, but they remain integration targets rather than V1 runtime dependencies.
 
 ## Phase 0 — Repository and design controls
 
@@ -17,14 +17,13 @@ Established:
 - configurable/versioned record definitions;
 - company membership and multi-role access;
 - external Legal Access grants;
-- email-first identity and Governance model;
-- stable internal Account identity direction;
+- email-first identity with stable internal Account IDs;
+- Governance (`/governance`) privileged surface;
+- private S3-compatible production storage direction;
 - 3-click / 10-second routine-action UX rule;
-- stack design;
 - Info Center UI direction;
 - security/privacy invariants;
 - disaster recovery plan;
-- prompt capture and decision log;
 - future Moodle/social-login integration boundaries.
 
 ## Phase 1 — Application and identity skeleton
@@ -46,9 +45,7 @@ Build:
 - Person, Company and Governance route shells;
 - no generic `/admin` route.
 
-Important: do not make email the database primary key and do not make domain code assume password-only authentication.
-
-Social-provider credentials/buttons are deferred. The V1 requirement is only that the identity model can support linked providers later without changing Person/Company relationships.
+Social-provider credentials/buttons are deferred. The V1 requirement is that linked providers can be added later without changing Person/Company/Record keys.
 
 ## Phase 2 — Company membership and access
 
@@ -57,7 +54,7 @@ Implement:
 ```text
 Create company
   ↓
-Create company Owner member
+Create Owner member
   ↓
 Owner assigns required functional roles to self
   ↓
@@ -67,24 +64,12 @@ Assign one or more approved roles
   ↓
 Invitation accepted into stable Juanity account
   ↓
-Role-limited company workspace projected
+Role-limited workspace projected
   ↓
 Role/membership events audited
 ```
 
-Build:
-
-- CompanyMember;
-- many-to-many functional role grants;
-- Owner governance capability;
-- HR / Payroll / Clerk / Legal / Manager / Billing working role concepts;
-- role grant/revocation;
-- membership disable/removal;
-- active access re-evaluation hooks;
-- Team & Access UI;
-- negative access tests.
-
-Exit gate: one-person and multi-person companies both work without special-case architecture.
+Build CompanyMember, many-to-many functional roles, Owner governance capability, role revocation, membership disable/removal and Team & Access UI.
 
 ## Phase 3 — Person / Company relationship and Info Centers
 
@@ -98,14 +83,12 @@ Implement:
 - Company Info Center;
 - employee/person profile in company workspace;
 - relationship activity timeline;
-- relationship offboarding without deleting the Person account;
-- requests/actions foundation where useful.
-
-Exit gate: Person ↔ Company relationships and profile projections work with synthetic data and server-side isolation.
+- offboarding without deleting the Person account;
+- request/action foundation where useful.
 
 ## Phase 4 — Governance and configurable knowledge policy
 
-Implement restricted `/governance` surface and domain:
+Implement restricted `/governance` capability surface and:
 
 - RecordDefinition;
 - immutable/versioned RecordDefinitionVersion;
@@ -120,14 +103,13 @@ Implement restricted `/governance` surface and domain:
 - acknowledgement/Needs Action policy;
 - notification policy;
 - active/inactive definitions;
-- Governance capability checks;
 - definition-policy audit.
 
-Synthetic definitions such as Payslip, Proof of Address and BEE Certificate may be seeded for demonstration, but their behaviour must come from configuration rather than hard-coded engine branches.
+Synthetic examples may be seeded, but behaviour must come from configuration rather than hard-coded engine branches.
 
 ## Phase 5 — Document Knowledge Engine V1
 
-Implement the approved V1 model:
+Implement:
 
 ```text
 RecordDefinitionVersion
@@ -145,200 +127,121 @@ Profile projection
 Access + Activity/Audit
 ```
 
-Build:
+Build record/file metadata, immutable definition binding, context constraints, provider-neutral storage interface, opaque storage keys, upload-processing/scan interface, checksum metadata, retention/review derivation, replacement links, profile projections and contextual Add Record flow.
 
-- Record metadata model;
-- RecordFile metadata model;
-- immutable definition-version binding;
-- context constraints;
-- storage adapter interface;
-- upload-processing/scan interface;
-- checksum metadata;
-- derived `retain_until`;
-- derived `review_due_at`;
-- replacement/supersession link;
-- Person profile record projection;
-- Company employee-profile record projection;
-- contextual `Add record` flow;
-- Needs Action/review-due projection;
-- audit events for create/view/download where approved.
-
-Target common flow:
-
-```text
-Employee profile
-  ↓
-Add record
-  ↓
-Choose definition + file
-  ↓
-Save
-  ↓
-Person profile updates
-  ↓
-Authorised company roles can view
-```
-
-Keep this within the 3-click / 10-second routine-action target where file selection/upload time is excluded.
+The production storage target is private S3-compatible object storage separate from the application host. Pre-VM/NUC development may use an in-memory or explicit development adapter.
 
 ## Phase 6 — External Legal Access
 
-Implement:
-
-- LegalAccessGrant;
-- grantor / represented party;
-- PersonCompanyRelationship scope;
-- record/category/definition scope;
-- view/download capability;
-- start/expiry/revocation;
-- restricted Legal Access view;
-- audit;
-- negative tests proving the grant cannot escape its relationship/scope/expiry.
-
-Legal professionals do not become company members solely to view granted records.
+Implement LegalAccessGrant, represented party, relationship scope, record/category/definition scope, view/download capability, expiry/revocation, restricted Legal Access view and negative scope tests.
 
 ## Phase 7 — Privacy and permission proof
 
-Before production-style infrastructure integration, validate with synthetic data:
+Validate with synthetic data:
 
 - Company A cannot access Company B data;
 - Person A cannot access Person B records;
 - company membership alone does not expose every record;
-- Owner without HR/Payroll/Legal does not inherit those record permissions;
-- multi-role member receives only intended combined access;
+- Owner without HR/Payroll/Legal does not inherit those permissions;
+- multi-role members receive only intended combined access;
 - role revocation removes access;
 - removed/disabled company member loses access;
-- definition version changes do not rewrite historic record policy;
-- legal grants remain scoped and revocable;
+- definition changes do not rewrite historic record policy;
+- legal grants remain scoped/revocable;
 - normal/company users cannot access Governance;
-- sensitive values are not unnecessarily logged;
-- relationship offboarding preserves Person account and history appropriately.
+- relationship offboarding preserves the Person account;
+- unauthorised actors cannot resolve RecordFiles by changing identifiers;
+- object keys reveal no sensitive person/company/document naming data.
 
-## Phase 8 — Dedicated Law development VM
+## Phase 8 — Optional temporary NUC integration runtime
 
-Provision once the code foundation is coherent and real integrations become useful.
+The NUC may be used as a **temporary development/integration host** if a resource check shows enough disk, RAM and CPU headroom.
 
-Add:
+Start minimally:
+
+```text
+law-web
++
+PostgreSQL
+```
+
+Only add when justified and resources permit:
+
+```text
+S3-compatible dev storage
+Redis/BullMQ
+worker
+ClamAV
+```
+
+Rules:
+
+- synthetic data only;
+- no production dependency on the NUC;
+- no sole backup on the NUC;
+- do not treat NUC-local file storage as the production object-storage architecture;
+- stop adding services if existing workloads become unstable;
+- deployments remain reproducible from Git/configuration.
+
+See `docs/CODE-BEFORE-VM.md`.
+
+## Phase 9 — Dedicated Law development VM
+
+Use a dedicated VM when production-like integration becomes useful or the NUC no longer provides safe headroom.
+
+Add/validate:
 
 - PostgreSQL persistence;
 - real OIDC/email login/account recovery/MFA;
 - HTTPS/domain via Caddy;
-- persistent S3-compatible object storage;
-- upload quarantine/validation/malware scanning;
-- Redis/BullMQ if asynchronous jobs are needed;
+- persistent private S3-compatible storage;
+- quarantine/validation/malware scanning;
+- Redis/BullMQ where needed;
 - SMTP integration;
-- payment sandbox/webhook ingress;
-- automated backups;
-- restore testing;
+- payment sandbox/webhooks;
+- automated backups and restore testing;
 - external Legal Access invitation testing;
 - security/access logging.
 
-The existing NUC is not the runtime target.
+The dedicated VM remains the preferred production-like development environment even if the temporary NUC runtime works well.
 
-## Phase 9 — Social / federated login
+## Phase 10 — Social / federated login
 
-Later, when V1 identity is stable:
+Later configure approved Google/Microsoft/Apple-style providers through the identity-provider/broker boundary, with safe account linking to stable Juanity Accounts and no email-only auto-merge.
 
-- configure approved providers through the identity-provider/broker boundary;
-- add provider login options such as Google/Microsoft/Apple where approved;
-- link provider identities to stable Juanity Accounts;
-- implement secure account-link/unlink flows;
-- never auto-merge accounts solely from matching email addresses;
-- test invitation acceptance through linked-provider login;
-- apply the same MFA/step-up and Governance/company permissions after authentication.
+## Phase 11 — Moodle / company training and onboarding
 
-This phase should not require changing Person, CompanyMember, Relationship or Record ownership/context keys.
+Later add Moodle or another approved LMS behind SSO/API boundaries. Juanity remains authoritative for identity/company/relationship/access; Moodle owns courses/progress/assessment. Certificates imported into Juanity use the normal Record/RecordFile storage path.
 
-## Phase 10 — Moodle / company training and onboarding
-
-Later, add Moodle or another approved LMS behind a learning integration boundary.
-
-Target capabilities:
-
-- SSO from Juanity to LMS;
-- company assigns onboarding/training to an employee relationship;
-- course enrolment/assignment mapping;
-- progress/completion summary where required;
-- certification/result synchronisation;
-- Info Center `Training` / Needs Action projections;
-- certificate PDF ingestion into the normal Record engine where applicable;
-- training validity/review date where appropriate;
-- audit/integration references.
-
-Authority split:
-
-- Juanity: identity, company, relationship, permissions, entitlements, Info Center;
-- Moodle/LMS: courses, activities, assessment, progress and LMS-generated completion/certification.
-
-Do not copy the whole Moodle data model into Juanity.
-
-See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
-
-## Phase 11 — Commercial, POPIA and security hardening
+## Phase 12 — Commercial, POPIA and security hardening
 
 Before production:
 
 - payment production configuration;
 - final MFA/step-up policy;
 - session/security review;
-- company/tenant and relationship isolation tests;
-- privilege-escalation/IDOR review;
+- tenant/relationship/IDOR testing;
 - upload/download abuse tests;
 - rate limiting;
 - backup/restore rehearsal;
 - disaster recovery drill;
-- incident/breach-response runbook;
+- incident/breach runbook;
 - monitoring/logging baseline;
-- approved data classification/retention/destruction policy;
-- privacy notice and processing-role review;
-- operator/sub-processor arrangements where applicable;
-- data-subject/access/correction workflow review where applicable;
+- approved retention/destruction policy;
+- privacy/processing-role review;
+- sub-processor arrangements where applicable;
 - production secrets management;
 - dependency vulnerability review;
 - formal legal/compliance review before regulated production data.
 
 ## Build sequence rule
 
-Prefer vertical slices over building every table first.
-
-A feature is complete only when its:
-
-- domain rule;
-- configurable policy where applicable;
-- permission/privacy rule;
-- persistence/adapter contract;
-- UI projection;
-- activity/audit consequence;
-- focused positive and negative tests
-
-are understood together.
-
-## Future-readiness rule
-
-Do not overbuild future features. Prepare them by choosing stable boundaries now:
-
-```text
-stable Account ID
-+ provider-linked identities
-+ integration adapters
-+ Person/Company/Relationship context
-+ normal Record engine
-```
-
-This is sufficient preparation for both social login and Moodle without adding their runtime complexity to V1.
+Prefer vertical slices over building every table first. A feature is complete only when domain rule, configurable policy, permissions/privacy, persistence/adapter contract, UI projection, audit consequence and focused positive/negative tests are understood together.
 
 ## 3-click / 10-second validation
 
-For high-frequency routine workflows, check:
+For high-frequency workflows, verify the user can start from the relevant context, complete the routine path within three deliberate clicks/taps where safe, rely on Governance defaults rather than repeated policy configuration, and retain required security/legal steps.
 
-- can the user start from the relevant context?
-- is the routine action within three deliberate clicks/taps?
-- are defaults supplied by Governance configuration?
-- is the flow clear on desktop/tablet/mobile?
-- have required security/legal steps been preserved?
+## Guiding deployment rule
 
-This is a usability target, not a reason to remove safeguards.
-
-## Validation economy
-
-Use the smallest validation set that provides confidence for the change. Repository-wide exhaustive checks are reserved for releases, migrations, dependency changes and broad refactors.
+**Use the NUC as a temporary accelerator only if it has headroom; build Juanity so moving to the dedicated Law VM is deployment, not redesign.**
