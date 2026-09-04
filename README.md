@@ -35,6 +35,7 @@ The existing NUC is not a Juanity Law runtime target.
 - [`docs/APPLICATION-FRAMEWORK.md`](docs/APPLICATION-FRAMEWORK.md) — app/domain frame
 - [`docs/STACK-DESIGN.md`](docs/STACK-DESIGN.md) — proposed technical stack
 - [`docs/BUILD-PLAN.md`](docs/BUILD-PLAN.md) — phased implementation plan
+- [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md) — code that can be built safely before the dedicated VM
 - [`docs/DEVELOPMENT-GUARDRAILS.md`](docs/DEVELOPMENT-GUARDRAILS.md) — build constraints and approval gates
 - [`docs/UI-DESIGN-SYSTEM.md`](docs/UI-DESIGN-SYSTEM.md) — Info Center inspired UI direction
 - [`docs/SECURITY-FOUNDATION.md`](docs/SECURITY-FOUNDATION.md) — security invariants
