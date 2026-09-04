@@ -37,10 +37,35 @@ Do not couple a person's login lifecycle to an employer/company relationship.
 ### Companies
 
 - company lifecycle/status;
-- company users/membership;
+- company members/membership;
+- invitation state model;
 - role/capability assignment interfaces;
-- billing owner context;
+- billing owner/governance context;
 - Company Info Center projection interfaces.
+
+### Company membership and functional roles
+
+Build the framework so:
+
+- one company member may hold many functional roles;
+- one functional role may be held by many members;
+- `OWNER` is a governance role rather than an automatic sensitive-data bypass;
+- an owner may assign approved roles to themselves;
+- an owner may invite/remove company staff and grant/revoke approved roles;
+- role/membership events produce audit events;
+- disabling a member revokes active company capabilities.
+
+Working synthetic roles may include:
+
+- Owner;
+- HR;
+- Payroll;
+- Clerk / Records;
+- Legal;
+- Manager;
+- Billing.
+
+Do not hard-code these as an unchangeable final role catalogue; use a controlled role-definition/capability boundary suitable for Juanity Platform Admin.
 
 ### Person / Company Relationships
 
@@ -55,11 +80,31 @@ Do not couple a person's login lifecycle to an employer/company relationship.
 
 Do not delete the person account when a relationship ends.
 
+### Configurable definitions
+
+Safe to build the policy/configuration framework for:
+
+- `RecordDefinition` identity and metadata;
+- `RequestDefinition` / workflow-definition primitives;
+- category/context/direction fields;
+- classification reference;
+- allowed functional-role policy references;
+- acknowledgement/Needs Action/notification flags or policy hooks;
+- active/inactive lifecycle;
+- immutable/versioned definition records;
+- create-new-version workflow;
+- audit events for definition changes.
+
+Important: this is a **configuration/policy layer**, not the final document storage engine.
+
+Do not implement final record object storage, legal retention execution or external share semantics yet.
+
 ### Requests / actions
 
 - create/assign/complete/cancel/expire state model;
 - due dates where approved;
 - company/person relationship linkage;
+- link to a versioned request/workflow definition where used;
 - response metadata without implementing the final document attachment model;
 - activity generation.
 
@@ -68,6 +113,8 @@ Do not delete the person account when a relationship ends.
 - append-oriented event interface;
 - user-friendly activity projections;
 - actor/company/person/relationship/resource context metadata;
+- company membership/role events;
+- definition/version events;
 - sensitivity/access event hooks for later document design.
 
 ### Billing / entitlements
@@ -118,13 +165,31 @@ Build against development fixtures/adapters:
 - Company Info Center;
 - People / Employees list;
 - person relationship detail shell;
-- company-user/role administration;
+- contextual `Request info` and reserved `Add record` actions;
+- Company Members list;
+- Invite Staff flow;
+- multi-select functional-role assignment;
+- owner self-role management;
 - requests/actions dashboard;
 - recent activity/audit shell;
 - billing/subscription shell;
 - generic admin settings shell.
 
-The document navigation entries can remain hidden/reserved until the document domain is approved.
+### Juanity Platform Admin
+
+Safe to build a configuration UI shell for:
+
+- Record Definitions;
+- Request / Workflow Definitions;
+- Categories;
+- Functional Roles / Capability Defaults;
+- definition versions;
+- activate/deactivate actions;
+- Products / Entitlements.
+
+Use synthetic example definitions only. Do not represent example policy as legal approval.
+
+The final record/document navigation and file behaviours can remain hidden/reserved until the document storage domain is approved.
 
 ## Safe code tranche D — permission system
 
@@ -133,8 +198,9 @@ Build and test:
 - capability registry for approved non-document capabilities;
 - policy evaluation interface;
 - company membership checks;
+- many-to-many functional role grants;
 - person/company relationship access checks;
-- role separation interfaces;
+- definition-policy hooks;
 - admin privilege checks;
 - sensitivity/classification policy hook;
 - deny-by-default behaviour;
@@ -145,8 +211,12 @@ Specific tests should prove:
 - Company A cannot read Company B relationships.
 - Person A cannot read Person B relationship data.
 - A normal company user cannot gain access by changing route/body identifiers.
-- Company admin status does not bypass an explicit sensitive-resource policy.
-- An ended relationship can lose active capabilities without deleting historical context.
+- `OWNER` without an HR/Payroll/Legal functional role does not automatically receive those role-specific capabilities.
+- One member can hold several roles and receives the combined authorised capabilities without duplicate accounts.
+- Revoking a role removes the corresponding capability.
+- Disabling a company member removes active company access.
+- An ended person/company relationship can lose active capabilities without deleting historical context.
+- Editing a definition creates a new version instead of silently mutating old policy.
 
 This work must not depend on the identity provider vendor.
 
@@ -166,6 +236,23 @@ Development implementations may be in-memory/logging/filesystem where safe, prov
 
 Do not put realistic sensitive employment/legal data into development fixtures. Use clearly synthetic examples.
 
+## 3-click / 10-second pre-VM UI proof
+
+We can validate common fixture workflows before the VM.
+
+Target paths:
+
+```text
+Company Members → Invite → Staff + roles → Send
+Relationship → Request → Request type → Send
+Needs Action → Provide → Use existing/upload placeholder → Submit
+Relationship → Add record → Definition/file placeholder → Send
+```
+
+The record file operation itself may remain mocked/reserved, but the interaction architecture can be proven.
+
+The rule excludes substantial typing, file upload duration, legal reading and justified security steps.
+
 ## Optional local persistence
 
 If a developer workstation can comfortably run PostgreSQL, use it for migration/integration validation. The codebase must not require the existing NUC.
@@ -177,7 +264,7 @@ A temporary SQLite substitution is **not** preferred if it would hide PostgreSQL
 Move to the dedicated Law development VM before declaring these behaviours integrated:
 
 - real OIDC login/account recovery/MFA;
-- real outbound email;
+- real outbound email invitations;
 - real payment sandbox callbacks/webhooks;
 - public webhook ingress;
 - persistent S3-compatible object storage;
@@ -193,41 +280,44 @@ Move to the dedicated Law development VM before declaring these behaviours integ
 
 ## Document-engine stop line
 
-Before any document-engine implementation beyond neutral interfaces, complete and approve the legal/employment document domain design.
+Before final record/document storage implementation, complete and approve the legal/employment document domain design.
 
-That discussion must cover at minimum:
+The surrounding configuration engine is now an approved direction, but the remaining discussion must cover at minimum:
 
-1. personal vs company vs relationship-context records;
-2. technical storage ownership vs legal/control terminology;
-3. document/request/share distinctions;
-4. linkage to the person/company relationship;
-5. versioning, replacement and supersession;
-6. recipient model;
-7. company role access;
-8. access/view/download controls;
-9. expiry/revocation;
-10. acknowledgement/evidence requirements;
-11. audit trail and sensitive-view/download logging;
-12. data classification;
-13. retention/destruction/legal hold if required;
-14. former-employee/offboarding behaviour;
-15. upload quarantine/scanning;
-16. storage/index/checksum model;
-17. later signing/redaction boundaries;
-18. POPIA/privacy requirements requiring legal/compliance approval.
+1. personal vs company vs relationship-context record instances;
+2. how a record instance binds/snapshots its definition version;
+3. technical storage ownership vs legal/control terminology;
+4. document/request/share distinctions;
+5. linkage to the person/company relationship;
+6. versioning, replacement and supersession of record contents;
+7. recipient model;
+8. company functional-role access;
+9. access/view/download controls;
+10. expiry/revocation;
+11. acknowledgement/evidence requirements;
+12. audit trail and sensitive-view/download logging;
+13. data classification;
+14. retention/destruction/legal hold if required;
+15. former-employee/offboarding behaviour;
+16. upload quarantine/scanning;
+17. storage/index/checksum model;
+18. later signing/redaction boundaries;
+19. POPIA/privacy requirements requiring legal/compliance approval.
 
 ## Target pre-VM milestone
 
-A valuable first end-to-end workflow that does not depend on documents:
+A valuable first end-to-end framework workflow:
 
 ```text
-Development person login
+Development company owner login
   ↓
-Create company / company-user fixture
+Owner assigns HR/Payroll/etc. roles to self
+  ↓
+Owner invites another company member and assigns role(s)
   ↓
 Create Person ↔ Company relationship
   ↓
-Company creates a request/action
+Authorised role creates a definition-driven request/action
   ↓
 Person sees Needs Action
   ↓
@@ -237,9 +327,11 @@ Company sees completion
   ↓
 Activity/audit timeline records it
   ↓
-End relationship
+Revoke a company role and prove access changes
+  ↓
+End person/company relationship
   ↓
 Person account remains intact and active relationship access is revoked
 ```
 
-If that works cleanly, the application framework is ready for the document-engine design and subsequent VM integration.
+If that works cleanly, the application framework is ready for final document-engine storage design and subsequent VM integration.
