@@ -118,17 +118,21 @@ Default direction:
 - may represent the Company or the Person;
 - no unrelated company or personal-profile access.
 
-## 7. Email identity from the start
+## 7. Identity: email-first, stable internal account
 
-Email address is the primary login/sign-up identifier.
+Email address is the primary human-facing login/sign-up/contact identifier.
 
 There is no separate normal-user username requirement.
 
-Identity remains behind an OIDC-compatible provider boundary. The application must not implement password cryptography itself.
+**Do not use email as the permanent database identity or primary key for Person/Account.**
+
+Use a stable internal Account ID and keep authentication providers behind an OIDC-compatible identity boundary.
 
 Architecture requirements:
 
-- verified email before sensitive workspace access;
+- stable internal `Account` identifier;
+- verified primary email;
+- `AccountIdentity`-style provider links;
 - email-based invitations;
 - secure account recovery;
 - MFA capability from day one;
@@ -136,7 +140,13 @@ Architecture requirements:
 - Company Owner, HR, Payroll and Legal should default to MFA-required production policy unless explicitly approved otherwise;
 - privilege revocation must support active-session/access invalidation.
 
-See `docs/AUTHENTICATION-AND-GOVERNANCE.md`.
+Future social/federated providers such as Google, Microsoft or Apple must attach to the existing Account rather than creating parallel Person/company records.
+
+Never silently merge Juanity accounts solely because two identity providers report the same email. Provider linking requires an authenticated/verified flow.
+
+Do not scatter provider-specific claims/logic into domain modules.
+
+See `docs/AUTHENTICATION-AND-GOVERNANCE.md` and `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
 ## 8. Governance, not `/admin`
 
@@ -156,7 +166,41 @@ The route name is not a security control. Governance requests require:
 
 Avoid one ordinary universal `SUPERADMIN` operating model. Use specific Governance capabilities/roles. Any future break-glass access requires separate explicit design.
 
-## 9. Build style
+## 9. Future Moodle / learning boundary
+
+Moodle/company training is a **future integration**, not part of Document Knowledge Engine V1 runtime.
+
+The expected authority split is:
+
+```text
+Juanity
+- identity/account
+- companies/members
+- PersonCompanyRelationship
+- entitlements/access
+- Info Center
+
+Moodle / LMS
+- courses/content
+- learning activities
+- assessments
+- progress
+- LMS-generated completion/certification
+```
+
+Future integration rules:
+
+- use SSO/provider-neutral integration rather than requiring an unrelated second Juanity password;
+- external Moodle user/course/completion IDs are integration references, never Juanity primary keys;
+- training assignments/results may attach to Person / Company / Relationship context;
+- synchronise only approved summary/result data needed by Juanity;
+- do not copy the entire Moodle schema/telemetry into Juanity;
+- certificate PDFs imported into Juanity must use the normal Record/RecordFile engine, not an LMS-specific document store;
+- V1 may define provider-neutral interfaces/schema seams but must not install/configure Moodle without an approved later task.
+
+See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
+
+## 10. Build style
 
 Prefer a modular monolith first.
 
@@ -166,11 +210,12 @@ Prefer a modular monolith first.
 - Keep billing gateways behind adapters.
 - Keep identity behind an OIDC/session boundary.
 - Keep storage behind an object-storage interface.
+- Keep future LMS/external-system work behind integration adapters.
 - Treat permissions, company membership/role grants, definitions, legal grants, classification and audit/activity as first-class domain capabilities.
 
 Do not introduce microservices, Kubernetes, Elasticsearch, event streaming or similar infrastructure without demonstrated need.
 
-## 10. No hard-coded business values
+## 11. No hard-coded business values
 
 Product-controlled values belong in Governance/configuration data where practical. System invariants may remain in code.
 
@@ -187,7 +232,7 @@ Examples of configurable values:
 
 No-hardcoding does **not** mean every security invariant becomes configurable.
 
-## 11. Security and privacy invariants
+## 12. Security and privacy invariants
 
 Juanity Law is expected to carry sensitive employment/legal information.
 
@@ -209,7 +254,7 @@ Do not log salary, banking details, ID values, disciplinary/legal narrative, doc
 
 The architecture should support a POPIA-aware operating model, but do not claim technical implementation alone equals legal compliance.
 
-## 12. Person independence and offboarding
+## 13. Person independence and offboarding
 
 A person's account is independent from a company relationship.
 
@@ -227,7 +272,9 @@ Historical/audit context preserved according to policy
 
 Company-member removal is separate and revokes company capabilities while preserving historical attribution/audit.
 
-## 13. 3-click / 10-second rule
+Future Moodle enrolment/training access must also respond appropriately when a PersonCompanyRelationship ends; do not make LMS membership the source of relationship truth.
+
+## 14. 3-click / 10-second rule
 
 Frequent routine actions should normally be reachable from relevant context in no more than **three deliberate clicks/taps** and be completable in **about ten seconds**, excluding substantial typing, file selection/upload, reading legal content or required security steps.
 
@@ -237,16 +284,19 @@ Examples:
 - Relationship → Request → request type → Send
 - Company Members → Invite → member + roles → Send
 - Relationship → Grant Legal Access → recipient/scope/expiry → Send
+- Future: Employee → Assign training → course → Send
 
 Use contextual actions and smart defaults rather than removing security controls.
 
-## 14. Development environment constraint
+## 15. Development environment constraint
 
 The existing NUC is not a Juanity Law runtime target.
 
 Build the codebase, domain model, UI and lightweight tests before the dedicated VM where this does not compromise production-critical boundaries. Real persistent object storage, malware scanning, production-style OIDC/MFA, outbound mail, payment webhooks, HTTPS, external-access testing, backup automation and disaster recovery belong on the dedicated Law development VM.
 
-## 15. Validation discipline
+Moodle and production social-login providers are later integration phases and must not be added to the initial runtime merely for future readiness.
+
+## 16. Validation discipline
 
 Use focused validation proportional to the change.
 
@@ -272,11 +322,21 @@ For roles/definitions/records test at minimum:
 - legal grant cannot exceed its relationship/scope/expiry;
 - Governance access cannot be reached by normal company roles.
 
-## 16. Approval gates that remain
+For identity-link work, test at minimum:
+
+- changing email does not change the Juanity Account/Person ID;
+- one Account can hold multiple provider identities;
+- provider subject uniqueness prevents cross-account collision;
+- matching email alone does not silently merge two accounts;
+- invitation acceptance resolves to the authenticated stable Account only after approved verification.
+
+## 17. Approval gates that remain
 
 Do not silently expand scope around:
 
 - production identity-provider deployment/configuration;
+- enabling specific social/federated providers and their credentials;
+- Moodle/LMS deployment, SSO or API integration;
 - payment provider selection/production wiring;
 - approved legal retention/destruction/legal-hold policy values;
 - encryption/key-management architecture;
@@ -286,18 +346,22 @@ Do not silently expand scope around:
 - e-signature/redaction/OCR additions;
 - major dependency/framework replacement.
 
-## 17. UI direction
+## 18. UI direction
 
-Primary experiences:
+Primary V1 experiences:
 
 - Person Info Center;
 - Company Info Center/workspace;
 - restricted Legal Access view;
 - restricted Juanity Governance.
 
+Future surface:
+
+- Training / onboarding / certification, surfaced through the same Info Center language rather than a disconnected product.
+
 Use light, information-first surfaces, visible Needs Action states, contextual actions, clear role/access presentation, responsive layouts and careful sensitive-data handling. Dark mode is not an initial requirement.
 
-## 18. Prompt and decision capture
+## 19. Prompt and decision capture
 
 Significant implementation prompts and accepted decisions must be added to `prompts/` and `docs/DECISION-LOG.md`.
 
