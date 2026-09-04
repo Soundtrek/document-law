@@ -5,8 +5,8 @@ import type {
   PersonCompanyRelationship,
   RecordDefinitionVersion,
   RecordEntry,
-} from "./model.js";
-import { canCompanyMemberViewRecord, canLegalProfessionalViewRecord, canPersonViewRecord, shouldFlagReview } from "./policy.js";
+} from "./model";
+import { canCompanyMemberViewRecord, canLegalProfessionalViewRecord, canPersonViewRecord, shouldFlagReview } from "./policy";
 
 export interface RecordProjection {
   readonly record: RecordEntry;
