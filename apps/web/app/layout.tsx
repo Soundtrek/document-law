@@ -20,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               <span>Document Knowledge System</span>
             </Link>
             <nav aria-label="Development navigation" className="top-nav">
+              <Link href="/sign-in">Sign in</Link>
               <Link href="/person">Person</Link>
               <Link href="/company">Company</Link>
               <Link href="/legal-access">Legal Access</Link>
