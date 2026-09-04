@@ -4,7 +4,7 @@
 
 Use a conservative, self-hostable stack that supports sensitive employment/legal workflows without forcing early infrastructure complexity.
 
-The stack must support strong company isolation, person independence, relationship-scoped access, auditability and later secure document handling.
+The stack must support strong company isolation, person independence, relationship-scoped access, auditability, secure document handling, future federated/social login and later LMS integration without requiring a core rewrite.
 
 ## Proposed application stack
 
@@ -14,7 +14,7 @@ The stack must support strong company isolation, person independence, relationsh
 | Styling | Tailwind CSS + accessible component primitives | Consistent responsive UI without a heavy bespoke design framework |
 | Database | PostgreSQL | Strong relational model, transactions, indexing and audit-friendly data |
 | ORM / migrations | Prisma | Type-safe data access and explicit schema migrations |
-| Identity boundary | OIDC-compatible provider; Keycloak is the leading self-hosted option | Avoid application-owned password/auth complexity |
+| Identity boundary | OIDC-compatible provider; Keycloak is the leading self-hosted option | Email login now; broker/federate approved social providers later without domain coupling |
 | Object storage | S3-compatible API | Decouple application code from storage provider/location |
 | Background jobs | BullMQ | Simple Node/TypeScript worker path for future heavy jobs |
 | Queue | Redis | BullMQ coordination; add only when asynchronous jobs are needed |
@@ -23,6 +23,7 @@ The stack must support strong company isolation, person independence, relationsh
 | Reverse proxy / TLS | Caddy | Simple HTTPS and routing on the dedicated VM |
 | Packaging | Docker / Docker Compose | Repeatable development and initial deployment |
 | Payments | Gateway adapter layer | Keep provider-specific webhooks/API logic outside product entitlements |
+| Future learning | Moodle or another approved LMS behind SSO/API integration boundary | Keep learning delivery separate from Juanity core identity/documents |
 
 ## Initial process topology
 
@@ -47,6 +48,15 @@ law-web/API ──> queue ──> law-worker
  PostgreSQL              storage/scan
 ```
 
+Moodle is not part of the initial runtime. A later topology may add it as a separate service/integration:
+
+```text
+Juanity Law ── SSO/API ──> Moodle
+     │                      │
+ identity/company/          courses/progress/
+ relationship authority    assessments/certification
+```
+
 ## Repository layout target
 
 ```text
@@ -63,9 +73,11 @@ law-web/API ──> queue ──> law-worker
 │   ├── requests/
 │   ├── permissions/
 │   ├── classification/
+│   ├── records/
 │   ├── audit/
 │   ├── billing/
 │   ├── storage/
+│   ├── integrations/       # future provider/LMS adapters; no domain authority
 │   └── ui/
 ├── infrastructure/
 │   ├── docker/
@@ -74,19 +86,23 @@ law-web/API ──> queue ──> law-worker
 └── prompts/
 ```
 
-The document package/service is intentionally not named here until its domain boundary is approved.
-
 A future `matters/` or `cases/` package is added only if an actual legal workflow requires it; it is not a mandatory root domain.
 
 ## Core relational direction
 
-At framework level, PostgreSQL should be able to represent:
+PostgreSQL should represent stable Juanity identities independently from login provider details:
 
 ```text
+Account
+AccountIdentity
 Person
 Company
-CompanyUser / CompanyMembership
+CompanyMember / CompanyMembership
+FunctionalRoleGrant
 PersonCompanyRelationship
+RecordDefinition / RecordDefinitionVersion
+Record / RecordFile
+LegalAccessGrant
 Request / Action
 ActivityEvent
 Product / Price
@@ -94,9 +110,9 @@ CompanySubscription
 Entitlement
 ```
 
-This is not the final database schema. It establishes the dependency direction only.
+`Account.id` / `Person.id` are stable Juanity identifiers. Email and external-provider identifiers are attributes/links, not replacement primary keys.
 
-Do not model sensitive document records until the document-engine design gate is approved.
+Future Moodle/user/course identifiers are integration references and must not replace Juanity primary keys.
 
 ## Adapter boundaries
 
@@ -104,7 +120,16 @@ Do not model sensitive document records until the document-engine design gate is
 
 Application code asks for an authenticated actor. Provider-specific OIDC claims are translated at the edge.
 
-The identity provider authenticates the account; Juanity Law determines company membership, relationship context and product permissions.
+The identity provider authenticates the account; Juanity Law determines company membership, relationship context, Governance capabilities, legal access and product permissions.
+
+Identity architecture must support:
+
+- email-based login now;
+- multiple linked external identities later;
+- provider/broker integration for Google/Microsoft/Apple or other approved providers;
+- verified-email state;
+- MFA/step-up policy;
+- safe account linking without automatic merge solely by email equality.
 
 ### Payments
 
@@ -134,7 +159,7 @@ S3-compatible adapter
 
 No public bucket URLs as an authorisation mechanism.
 
-Sensitive storage must later support private objects, controlled temporary access, audit integration, quarantine/scanning and protected backups according to the approved document model.
+Sensitive storage must support private objects, controlled temporary access, audit integration, quarantine/scanning and protected backups according to the approved Document Knowledge Engine model.
 
 ### Email
 
@@ -152,6 +177,26 @@ Notifications must not leak sensitive employment/legal content into email by def
 
 Application/domain services emit structured security/business events through an audit boundary. Audit storage/export may remain in PostgreSQL initially, provided access and immutability expectations are explicitly handled.
 
+### Future learning / Moodle
+
+```text
+Juanity training assignment / relationship context
+        ↓
+Learning integration adapter
+        ↓
+Moodle SSO / API
+        ↓
+Completion / certification result
+        ↓
+Juanity learning projection / optional Record artefact
+```
+
+Juanity remains authoritative for identity, company/relationship context and access. Moodle remains authoritative for course content, activities, progress, assessments and LMS-generated completion/certification results.
+
+Do not copy the whole Moodle data model into Juanity. Synchronise only approved summary/result data needed by Juanity workflows.
+
+A Moodle certificate PDF, when imported into Juanity, should use the normal Record/RecordFile engine rather than a separate LMS-specific document store.
+
 ## Data classification boundary
 
 Classification is an application/security concept rather than a storage-provider feature.
@@ -166,7 +211,23 @@ SENSITIVE
 HIGHLY_SENSITIVE
 ```
 
-Authorisation and future document handling may consume classification as a policy input.
+Authorisation and document handling may consume classification as a policy input.
+
+## Future-integration readiness rule
+
+Preparing for a future integration means preserving a clean boundary now, not installing the integration early.
+
+V1 should therefore:
+
+- use stable internal account IDs;
+- support multiple AccountIdentity links conceptually/schema-wise;
+- avoid password-only assumptions in UI/domain logic;
+- keep auth provider claims at the identity edge;
+- reserve provider-neutral integration adapter boundaries;
+- keep training/certification capable of attaching to Person / Company / Relationship context;
+- keep certificate files inside the normal Record engine.
+
+See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
 ## What is deliberately excluded now
 
@@ -178,7 +239,8 @@ Authorisation and future document handling may consume classification as a polic
 - separate frontend/backend repositories
 - GraphQL unless a real requirement appears
 - dark-mode implementation as an initial requirement
-- LMS integration
+- Moodle deployment/integration in V1
+- social-login production credentials/UI in V1
 - e-signature provider
 - AI document analysis
 - mandatory Matter/case architecture
@@ -196,5 +258,7 @@ For the first dedicated Law development VM, start with approximately:
 - 80–100 GB SSD
 
 This is a starting assumption, not a production capacity commitment. Measure before sizing production.
+
+Moodle may later justify its own runtime/container resources rather than being forced into the initial Juanity web/database footprint.
 
 The production hosting region/provider and storage location must be chosen with security, privacy, legal/compliance, backup and operational requirements in mind rather than convenience alone.
