@@ -49,18 +49,87 @@ Personal Info Center              Company Info Center
 
 The relationship is a first-class domain concept. It may represent an employee first, while remaining extensible enough for later roles such as former employee, contractor, director or another approved relationship type.
 
+## Juanity configuration principle
+
+Juanity Law follows the owner's **no-hardcoding** principle for business policy where practical.
+
+Juanity Platform Admin should be able to define approved record/request/workflow definitions such as:
+
+- name/category;
+- person/company/relationship context;
+- direction/audience;
+- working sensitivity/classification;
+- which company functional roles may create/view/download/administer;
+- acknowledgement/Needs Action behaviour;
+- notification policy;
+- versioning behaviour;
+- retention-policy reference once approved;
+- active/inactive state.
+
+Companies then execute these approved definitions rather than reconstructing policy for every record.
+
+Definitions must be versioned. Historic record behaviour must not silently change when Juanity edits a definition.
+
+System security invariants remain platform-enforced and are not ordinary admin toggles.
+
+See `docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`.
+
+## Company membership and functional roles
+
+A company may have one person doing everything or many people dividing functions.
+
+The framework must therefore support a company member holding **multiple functional roles**.
+
+Initial role concepts may include:
+
+- Owner / governance;
+- HR;
+- Payroll;
+- Clerk / Records;
+- Legal;
+- Manager;
+- Billing;
+- other Juanity-approved roles later.
+
+Example small company:
+
+```text
+Susan
+  ├── OWNER
+  ├── HR
+  ├── PAYROLL
+  └── CLERK
+```
+
+Example larger company:
+
+```text
+Director              → OWNER, BILLING
+HR Manager            → HR
+Payroll Administrator → PAYROLL
+Records Clerk         → CLERK
+Legal Officer         → LEGAL
+Manager               → MANAGER
+```
+
+The company owner/governance role should be able to invite/remove company staff and assign/revoke approved functional roles, including assigning roles to themselves.
+
+`OWNER` must not be implemented as an unconditional bypass of all sensitive-record policy. If the owner also performs HR or Payroll, the relevant functional role can be assigned explicitly.
+
 ## Initial product areas
 
 - Account and identity boundary
 - People
 - Companies
-- Company users and permissions
+- Company membership, invitations and role grants
 - Person/company relationships
 - Requests / actions
+- Configurable record/request/workflow definitions
 - Employment/legal record context
 - Activity and audit history
 - Billing, subscriptions and entitlements
-- Administration
+- Juanity Platform Administration
+- Company Administration
 - Document capability — intentionally pending detailed design
 
 ## Out of scope for this architecture pass
@@ -71,7 +140,7 @@ The relationship is a first-class domain concept. It may represent an employee f
 - Practice accounting
 - Full practice-management replacement
 - Court filing integrations
-- Document-engine final schema
+- Document-engine final storage schema
 - Final retention/destruction policy
 - Final POPIA legal/compliance policy wording
 
@@ -98,7 +167,7 @@ Operational, but still information-first:
 
 - Home / Company Info Center
 - People / Employees
-- Company users and roles
+- Company members and functional roles
 - Requests / Actions
 - Employment/legal record context
 - Company information
@@ -107,7 +176,22 @@ Operational, but still information-first:
 - Administration
 - Document operations — once designed
 
-## Core domain frame before the document-engine decision
+### Juanity Platform Admin
+
+Juanity's own control plane should manage approved system/business configuration such as:
+
+- record/workflow definitions;
+- categories;
+- role catalogue/capability defaults;
+- policy templates;
+- definition versions;
+- allowed company-configurable options;
+- products/entitlements;
+- operational administration.
+
+It must not be confused with a company's own admin area.
+
+## Core domain frame before the final document-engine storage decision
 
 ```text
 Person
@@ -118,13 +202,17 @@ Person
           ├── Relationship status/context
           ├── Requests / Actions
           ├── Activity Events
-          └── Document capability (TBD)
+          └── Record/Document capability (definition-driven, storage TBD)
 
 Company
-  ├── Company users / permissions
+  ├── Company members
+  │     └── Functional role grants[]
   ├── Subscription / Entitlements
   ├── Company information
   └── Person relationships
+
+Juanity Platform Admin
+  └── Versioned definitions / approved policy configuration
 ```
 
 A generic `Matter` is no longer a foundational entity. It may be introduced later as an optional legal-work context if actual workflows justify it.
@@ -150,7 +238,20 @@ A company relationship must **not** give unrestricted access to a person's entir
 
 Requests and explicit relationship-scoped access should be preferred over broad vault access.
 
-Likewise, company administrator status must not automatically imply access to every sensitive employment/legal record. Server-side capability checks are authoritative.
+Company membership, Company Owner or generic administrator status must not automatically imply access to every sensitive employment/legal record. Functional roles and server-side capability checks are authoritative.
+
+## 3-click / 10-second product rule
+
+A frequent routine action should be reachable from the relevant context in **no more than three deliberate clicks/taps** and normally be completable in **about ten seconds**, excluding substantial typing, file selection/upload, reading legal content or a required security step.
+
+Examples include:
+
+- request information from an employee;
+- add/send an approved record type;
+- respond to a request;
+- invite a company staff member and assign roles.
+
+This is a daily-use design target, not a reason to weaken high-risk admin/security workflows.
 
 ## Offboarding principle
 
@@ -172,17 +273,21 @@ The framework phase is successful when the repository can support, without redes
 
 - authenticated people and company users;
 - companies;
+- company member invitations and multiple role grants;
 - person/company relationships;
 - relationship lifecycle/status;
-- company role/capability-based authorisation;
+- role/capability-based authorisation;
+- configurable/versioned record/request definition primitives;
 - requests/actions;
 - activity/audit events;
 - products/subscriptions/entitlements;
 - separate person and company Info Center experiences;
+- Juanity Platform Admin and company-admin separation;
 - a data-classification/privacy-aware security foundation;
-- later attachment of a legal/employment document domain through explicit interfaces;
+- the 3-click / 10-second daily-use rule in common workflows;
+- later attachment of a legal/employment document storage domain through explicit interfaces;
 - deployment onto a dedicated development VM.
 
 ## Guiding principle
 
-**Build the relationship and information framework first. Do not pre-solve the document engine, but do not make framework choices that weaken privacy, tenancy, offboarding, audit or later legal record requirements.**
+**Juanity defines approved rules once; companies perform simple, role-authorised actions; people receive clear information/actions. Keep business policy configurable, keep security invariants enforced, and do not let configurability or convenience weaken privacy, tenancy, offboarding or audit.**
