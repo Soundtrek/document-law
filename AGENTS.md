@@ -4,53 +4,85 @@ This file governs AI-assisted work in this repository.
 
 ## 1. Product boundary
 
-Juanity Law is a new application. Do not couple it to another product runtime, schema, authentication system, database or package model.
+Juanity Law is a new application and **document knowledge system**. Do not couple it to another product runtime, schema, authentication system, database or package model.
 
 External projects may be used only as design learning unless an explicit extraction/reuse decision is approved.
 
-## 2. Current product model
-
-The approved framework foundation is:
+## 2. Approved product model
 
 ```text
 Person  ↔  PersonCompanyRelationship  ↔  Company
 ```
 
-- People have independent accounts and are expected to sign up/use the core person experience for free.
+- People have independent accounts and are expected to use the core person experience for free.
 - Companies are the primary paid tenants/workspaces.
-- The relationship is the controlled bridge for employment context, requests, actions, later records/documents and audit.
-- Ending a relationship must not delete or transfer ownership of the person's account.
-- A generic legal `Matter` is not a mandatory v1 root entity. Add it only if an approved workflow requires it.
+- The relationship is the controlled bridge for employment context, requests, records/documents and audit.
+- Ending a relationship must not delete or transfer the person's account.
+- A generic legal `Matter` is not a mandatory v1 root entity.
 
-Do not silently revert the application to a matter-first architecture.
+Do not silently revert to a matter-first architecture.
 
-## 3. Configurable policy direction
+## 3. Approved Document Knowledge Engine V1
 
-Juanity Platform Admin defines approved record/request/workflow policy rather than hard-coding every employment/legal record type.
+The v1 engine is approved for implementation. See `docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`.
+
+Use the model:
+
+```text
+RecordDefinitionVersion
+  ↓
+Record
+  ↓
+RecordFile
+  ↓
+Person / Company / Relationship context
+  ↓
+Retention / review knowledge
+  ↓
+Access / activity / audit
+```
+
+Important rules:
+
+- record types are configuration-driven through Juanity Governance;
+- definitions are versioned;
+- historic records must not silently inherit changed policy;
+- retention and review/renewal are separate concepts;
+- company users see only records authorised for their relationship/context/functional roles;
+- people see records made available in their own profile/relationship context;
+- company access never exposes unrelated private person records;
+- binary files live behind private object storage, not in PostgreSQL by default;
+- upload acceptance includes validation/quarantine/malware-scan/checksum when real storage is integrated.
+
+Do not expand v1 into a full HR suite, payroll calculator, case-management platform, e-signature platform or AI legal-advice engine without approval.
+
+## 4. Configurable policy direction
+
+Juanity Governance defines approved record/request/workflow policy instead of hard-coding every employment/legal record type.
 
 Business configuration may include:
 
 - record/request definition name/category;
-- person/company/relationship context;
+- Person / Company / Relationship context;
 - direction/audience;
 - working classification;
 - allowed functional roles;
-- acknowledgement/Needs Action behaviour;
+- person visibility;
+- acknowledgement / Needs Action behaviour;
 - notification policy;
-- approved retention-policy reference once available;
+- retention-policy reference;
+- review/renewal interval;
 - active/inactive state.
 
-Definitions must be **versioned**. Do not mutate old definition rows/objects in a way that silently changes historic policy.
-
-System security invariants are not ordinary admin settings and must remain enforced in code/policy.
+Definitions must be versioned. System security invariants are not ordinary Governance settings and remain enforced in code/policy.
 
 See `docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`.
 
-## 4. Company membership and roles
+## 5. Company membership and roles
 
 Company membership is separate from functional access.
 
-The architecture must support one member holding multiple approved functional roles and multiple members sharing the same role.
+The architecture supports one member holding multiple approved functional roles and multiple members sharing the same role.
 
 Working role concepts include:
 
@@ -62,36 +94,69 @@ Working role concepts include:
 - `MANAGER`;
 - `BILLING`.
 
-Do not freeze these as the final role catalogue if Juanity Platform Admin is intended to manage approved role definitions/capabilities.
-
 Important:
 
 - `OWNER` may invite/remove company staff and assign/revoke approved roles;
 - `OWNER` may assign functional roles to themselves;
 - `OWNER` is not an automatic universal sensitive-record bypass;
 - a one-person company may have one user with Owner + HR + Payroll + Clerk + other required roles;
-- role/membership changes must be audited;
-- disabling/removing a company member must revoke active company access.
+- role/membership changes are audited;
+- disabling/removing a company member revokes active company access.
 
-## 5. Document architecture freeze
+## 6. External legal access
 
-The **final document/record storage engine is not yet designed or approved**.
+Lawyers/legal professionals use explicit `LegalAccessGrant`-style access rather than becoming company members by default.
 
-Until that discussion is complete, do not:
+A grant is scoped to a Person ↔ Company relationship and approved records/categories/definitions.
 
-- invent a final binary/document schema;
-- implement final retention execution rules;
-- choose a signing provider;
-- implement final external legal/employment sharing semantics;
-- assume that uploader, person, company, technical owner and legal owner are the same concept;
-- implement blanket company access to a person's private document store;
-- let a definition edit silently rewrite historic record policy.
+Default direction:
 
-Neutral interfaces/placeholders and the approved configurable definition framework are allowed where needed to keep surrounding application architecture clean.
+- view-only unless policy grants more;
+- explicit expiry;
+- revocable;
+- auditable;
+- may represent the Company or the Person;
+- no unrelated company or personal-profile access.
 
-The future design must explicitly address personal records, company records and relationship-context employment/legal records, plus how record instances bind to definition versions.
+## 7. Email identity from the start
 
-## 6. Build style
+Email address is the primary login/sign-up identifier.
+
+There is no separate normal-user username requirement.
+
+Identity remains behind an OIDC-compatible provider boundary. The application must not implement password cryptography itself.
+
+Architecture requirements:
+
+- verified email before sensitive workspace access;
+- email-based invitations;
+- secure account recovery;
+- MFA capability from day one;
+- MFA required for Juanity Governance before production;
+- Company Owner, HR, Payroll and Legal should default to MFA-required production policy unless explicitly approved otherwise;
+- privilege revocation must support active-session/access invalidation.
+
+See `docs/AUTHENTICATION-AND-GOVERNANCE.md`.
+
+## 8. Governance, not `/admin`
+
+Do not create a generic `/admin` product route.
+
+The Juanity-only privileged control surface is **Governance**, initially `/governance`.
+
+Company team/access management remains inside the company workspace.
+
+The route name is not a security control. Governance requests require:
+
+- verified authenticated actor;
+- Governance capability;
+- MFA in production;
+- server-side deny-by-default authorisation;
+- audit.
+
+Avoid one ordinary universal `SUPERADMIN` operating model. Use specific Governance capabilities/roles. Any future break-glass access requires separate explicit design.
+
+## 9. Build style
 
 Prefer a modular monolith first.
 
@@ -101,42 +166,40 @@ Prefer a modular monolith first.
 - Keep billing gateways behind adapters.
 - Keep identity behind an OIDC/session boundary.
 - Keep storage behind an object-storage interface.
-- Treat permissions, company membership/role grants, classification, definitions and audit/activity as first-class domain capabilities.
+- Treat permissions, company membership/role grants, definitions, legal grants, classification and audit/activity as first-class domain capabilities.
 
-Do not introduce microservices, Kubernetes, Elasticsearch, event streaming or other infrastructure without a demonstrated requirement.
+Do not introduce microservices, Kubernetes, Elasticsearch, event streaming or similar infrastructure without demonstrated need.
 
-## 7. No hard-coded owner/business values
+## 10. No hard-coded business values
 
-Product-controlled values belong in configuration/admin data where practical. System invariants may remain in code.
+Product-controlled values belong in Governance/configuration data where practical. System invariants may remain in code.
 
-Examples of product-controlled values:
+Examples of configurable values:
 
-- prices;
-- subscription limits;
+- prices and subscription limits;
 - entitlement values;
 - user-facing notices;
 - branding values;
 - approved role/capability policy;
 - record/request/workflow definitions;
-- expiry/retention policies where business-configurable and legally approved.
-
-The current commercial direction is free person accounts and paid company workspaces. Do not invent final packages/prices.
+- retention/review policies where approved;
+- notification policy.
 
 No-hardcoding does **not** mean every security invariant becomes configurable.
 
-## 8. Security and privacy invariants
+## 11. Security and privacy invariants
 
 Juanity Law is expected to carry sensitive employment/legal information.
 
-Never bypass company/tenant, relationship and resource authorisation for convenience.
+Never bypass company/tenant, relationship, legal-grant and resource authorisation for convenience.
 
 Do not expose storage buckets publicly.
 
-Do not trust client-provided company, relationship, role, definition, classification, entitlement or ownership fields.
+Do not trust client-provided company, relationship, role, definition, classification, entitlement, Governance or ownership fields.
 
 Company membership, Company Owner or generic company `admin` must not automatically grant universal access to sensitive person/employee records.
 
-All privileged actions must be server-authorised and produce an auditable event where relevant.
+All privileged actions must be server-authorised and auditable where relevant.
 
 Secrets never belong in Git.
 
@@ -146,13 +209,11 @@ Do not log salary, banking details, ID values, disciplinary/legal narrative, doc
 
 The architecture should support a POPIA-aware operating model, but do not claim technical implementation alone equals legal compliance.
 
-## 9. Person independence and offboarding
+## 12. Person independence and offboarding
 
 A person's account is independent from a company relationship.
 
 Do not implement offboarding as `delete employee`.
-
-Preferred framework behaviour:
 
 ```text
 Relationship ACTIVE
@@ -164,118 +225,80 @@ Person account remains
 Historical/audit context preserved according to policy
 ```
 
-Company-member removal is separate:
+Company-member removal is separate and revokes company capabilities while preserving historical attribution/audit.
 
-```text
-CompanyMember ACTIVE
-      ↓
-DISABLED / REMOVED
-      ↓
-Company capabilities revoked
-Historical attribution/audit remains
-```
+## 13. 3-click / 10-second rule
 
-Final retention and former-employee document access remain part of the document/data-governance design gate.
-
-## 10. Requests before blanket access
-
-Where a company needs information from a person, prefer explicit request/action workflows instead of broad access to the person's private information store.
-
-Do not create convenience access that defeats data minimisation or relationship scoping.
-
-## 11. 3-click / 10-second rule
-
-Frequent routine actions should normally be reachable from the relevant context in no more than **three deliberate clicks/taps** and be completable in **about ten seconds**, excluding substantial typing, file selection/upload, reading legal content or required security steps.
+Frequent routine actions should normally be reachable from relevant context in no more than **three deliberate clicks/taps** and be completable in **about ten seconds**, excluding substantial typing, file selection/upload, reading legal content or required security steps.
 
 Examples:
 
+- Employee → Add record → definition/file → Save
 - Relationship → Request → request type → Send
-- Relationship → Add record → definition/file → Send
-- Needs Action → Provide → existing/upload → Submit
 - Company Members → Invite → member + roles → Send
+- Relationship → Grant Legal Access → recipient/scope/expiry → Send
 
-Achieve this with contextual actions and smart defaults from approved definitions.
+Use contextual actions and smart defaults rather than removing security controls.
 
-Do not remove required authorisation, security challenges or meaningful legal acknowledgements merely to satisfy the interaction target.
-
-Advanced Juanity Platform Admin configuration is not required to fit the 3-click rule.
-
-## 12. Development environment constraint
+## 14. Development environment constraint
 
 The existing NUC is not a Juanity Law runtime target.
 
-Build code and lightweight tests without provisioning the full stack where possible. Real integration of identity, persistent object storage, outbound mail, payment webhooks, HTTPS, external sharing and disaster recovery belongs on the dedicated Law development VM.
+Build the codebase, domain model, UI and lightweight tests before the dedicated VM where this does not compromise production-critical boundaries. Real persistent object storage, malware scanning, production-style OIDC/MFA, outbound mail, payment webhooks, HTTPS, external-access testing, backup automation and disaster recovery belong on the dedicated Law development VM.
 
-## 13. Validation discipline
+## 15. Validation discipline
 
 Use focused validation proportional to the change.
 
 Default loop:
 
-1. inspect only the affected area;
+1. inspect the affected area;
 2. implement the smallest coherent change;
 3. run targeted type/lint/unit/integration checks;
 4. broaden testing only when blast radius justifies it;
 5. report exact files changed and validation performed.
 
-Avoid expensive repository-wide scans or repeated exhaustive checking unless the change requires it.
+Security-sensitive changes require negative access tests.
 
-Security-sensitive domain changes must include relevant negative access tests, not only happy paths.
-
-For multi-role/definition changes, test at minimum:
+For roles/definitions/records test at minimum:
 
 - owner without functional role does not receive role-specific sensitive access;
-- one user with multiple roles receives the intended combined capabilities;
+- multi-role users receive only the intended combined capabilities;
 - role revocation removes capability;
 - disabled membership removes company access;
-- definition version changes do not silently rewrite old policy.
+- definition version changes do not rewrite old record policy;
+- Company A cannot access Company B records;
+- Person A cannot access Person B records;
+- legal grant cannot exceed its relationship/scope/expiry;
+- Governance access cannot be reached by normal company roles.
 
-## 14. Approval gates
+## 16. Approval gates that remain
 
-Do not silently expand scope.
+Do not silently expand scope around:
 
-Material decisions requiring owner approval include:
-
-- final document/record storage-engine design;
-- production identity provider configuration;
+- production identity-provider deployment/configuration;
 - payment provider selection/production wiring;
-- data retention/destruction/legal-hold policy;
+- approved legal retention/destruction/legal-hold policy values;
 - encryption/key-management architecture;
-- external sharing/access model;
-- sensitive company role/capability policy beyond approved framework directions;
 - production hosting region/provider;
 - responsible-party/operator assumptions;
 - legal notice/consent/privacy wording;
-- major dependency or framework replacement.
+- e-signature/redaction/OCR additions;
+- major dependency/framework replacement.
 
-## 15. UI direction
+## 17. UI direction
 
-The application uses a light, calm, information-first Info Center pattern.
-
-There are three primary design contexts:
+Primary experiences:
 
 - Person Info Center;
 - Company Info Center/workspace;
-- restricted Juanity Platform Admin.
+- restricted Legal Access view;
+- restricted Juanity Governance.
 
-Use:
+Use light, information-first surfaces, visible Needs Action states, contextual actions, clear role/access presentation, responsive layouts and careful sensitive-data handling. Dark mode is not an initial requirement.
 
-- constrained readable person page width;
-- clear heading and status hierarchy;
-- cards for meaningful groups, not decorative nesting;
-- pill/tabs for compact workflow navigation and status;
-- visible action-required states;
-- clear relationship state such as Active/Former;
-- clear company member/functional role presentation;
-- contextual high-frequency actions on relationship pages;
-- careful presentation/masking of sensitive information;
-- responsive desktop/tablet/mobile behaviour;
-- no mandatory dark mode in the initial product.
+## 18. Prompt and decision capture
 
-See `docs/UI-DESIGN-SYSTEM.md`.
+Significant implementation prompts and accepted decisions must be added to `prompts/` and `docs/DECISION-LOG.md`.
 
-## 16. Prompt and decision capture
-
-Significant implementation prompts and accepted decisions must be added to the repository using `prompts/PROMPT-CAPTURE.md` and `docs/DECISION-LOG.md`.
-
-The repository should preserve *why* a system was built, not only the resulting code.
+The repository should preserve *why* the system was built, not only the resulting code.
