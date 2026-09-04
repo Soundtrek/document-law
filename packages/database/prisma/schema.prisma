@@ -1,0 +1,420 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+  REMOVED
+}
+
+enum RelationshipStatus {
+  PENDING
+  ACTIVE
+  FORMER
+  ENDED
+}
+
+enum RecordContext {
+  PERSON
+  COMPANY
+  RELATIONSHIP
+}
+
+enum RecordDirection {
+  PERSON_TO_COMPANY
+  COMPANY_TO_PERSON
+  INTERNAL_COMPANY
+  BIDIRECTIONAL
+}
+
+enum DataClassification {
+  PUBLIC
+  INTERNAL
+  PERSONAL
+  SENSITIVE
+  HIGHLY_SENSITIVE
+}
+
+enum RecordStatus {
+  ACTIVE
+  SUPERSEDED
+  ARCHIVED
+  RETAINED
+  DELETED
+}
+
+enum ScanStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum LegalGrantStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum RepresentedParty {
+  COMPANY
+  PERSON
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  SUSPENDED
+}
+
+enum ActionStatus {
+  OPEN
+  COMPLETED
+  CANCELED
+  EXPIRED
+}
+
+model Account {
+  id                  String                         @id @default(cuid())
+  primaryEmail        String                         @unique
+  emailVerified       Boolean                        @default(false)
+  status              AccountStatus                  @default(ACTIVE)
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime                       @updatedAt
+  identities          AccountIdentity[]
+  person              Person?
+  companyMemberships  CompanyMember[]
+  uploadedRecords     Record[]                       @relation("UploadedRecords")
+  legalGrantsReceived LegalAccessGrant[]             @relation("LegalGrantRecipient")
+  legalGrantsIssued   LegalAccessGrant[]             @relation("LegalGrantIssuer")
+  governanceGrants    GovernanceCapabilityGrant[]
+  requestsAssigned    ActionRequest[]                @relation("RequestAssignee")
+  requestsCreated     ActionRequest[]                @relation("RequestCreator")
+}
+
+model AccountIdentity {
+  id              String   @id @default(cuid())
+  accountId       String
+  provider        String
+  providerSubject String
+  emailAtProvider String?
+  linkedAt        DateTime @default(now())
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerSubject])
+  @@index([accountId])
+}
+
+model Person {
+  id            String                      @id @default(cuid())
+  accountId     String                      @unique
+  displayName   String
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  account       Account                     @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  relationships PersonCompanyRelationship[]
+  records       Record[]                    @relation("PersonRecords")
+}
+
+model Company {
+  id            String                      @id @default(cuid())
+  name          String
+  status        CompanyStatus               @default(ACTIVE)
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  members       CompanyMember[]
+  relationships PersonCompanyRelationship[]
+  records       Record[]                    @relation("CompanyRecords")
+  subscriptions CompanySubscription[]
+
+  @@index([name])
+}
+
+model CompanyMember {
+  id         String            @id @default(cuid())
+  companyId  String
+  accountId  String
+  status     MembershipStatus  @default(INVITED)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  company    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  account    Account           @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  roleGrants CompanyRoleGrant[]
+
+  @@unique([companyId, accountId])
+  @@index([accountId, status])
+}
+
+model FunctionalRoleDefinition {
+  id           String             @id @default(cuid())
+  code         String             @unique
+  label        String
+  capabilities Json
+  active       Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  grants       CompanyRoleGrant[]
+}
+
+model CompanyRoleGrant {
+  id               String                   @id @default(cuid())
+  companyMemberId  String
+  functionalRoleId String
+  grantedAt        DateTime                 @default(now())
+  revokedAt        DateTime?
+  companyMember    CompanyMember            @relation(fields: [companyMemberId], references: [id], onDelete: Cascade)
+  functionalRole   FunctionalRoleDefinition @relation(fields: [functionalRoleId], references: [id], onDelete: Restrict)
+
+  @@index([companyMemberId, revokedAt])
+  @@index([functionalRoleId, revokedAt])
+}
+
+model PersonCompanyRelationship {
+  id                String             @id @default(cuid())
+  personId          String
+  companyId         String
+  relationshipType  String
+  status            RelationshipStatus @default(PENDING)
+  externalReference String?
+  startedAt         DateTime?
+  endedAt           DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  person            Person             @relation(fields: [personId], references: [id], onDelete: Restrict)
+  company           Company            @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  records           Record[]           @relation("RelationshipRecords")
+  legalAccessGrants LegalAccessGrant[]
+  actions           ActionRequest[]
+
+  @@index([personId, status])
+  @@index([companyId, status])
+  @@index([companyId, externalReference])
+}
+
+model RecordDefinition {
+  id        String                    @id @default(cuid())
+  key       String                    @unique
+  active    Boolean                   @default(true)
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
+  versions  RecordDefinitionVersion[]
+}
+
+model RecordDefinitionVersion {
+  id                  String               @id @default(cuid())
+  recordDefinitionId  String
+  version             Int
+  name                String
+  category            String
+  context             RecordContext
+  direction           RecordDirection
+  classification      DataClassification
+  allowedCompanyRoles Json
+  personVisible       Boolean              @default(false)
+  retentionMonths     Int?
+  reviewMonths        Int?
+  notificationPolicy  String               @default("NONE")
+  active              Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  recordDefinition    RecordDefinition     @relation(fields: [recordDefinitionId], references: [id], onDelete: Restrict)
+  records             Record[]
+
+  @@unique([recordDefinitionId, version])
+  @@index([active, context, category])
+}
+
+model Record {
+  id                  String                    @id @default(cuid())
+  definitionVersionId String
+  context             RecordContext
+  personId            String?
+  companyId           String?
+  relationshipId      String?
+  title               String
+  periodLabel         String?
+  uploadedByAccountId String
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  retainUntil         DateTime?
+  reviewDueAt         DateTime?
+  status              RecordStatus              @default(ACTIVE)
+  replacedByRecordId  String?                   @unique
+  definitionVersion   RecordDefinitionVersion   @relation(fields: [definitionVersionId], references: [id], onDelete: Restrict)
+  person              Person?                   @relation("PersonRecords", fields: [personId], references: [id], onDelete: Restrict)
+  company             Company?                  @relation("CompanyRecords", fields: [companyId], references: [id], onDelete: Restrict)
+  relationship        PersonCompanyRelationship? @relation("RelationshipRecords", fields: [relationshipId], references: [id], onDelete: Restrict)
+  uploadedBy          Account                   @relation("UploadedRecords", fields: [uploadedByAccountId], references: [id], onDelete: Restrict)
+  files               RecordFile[]
+  replacedBy          Record?                   @relation("RecordReplacement", fields: [replacedByRecordId], references: [id], onDelete: Restrict)
+  replaces            Record?                   @relation("RecordReplacement")
+  actions             ActionRequest[]
+
+  @@index([personId, status])
+  @@index([companyId, status])
+  @@index([relationshipId, status])
+  @@index([reviewDueAt, status])
+  @@index([retainUntil, status])
+}
+
+model RecordFile {
+  id                 String     @id @default(cuid())
+  recordId           String
+  storageKey         String     @unique
+  originalFilename   String
+  contentType        String
+  sizeBytes          Int
+  checksumSha256     String
+  scanStatus         ScanStatus @default(PENDING)
+  isCurrent          Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+  acceptedAt         DateTime?
+  record             Record     @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([recordId, isCurrent])
+  @@index([scanStatus])
+}
+
+model LegalAccessGrant {
+  id                   String                    @id @default(cuid())
+  grantedToAccountId   String
+  relationshipId       String
+  grantedByAccountId   String
+  represents           RepresentedParty
+  allowedDefinitionIds Json
+  allowedCategories    Json
+  canView              Boolean                   @default(true)
+  canDownload          Boolean                   @default(false)
+  startsAt             DateTime
+  expiresAt            DateTime
+  revokedAt            DateTime?
+  status               LegalGrantStatus          @default(PENDING)
+  createdAt            DateTime                  @default(now())
+  grantedTo            Account                   @relation("LegalGrantRecipient", fields: [grantedToAccountId], references: [id], onDelete: Restrict)
+  grantedBy            Account                   @relation("LegalGrantIssuer", fields: [grantedByAccountId], references: [id], onDelete: Restrict)
+  relationship         PersonCompanyRelationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+
+  @@index([grantedToAccountId, status, expiresAt])
+  @@index([relationshipId, status])
+}
+
+model GovernanceCapabilityGrant {
+  id         String   @id @default(cuid())
+  accountId  String
+  capability String
+  grantedAt  DateTime @default(now())
+  revokedAt  DateTime?
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, revokedAt])
+  @@index([capability, revokedAt])
+}
+
+model ActionRequest {
+  id                   String                    @id @default(cuid())
+  relationshipId       String
+  requestedByAccountId String
+  assignedToAccountId  String?
+  recordId             String?
+  typeKey              String
+  title                String
+  status               ActionStatus              @default(OPEN)
+  dueAt                DateTime?
+  createdAt            DateTime                  @default(now())
+  completedAt          DateTime?
+  relationship         PersonCompanyRelationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  requestedBy          Account                   @relation("RequestCreator", fields: [requestedByAccountId], references: [id], onDelete: Restrict)
+  assignedTo           Account?                  @relation("RequestAssignee", fields: [assignedToAccountId], references: [id], onDelete: Restrict)
+  record               Record?                   @relation(fields: [recordId], references: [id], onDelete: SetNull)
+
+  @@index([relationshipId, status])
+  @@index([assignedToAccountId, status])
+}
+
+model ActivityEvent {
+  id             String   @id @default(cuid())
+  type           String
+  actorAccountId String?
+  companyId      String?
+  personId       String?
+  relationshipId String?
+  recordId       String?
+  occurredAt     DateTime @default(now())
+  summary        String
+
+  @@index([companyId, occurredAt])
+  @@index([personId, occurredAt])
+  @@index([relationshipId, occurredAt])
+  @@index([recordId, occurredAt])
+}
+
+model Product {
+  id           String               @id @default(cuid())
+  key          String               @unique
+  name         String
+  active       Boolean              @default(true)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  prices       ProductPrice[]
+  entitlements ProductEntitlement[]
+  subscriptions CompanySubscription[]
+}
+
+model ProductPrice {
+  id          String   @id @default(cuid())
+  productId   String
+  currency    String
+  amountMinor Int
+  interval    String?
+  active      Boolean  @default(true)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, active])
+}
+
+model ProductEntitlement {
+  id         String  @id @default(cuid())
+  productId  String
+  capability String
+  value      Json
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, capability])
+}
+
+model CompanySubscription {
+  id                   String             @id @default(cuid())
+  companyId            String
+  productId            String
+  status               SubscriptionStatus
+  provider             String?
+  providerReference    String?
+  currentPeriodEndsAt  DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  company              Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  product              Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, status])
+  @@index([provider, providerReference])
+}
