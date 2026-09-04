@@ -309,3 +309,33 @@ Training assignments and completion/certification summaries may attach to the Pe
 V1 should prepare only stable IDs and integration seams; Moodle deployment, enrolment/progress APIs and course design are later work.
 
 See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
+
+## ADR-029 — Document binaries live in separate private S3-compatible object storage
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+Juanity separates document knowledge from document binaries.
+
+PostgreSQL stores accounts, people, companies, relationships, record definitions/versions, Record metadata, RecordFile storage references/checksums, permissions, retention/review knowledge, legal-access grants and audit/activity.
+
+Actual document/file binaries live in **private S3-compatible object storage behind a provider-neutral `StorageProvider` adapter**.
+
+Production object storage is intended to be separate from the Juanity application VM and independently recoverable. Loss of the application VM must not imply loss of the primary document repository.
+
+Security and operational rules:
+
+- no public document buckets;
+- no permanent public document URLs;
+- server-side Juanity authorisation precedes object access;
+- object keys are opaque and contain no sensitive person/company/document descriptions;
+- real uploads remain untrusted until quarantine/validation/malware-scan/checksum acceptance completes;
+- primary object storage is not itself a backup;
+- backups/replication use a separate failure domain where practical;
+- PostgreSQL remains authoritative for retention/review and access context;
+- S3 lifecycle rules may support retention operations but must not replace or contradict Juanity policy;
+- object inventory/checksum reconciliation must be possible against PostgreSQL metadata.
+
+The exact production storage provider and region remain later approval decisions based on privacy/POPIA, resilience, encryption, backup, cost and operational requirements.
+
+See `docs/STORAGE-ARCHITECTURE.md`.
