@@ -200,7 +200,28 @@ Future integration rules:
 
 See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
-## 10. Build style
+## 10. Storage architecture
+
+The storage boundary is approved. See `docs/STORAGE-ARCHITECTURE.md`.
+
+Rules for all implementation work:
+
+- PostgreSQL stores document knowledge/metadata, never the primary document binaries by default;
+- binary objects live behind a provider-neutral `StorageProvider` interface;
+- the production target is private S3-compatible object storage separate from the Juanity application VM failure domain;
+- no public document bucket or permanent public document URL;
+- object keys are opaque and must not include names, company names or document descriptions;
+- server-side Juanity authorisation happens before object access;
+- any signed access URL must be short-lived and generated only after authorisation;
+- real uploads remain untrusted until quarantine, validation, malware scan and checksum acceptance complete;
+- do not let S3 lifecycle configuration become the source of truth for Juanity retention/review rules;
+- primary object storage is not itself a backup;
+- RecordFile metadata/checksums must support inventory and restore reconciliation;
+- production storage provider and region remain approval-gated choices.
+
+Before the dedicated Law VM, use in-memory/test or safe development storage adapters behind the same interface. Do not make application/domain code depend on local filesystem paths.
+
+## 11. Build style
 
 Prefer a modular monolith first.
 
@@ -215,7 +236,7 @@ Prefer a modular monolith first.
 
 Do not introduce microservices, Kubernetes, Elasticsearch, event streaming or similar infrastructure without demonstrated need.
 
-## 11. No hard-coded business values
+## 12. No hard-coded business values
 
 Product-controlled values belong in Governance/configuration data where practical. System invariants may remain in code.
 
@@ -232,7 +253,7 @@ Examples of configurable values:
 
 No-hardcoding does **not** mean every security invariant becomes configurable.
 
-## 12. Security and privacy invariants
+## 13. Security and privacy invariants
 
 Juanity Law is expected to carry sensitive employment/legal information.
 
@@ -254,7 +275,7 @@ Do not log salary, banking details, ID values, disciplinary/legal narrative, doc
 
 The architecture should support a POPIA-aware operating model, but do not claim technical implementation alone equals legal compliance.
 
-## 13. Person independence and offboarding
+## 14. Person independence and offboarding
 
 A person's account is independent from a company relationship.
 
@@ -274,7 +295,7 @@ Company-member removal is separate and revokes company capabilities while preser
 
 Future Moodle enrolment/training access must also respond appropriately when a PersonCompanyRelationship ends; do not make LMS membership the source of relationship truth.
 
-## 14. 3-click / 10-second rule
+## 15. 3-click / 10-second rule
 
 Frequent routine actions should normally be reachable from relevant context in no more than **three deliberate clicks/taps** and be completable in **about ten seconds**, excluding substantial typing, file selection/upload, reading legal content or required security steps.
 
@@ -288,7 +309,7 @@ Examples:
 
 Use contextual actions and smart defaults rather than removing security controls.
 
-## 15. Development environment constraint
+## 16. Development environment constraint
 
 The existing NUC is not a Juanity Law runtime target.
 
@@ -296,7 +317,7 @@ Build the codebase, domain model, UI and lightweight tests before the dedicated 
 
 Moodle and production social-login providers are later integration phases and must not be added to the initial runtime merely for future readiness.
 
-## 16. Validation discipline
+## 17. Validation discipline
 
 Use focused validation proportional to the change.
 
@@ -330,7 +351,16 @@ For identity-link work, test at minimum:
 - matching email alone does not silently merge two accounts;
 - invitation acceptance resolves to the authenticated stable Account only after approved verification.
 
-## 17. Approval gates that remain
+For storage work, test at minimum:
+
+- object keys contain no sensitive naming data;
+- unauthorised actors cannot resolve/download a RecordFile by changing identifiers;
+- unaccepted/unscanned files are unavailable;
+- checksum metadata is generated/preserved;
+- storage-provider adapters do not leak provider-specific semantics into record/domain logic;
+- deleting/loss of a local development adapter does not change the production architecture assumptions.
+
+## 18. Approval gates that remain
 
 Do not silently expand scope around:
 
@@ -341,12 +371,13 @@ Do not silently expand scope around:
 - approved legal retention/destruction/legal-hold policy values;
 - encryption/key-management architecture;
 - production hosting region/provider;
+- production object-storage provider/region;
 - responsible-party/operator assumptions;
 - legal notice/consent/privacy wording;
 - e-signature/redaction/OCR additions;
 - major dependency/framework replacement.
 
-## 18. UI direction
+## 19. UI direction
 
 Primary V1 experiences:
 
@@ -361,7 +392,7 @@ Future surface:
 
 Use light, information-first surfaces, visible Needs Action states, contextual actions, clear role/access presentation, responsive layouts and careful sensitive-data handling. Dark mode is not an initial requirement.
 
-## 19. Prompt and decision capture
+## 20. Prompt and decision capture
 
 Significant implementation prompts and accepted decisions must be added to `prompts/` and `docs/DECISION-LOG.md`.
 
