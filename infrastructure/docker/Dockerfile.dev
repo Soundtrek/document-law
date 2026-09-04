@@ -1,0 +1,19 @@
+FROM node:20.19-bookworm-slim
+
+WORKDIR /app
+
+COPY package.json ./
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages/domain/package.json ./packages/domain/package.json
+COPY packages/database/package.json ./packages/database/package.json
+COPY packages/identity/package.json ./packages/identity/package.json
+COPY packages/integrations/package.json ./packages/integrations/package.json
+COPY packages/storage/package.json ./packages/storage/package.json
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev", "--workspace", "@juanity/web", "--", "-H", "0.0.0.0"]
