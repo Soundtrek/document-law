@@ -6,9 +6,28 @@ Juanity Law carries sensitive employment and legal information. Identity and pri
 
 ## Login identity
 
-Juanity Law uses **email address as the primary login identifier** from the start.
+Juanity Law uses **email address as the primary human-facing login and contact identifier** from the start.
 
 There is no separate public username concept for normal users.
+
+However, email is **not** the permanent database identity. Every account must have a stable internal ID so email changes and future social/federated login providers do not create duplicate people.
+
+Conceptually:
+
+```text
+Account
+  id: stable internal ID
+  primary_email
+  email_verified
+  status
+
+AccountIdentity
+  account_id
+  provider
+  provider_subject
+  provider_email_at_link_time
+  linked_at
+```
 
 Initial identity behaviour:
 
@@ -18,11 +37,35 @@ Initial identity behaviour:
 - secure account recovery through the identity provider;
 - company invitations are sent to a specific email identity;
 - legal-professional access invitations are sent to a specific email identity;
-- one human keeps one account even when they belong to multiple companies or hold multiple roles.
+- one human keeps one Juanity account even when they belong to multiple companies, hold multiple roles or later use more than one login provider.
 
 The application must not implement its own password cryptography. Password/session/MFA mechanics belong behind the approved identity-provider boundary.
 
-The leading deployment direction remains an OIDC-compatible provider such as Keycloak configured for email-based sign-in. The application consumes a verified authenticated actor, not provider-specific claims throughout the codebase.
+The leading deployment direction remains an OIDC-compatible provider such as Keycloak configured for email-based sign-in and capable of later brokering approved external identity providers. The application consumes a verified authenticated actor, not provider-specific claims throughout the codebase.
+
+## Future social / federated sign-in
+
+Juanity is expected to add social/federated login later, potentially including providers such as Google, Microsoft, Apple or other approved providers.
+
+The domain must therefore assume:
+
+```text
+Authentication provider(s)
+        ↓
+Identity boundary / broker
+        ↓
+Stable Juanity Account
+        ↓
+Person / Company Member / Legal Access / Governance contexts
+```
+
+Provider identities attach to an existing Juanity account. They do not replace the Juanity `Account` or `Person` primary key.
+
+Do **not** silently merge two Juanity accounts merely because two identity providers report the same email address. Linking an additional provider to an existing account should require an authenticated session and appropriate verification/re-authentication.
+
+Verified provider email may assist onboarding and invitation matching, but provider-email equality alone must not be treated as sufficient proof for an automatic account merge.
+
+See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
 ## Privileged authentication
 
@@ -36,6 +79,8 @@ Before production use with sensitive records:
 - other users: MFA supported and may become policy-driven by role/sensitivity.
 
 Security-sensitive actions may require re-authentication/step-up later. The 3-click / 10-second rule does not bypass justified authentication controls.
+
+A social/federated provider session does not automatically waive Juanity's MFA/step-up policy for privileged operations.
 
 ## No `/admin`
 
@@ -145,21 +190,22 @@ Do not build break-glass access until a real operational requirement is approved
 
 ## Company and legal-professional identities
 
-The same email-based identity account may have several independent contexts:
+The same Juanity account may have several independent contexts:
 
 ```text
-Person account
+Account / Person
   ├── personal Info Center
   ├── Company A member: OWNER + HR
   ├── Company B member: LEGAL
-  └── external legal access grants
+  ├── external legal access grants
+  └── future learning/training context
 ```
 
 Authentication answers **who is this person?**
 
 Authorisation answers **what may this person do in this context?**
 
-Never encode company role, legal access or platform Governance solely into identity-provider email/username state.
+Never encode company role, legal access, future learning access or platform Governance solely into identity-provider email/username state.
 
 ## Invitations
 
@@ -173,6 +219,8 @@ Company staff and external legal-professional invitations should:
 - preserve inviter, target, role/scope and timestamps in audit history;
 - fail closed if the target identity changes unexpectedly.
 
+After authentication, the invitation resolves to the stable Juanity account. The user may have authenticated with email or a safely linked federated identity, provided the invitation verification rules are satisfied.
+
 ## Session consequences of privilege changes
 
 Role, membership, Governance capability and legal-access changes must not rely only on the next natural login.
@@ -184,7 +232,18 @@ The architecture must support prompt invalidation/re-evaluation of active access
 - Governance access is revoked;
 - legal-professional access expires or is revoked;
 - an account is suspended;
-- a high-risk security event requires forced logout.
+- a high-risk security event requires forced logout;
+- an external identity link is removed or compromised.
+
+## Future Moodle / learning SSO
+
+Juanity is expected to add company onboarding, training and certification through Moodle or another approved LMS later.
+
+Juanity should remain the identity/company/relationship authority. The LMS should consume SSO/federated identity rather than owning a second unrelated Juanity password/account.
+
+A future learning integration must map the stable Juanity account to an external LMS user ID through an explicit integration link. Moodle user IDs must never replace Juanity Account or Person IDs.
+
+See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
 ## UI naming
 
@@ -194,7 +253,8 @@ Use explicit product language:
 - `Company Access` or `Team & Access` — company staff and functional roles;
 - `Legal Access` — external lawyer/legal-professional grants;
 - `Security` — authentication/session/security settings;
-- `Audit` — authorised investigation/history views.
+- `Audit` — authorised investigation/history views;
+- `Training` — future company onboarding/training/certification surface.
 
 Avoid a generic catch-all `Admin` destination in primary navigation.
 
