@@ -52,7 +52,7 @@ export default function CompanyInfoCenterPage() {
               <p className="eyebrow">Team & Access</p>
               <h2>Company members and functional roles</h2>
             </div>
-            <button className="button" type="button">Invite staff</button>
+            <Link className="button" href="/company/team/invite">Invite staff</Link>
           </div>
           <div className="stack">
             {syntheticMembers.map((member) => {
