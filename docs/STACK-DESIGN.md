@@ -15,7 +15,7 @@ The stack must support strong company isolation, person independence, relationsh
 | Database | PostgreSQL | Strong relational model, transactions, indexing and audit-friendly data |
 | ORM / migrations | Prisma | Type-safe data access and explicit schema migrations |
 | Identity boundary | OIDC-compatible provider; Keycloak is the leading self-hosted option | Email login now; broker/federate approved social providers later without domain coupling |
-| Object storage | S3-compatible API | Decouple application code from storage provider/location |
+| Object storage | Private S3-compatible API behind a provider-neutral adapter | Keep document binaries out of PostgreSQL and separate storage location/provider from application code |
 | Background jobs | BullMQ | Simple Node/TypeScript worker path for future heavy jobs |
 | Queue | Redis | BullMQ coordination; add only when asynchronous jobs are needed |
 | Malware scan | ClamAV | Scan external uploads before accepting them into trusted storage |
@@ -25,9 +25,33 @@ The stack must support strong company isolation, person independence, relationsh
 | Payments | Gateway adapter layer | Keep provider-specific webhooks/API logic outside product entitlements |
 | Future learning | Moodle or another approved LMS behind SSO/API integration boundary | Keep learning delivery separate from Juanity core identity/documents |
 
+## Storage split
+
+The technical stack deliberately separates business/document knowledge from file binaries:
+
+```text
+PostgreSQL
+├── Account / Person / Company / Relationship
+├── RecordDefinitionVersion
+├── Record
+├── RecordFile metadata
+├── permissions / retention / review
+├── LegalAccessGrant
+└── activity / audit
+
+Private S3-compatible object storage
+└── RecordFile binary objects
+```
+
+Do not store document binaries in PostgreSQL by default.
+
+See `docs/STORAGE-ARCHITECTURE.md`.
+
 ## Initial process topology
 
 Do not start with a service zoo.
+
+Before real document storage integration, the application can run with adapters/mocks:
 
 ```text
                 ┌─────────────────────┐
@@ -40,13 +64,40 @@ Do not start with a service zoo.
                     └─────────────┘
 ```
 
-Add the worker path when document processing or asynchronous notifications genuinely require it:
+On the dedicated Law development VM, add the real storage/scan path:
 
 ```text
-law-web/API ──> queue ──> law-worker
-     │                       │
- PostgreSQL              storage/scan
+                     ┌─────────────────────┐
+                     │      law-web/API    │
+                     └─────────┬───────────┘
+                               │
+                      ┌────────┴────────┐
+                      │   PostgreSQL    │
+                      └─────────────────┘
+                               │
+                     queue / worker when needed
+                               │
+                     validation / ClamAV
+                               │
+                     private S3-compatible
+                     development storage
 ```
+
+Production document storage should be a **separate failure domain from the Juanity application VM**:
+
+```text
+Juanity application runtime
+         │
+         │ authorised S3 API
+         ↓
+Private object storage
+(separate service/provider/failure domain)
+         │
+         ↓
+Independent backup / replication
+```
+
+A loss of the application VM must not imply loss of the primary document repository.
 
 Moodle is not part of the initial runtime. A later topology may add it as a separate service/integration:
 
@@ -112,6 +163,8 @@ Entitlement
 
 `Account.id` / `Person.id` are stable Juanity identifiers. Email and external-provider identifiers are attributes/links, not replacement primary keys.
 
+`RecordFile` stores technical object metadata and references; the binary object itself lives in S3-compatible storage.
+
 Future Moodle/user/course identifiers are integration references and must not replace Juanity primary keys.
 
 ## Adapter boundaries
@@ -152,14 +205,25 @@ The initial commercial direction is free person accounts and paid company worksp
 ```text
 Application/domain
       ↓
-Storage interface
+StorageProvider interface
       ↓
 S3-compatible adapter
+      ↓
+Private object storage
 ```
 
-No public bucket URLs as an authorisation mechanism.
+Storage rules:
 
-Sensitive storage must support private objects, controlled temporary access, audit integration, quarantine/scanning and protected backups according to the approved Document Knowledge Engine model.
+- no public bucket URLs as an authorisation mechanism;
+- object keys are opaque and must not contain person/company names or document descriptions;
+- server authorisation precedes object access;
+- signed URLs, if used, are short-lived and issued only after authorisation;
+- uploads remain untrusted until validation/quarantine/malware scan/checksum acceptance completes;
+- provider lifecycle rules do not replace Juanity retention/review policy;
+- production primary object storage is separate from the app VM and is not itself a backup;
+- object inventory/checksum reconciliation must be possible against PostgreSQL `RecordFile` metadata.
+
+The physical provider/region remains a later approval decision.
 
 ### Email
 
@@ -195,7 +259,7 @@ Juanity remains authoritative for identity, company/relationship context and acc
 
 Do not copy the whole Moodle data model into Juanity. Synchronise only approved summary/result data needed by Juanity workflows.
 
-A Moodle certificate PDF, when imported into Juanity, should use the normal Record/RecordFile engine rather than a separate LMS-specific document store.
+A Moodle certificate PDF, when imported into Juanity, uses the normal Record/RecordFile engine and the same private object-storage path rather than a separate LMS-specific document store.
 
 ## Data classification boundary
 
@@ -225,7 +289,7 @@ V1 should therefore:
 - keep auth provider claims at the identity edge;
 - reserve provider-neutral integration adapter boundaries;
 - keep training/certification capable of attaching to Person / Company / Relationship context;
-- keep certificate files inside the normal Record engine.
+- keep certificate files inside the normal Record engine and storage architecture.
 
 See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
@@ -257,8 +321,10 @@ For the first dedicated Law development VM, start with approximately:
 - 8 GB RAM
 - 80–100 GB SSD
 
-This is a starting assumption, not a production capacity commitment. Measure before sizing production.
+This is a starting assumption for the application development runtime, not a production document-storage capacity commitment. Measure before sizing production.
+
+Development S3-compatible storage may run with the Law development environment for integration testing, but production object storage is intended to be independently recoverable and separate from the application VM failure domain.
 
 Moodle may later justify its own runtime/container resources rather than being forced into the initial Juanity web/database footprint.
 
-The production hosting region/provider and storage location must be chosen with security, privacy, legal/compliance, backup and operational requirements in mind rather than convenience alone.
+The production hosting region/provider and object-storage location must be chosen with security, privacy, legal/compliance, backup and operational requirements in mind rather than convenience alone.
