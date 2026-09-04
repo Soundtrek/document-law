@@ -1,0 +1,21 @@
+{
+  "name": "juanity-law",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @juanity/web",
+    "build": "npm run db:generate && npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:generate": "npm run generate --workspace @juanity/database",
+    "db:validate": "npm run validate --workspace @juanity/database"
+  }
+}
