@@ -14,6 +14,9 @@ Deliverables:
 
 - project charter;
 - person/company/relationship application framework;
+- configurable record/request definition model;
+- company membership and multi-role access model;
+- 3-click / 10-second routine-action UX rule;
 - stack design;
 - Info Center UI direction;
 - security/privacy invariants;
@@ -22,7 +25,7 @@ Deliverables:
 - decision log;
 - AI/Codex working rules.
 
-Exit gate: owner agrees the platform frame is correct enough to start coding around the still-undecided document domain.
+Exit gate: owner agrees the platform frame is correct enough to start coding around the still-undecided final document storage domain.
 
 ## Phase 1 — Code skeleton without full runtime stack
 
@@ -33,7 +36,9 @@ Build:
 - shared TypeScript config/lint/test setup;
 - UI tokens and shell components;
 - person and company route skeletons;
-- domain interfaces/types for people, companies, company users, relationships, requests, activity, billing and entitlements;
+- domain interfaces/types for people, companies, company members, role grants, relationships, requests, activity, billing and entitlements;
+- Juanity Platform Admin shell;
+- versioned definition interfaces/types for record/request/workflow policy;
 - application-service boundaries;
 - permission-policy interface;
 - data-classification primitives;
@@ -41,24 +46,54 @@ Build:
 - mock/dev adapters where needed;
 - focused unit tests.
 
-Do **not** implement final document-domain behaviour.
+Do **not** implement final document storage/domain behaviour.
 
 Exit gate: application compiles and core domain contracts are coherent without requiring persistent production-style infrastructure.
 
-## Phase 2 — Framework vertical slice
+## Phase 2 — Company membership and configuration slice
+
+Implement:
+
+```text
+Create company
+  ↓
+Create company owner/governance member
+  ↓
+Owner assigns functional roles to self
+  ↓
+Owner invites another company staff member
+  ↓
+Assign one or more approved roles
+  ↓
+Invitation accepted
+  ↓
+Role-limited company workspace is projected
+  ↓
+Role changes and membership events are audited
+```
+
+Also build a minimal Juanity Platform Admin proof with synthetic definitions:
+
+- create definition;
+- create new version;
+- activate/deactivate version;
+- assign allowed functional roles;
+- prove old definition versions remain addressable and are not silently overwritten.
+
+Exit gate: one-person and multi-person company models both work without special-case architecture.
+
+## Phase 3 — Framework vertical slice
 
 Implement a meaningful non-document workflow:
 
 ```text
 Create person account (development identity)
   ↓
-Create company
-  ↓
-Create authorised company user
+Create company / company members
   ↓
 Create person/company relationship
   ↓
-Create request/action for that relationship
+Authorised company role creates request/action using an approved definition
   ↓
 Person sees Needs Action in their Info Center
   ↓
@@ -77,12 +112,13 @@ Also build:
 - relationship lifecycle/status;
 - role/capability checks;
 - company billing/entitlement domain skeleton;
-- admin shell;
-- responsive UI tests.
+- company admin/member shell;
+- responsive UI tests;
+- 3-click / 10-second checks for common fixture workflows.
 
-Exit gate: framework demonstrates the Person ↔ Company ↔ Relationship flow without relying on the undecided document engine.
+Exit gate: framework demonstrates the Person ↔ Company ↔ Relationship flow and role-limited daily actions without relying on the undecided document storage engine.
 
-## Phase 3 — Privacy and permission proof
+## Phase 4 — Privacy and permission proof
 
 Before adding sensitive document workflows, prove the access model with non-document fixtures.
 
@@ -91,21 +127,29 @@ Validate:
 - one company cannot access another company's relationships;
 - one person cannot access another person's relationship data;
 - company membership does not imply universal sensitive-record access;
+- `OWNER` without HR/Payroll/Legal functional roles does not automatically gain those role-specific rights;
+- one member can safely hold multiple functional roles;
+- invitation/role changes are server authorised and audited;
+- disabling a company member revokes their access;
 - role/capability restrictions are server enforced;
 - relationship termination revokes active relationship capabilities as intended;
 - the person's account remains independent after relationship termination;
 - privileged changes generate audit events;
-- sensitive fields are not unnecessarily logged.
+- sensitive fields are not unnecessarily logged;
+- editing a definition creates/uses a new version instead of silently mutating historic policy.
 
-Exit gate: tenancy, relationship scoping and least-privilege rules are coherent enough to support the document-engine design.
+Exit gate: tenancy, relationship scoping, definition policy and least-privilege rules are coherent enough to support the document-engine design.
 
-## Phase 4 — Document engine design gate
+## Phase 5 — Document engine design gate
 
 Pause document implementation expansion and design the legal/employment document domain explicitly.
+
+The approved framework now assumes a configurable `RecordDefinition`/workflow layer, but the final storage engine still requires explicit design.
 
 Topics to approve before coding:
 
 - personal vs company vs relationship-context records;
+- how record instances bind to definition versions;
 - legal/control language versus technical storage ownership;
 - document lifecycle;
 - request/upload/share distinctions;
@@ -113,7 +157,7 @@ Topics to approve before coding:
 - optional future legal matter/case context;
 - versioning, replacement and supersession;
 - recipient identity and access;
-- company role access;
+- company functional-role access;
 - view/download controls;
 - expiry/revocation;
 - acknowledgement/receipt/evidence;
@@ -129,7 +173,7 @@ Topics to approve before coding:
 
 Only after approval should the document module/service contract be finalised.
 
-## Phase 5 — Dedicated Law development VM
+## Phase 6 — Dedicated Law development VM
 
 Provision when real integrations become useful.
 
@@ -150,7 +194,7 @@ Add:
 
 The existing NUC is not the runtime target.
 
-## Phase 6 — Commercial, POPIA and security hardening
+## Phase 7 — Commercial, POPIA and security hardening
 
 Before production:
 
@@ -161,6 +205,9 @@ Before production:
 - relationship isolation tests;
 - privilege-escalation tests;
 - sensitive-role access matrix review;
+- multi-role and owner-governance tests;
+- invitation/revocation tests;
+- definition-version/migration tests;
 - upload/download abuse tests;
 - rate limiting;
 - backup/restore rehearsal;
@@ -182,6 +229,7 @@ Prefer vertical slices over building every database table first.
 A feature is considered complete only when its:
 
 - domain rule;
+- configurable-policy/definition rule where applicable;
 - permission/privacy rule;
 - persistence or adapter contract;
 - UI state;
@@ -189,6 +237,18 @@ A feature is considered complete only when its:
 - focused tests
 
 are understood together.
+
+## 3-click / 10-second validation
+
+For high-frequency routine workflows, include a simple interaction-path check in UI review:
+
+- can the user start from the relevant context?
+- is the routine action within three deliberate clicks/taps?
+- are defaults supplied by approved configuration rather than repeated manual policy choices?
+- does the flow remain clear on desktop/tablet/mobile?
+- have we preserved required security/legal steps?
+
+This is a usability target, not a reason to remove necessary safeguards.
 
 ## Validation economy
 
