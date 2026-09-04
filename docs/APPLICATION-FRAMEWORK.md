@@ -14,9 +14,19 @@ Juanity Law is built around three foundational concepts:
 Person  ↔  PersonCompanyRelationship  ↔  Company
 ```
 
-The relationship is the controlled bridge through which employment context, requests, later document access and activity are scoped.
+The relationship is the controlled bridge through which employment context, requests, later record/document access and activity are scoped.
 
 A generic legal `Matter` is not a foundational v1 entity. It may be introduced later as an optional context if a real workflow requires it.
+
+A second important control plane is:
+
+```text
+Juanity Platform Admin
+        ↓
+Versioned Record / Request / Workflow Definitions
+        ↓
+Company users execute approved workflows
+```
 
 ## Initial modules
 
@@ -54,12 +64,55 @@ Responsibilities:
 
 - company record;
 - company status;
-- company users;
-- roles/capabilities;
-- billing owner relationship;
+- company members;
+- member invitations;
+- functional role grants;
+- billing owner/governance context;
 - company Info Center projection.
 
 The company is expected to be the primary paid tenant/workspace.
+
+### Company Membership and Functional Roles
+
+Company membership and functional access must be separate concepts.
+
+A company member may hold one or many roles.
+
+Initial role concepts may include:
+
+- `OWNER` — governance, company membership/role administration and approved company settings;
+- `HR`;
+- `PAYROLL`;
+- `CLERK` / records administration;
+- `LEGAL`;
+- `MANAGER`;
+- `BILLING`;
+- other Juanity-approved roles later.
+
+One-person company example:
+
+```text
+Susan
+  ├── OWNER
+  ├── HR
+  ├── PAYROLL
+  └── CLERK
+```
+
+Larger-company example:
+
+```text
+Director              → OWNER, BILLING
+HR Manager            → HR
+Payroll Administrator → PAYROLL
+Records Clerk         → CLERK
+Legal Officer         → LEGAL
+Manager               → MANAGER
+```
+
+`OWNER` is primarily a governance capability. It should allow the owner to invite/remove staff, assign/revoke approved roles and assign functional roles to themselves, but it must not become an unconditional sensitive-data bypass.
+
+Role grants are server-side domain records and role changes are auditable.
 
 ### Person / Company Relationships
 
@@ -73,11 +126,35 @@ Responsibilities:
 - offboarding state;
 - relationship-scoped requests/actions;
 - relationship-scoped activity;
-- future linkage to employment/legal document records.
+- future linkage to employment/legal record instances.
 
 The initial product may primarily use an employee relationship, but the domain should not be coded so narrowly that former employees, contractors or other approved relationship types require a rewrite.
 
 Ending a relationship must not delete the person account.
+
+### Configurable Definitions
+
+Juanity Platform Admin owns approved business-policy definitions.
+
+Framework-level definition concepts should support:
+
+- record definition;
+- request/action definition;
+- category;
+- context: person/company/relationship;
+- direction/audience;
+- working classification/sensitivity;
+- allowed creator/viewer/downloader/admin functional roles;
+- acknowledgement requirement;
+- Needs Action behaviour;
+- notification policy;
+- active/inactive state;
+- retention-policy reference once approved;
+- definition version.
+
+Definitions must be versioned so future edits do not silently change historic record behaviour.
+
+The final document/record storage schema remains behind the document-engine design gate. Definitions describe policy and workflow intent; they do not prematurely decide object-storage or final record persistence.
 
 ### Requests / Actions
 
@@ -90,7 +167,8 @@ Responsibilities:
 - completion state;
 - response metadata;
 - relationship linkage where relevant;
-- future linkage to a document or other resource.
+- linkage to a versioned request definition where used;
+- future linkage to a record/document response.
 
 Requests are a preferred pattern for obtaining information instead of granting broad access to a person's private information store.
 
@@ -101,7 +179,8 @@ Responsibilities at framework level:
 - provide neutral contextual boundaries for personal, company and relationship information;
 - support data classification labels;
 - support purpose/access metadata where required;
-- avoid defining the final document schema prematurely.
+- support linkage to an approved/versioned definition;
+- avoid defining the final record/document storage schema prematurely.
 
 Working information classes may include:
 
@@ -121,7 +200,9 @@ Responsibilities:
 - expose user-friendly recent activity;
 - support later audit export/investigation;
 - preserve actor, company, person, relationship, resource and timestamp context;
-- support higher-fidelity access events for sensitive resources once the document domain is designed.
+- audit company invitations and role changes;
+- audit definition changes/version creation;
+- support higher-fidelity access events for sensitive resources once the record/document domain is designed.
 
 ### Billing / Entitlements
 
@@ -144,24 +225,39 @@ The initial commercial assumption is:
 
 Exact packages, prices and limits remain configurable.
 
-### Admin
+### Juanity Platform Admin
 
 Responsibilities:
 
-- company/user administration;
-- person/company relationship administration according to policy;
-- role/capability configuration;
-- product and entitlement configuration;
-- operational status;
-- audit investigation tools.
+- approved role catalogue/capability defaults;
+- versioned record/request/workflow definitions;
+- categories/classification options;
+- system-wide configurable policy/templates;
+- products/entitlements;
+- operational administration;
+- definition activation/deactivation and version history.
 
-Admin must not mean unrestricted access to all sensitive records. Privileged record access requires explicit server-side policy.
+Platform Admin must not expose ordinary configuration that disables core security invariants.
 
-### Documents
+### Company Admin
+
+Responsibilities:
+
+- company-member invitation/removal;
+- functional role assignment/revocation;
+- assigning roles to the company owner where they perform those functions;
+- company-level settings within Juanity-approved bounds;
+- relationship administration according to policy;
+- use of approved record/request definitions;
+- company billing/subscription administration where authorised.
+
+Company Admin must not mean unrestricted access to all sensitive records. Privileged record access requires explicit server-side policy and the relevant functional capabilities.
+
+### Documents / Record Storage
 
 **Reserved boundary — design pending.**
 
-The framework may expose neutral identifiers or extension points, but no final document schema, access semantics, retention policy, sharing model, document ownership model or document workflow is approved yet.
+The framework may expose neutral identifiers or extension points, but no final document schema, storage model, access semantics, retention implementation, sharing model or legal ownership model is approved yet.
 
 The eventual design must distinguish at least conceptually between:
 
@@ -169,7 +265,7 @@ The eventual design must distinguish at least conceptually between:
 - company records;
 - records created or held in the person/company relationship context.
 
-This distinction must not be implemented as a final schema until the document-engine design is approved.
+Record instances should eventually be able to establish the definition/version that governed them. The exact snapshot/reference mechanism is part of the document-engine design.
 
 ## Request flow
 
@@ -196,10 +292,12 @@ Every protected operation should resolve approximately:
 ```text
 Actor
  + Company / account context
+ + Company membership
+ + Functional role grants
  + Person relationship where applicable
- + Resource
+ + Resource / definition policy
  + Data classification / sensitivity where applicable
- + Capability
+ + Required capability
  = Allow / Deny
 ```
 
@@ -207,17 +305,26 @@ Client-provided company, relationship, role or entitlement claims are never auth
 
 Company membership alone must not imply access to all person/employee records.
 
+Avoid unrestricted ad-hoc per-user exceptions in v1 unless an approved use case requires them; functional role grants are easier to understand, test and audit.
+
 ## Activity model
 
 Examples of framework-level events:
 
 - `PERSON_ACCOUNT_CREATED`
 - `COMPANY_CREATED`
-- `COMPANY_USER_ADDED`
-- `COMPANY_USER_ROLE_CHANGED`
+- `COMPANY_MEMBER_INVITED`
+- `COMPANY_MEMBER_JOINED`
+- `COMPANY_MEMBER_DISABLED`
+- `COMPANY_MEMBER_ROLE_GRANTED`
+- `COMPANY_MEMBER_ROLE_REVOKED`
 - `RELATIONSHIP_CREATED`
 - `RELATIONSHIP_STATUS_CHANGED`
 - `RELATIONSHIP_ENDED`
+- `DEFINITION_CREATED`
+- `DEFINITION_VERSION_CREATED`
+- `DEFINITION_ACTIVATED`
+- `DEFINITION_DEACTIVATED`
 - `REQUEST_CREATED`
 - `REQUEST_COMPLETED`
 - `SUBSCRIPTION_CHANGED`
@@ -225,7 +332,22 @@ Examples of framework-level events:
 - `PRIVILEGED_ACCESS_GRANTED`
 - `PRIVILEGED_ACCESS_REVOKED`
 
-Document-specific audit/access events will be defined with the document engine.
+Document/record-specific audit/access events will be finalised with the document engine.
+
+## 3-click / 10-second interaction rule
+
+Frequent routine actions should be exposed from their relevant context and normally require no more than three deliberate clicks/taps and about ten seconds, excluding meaningful data entry, file upload/selection, reading legal content or required security steps.
+
+Examples:
+
+```text
+Relationship page → Add record → Choose definition/file → Send
+Relationship page → Request → Choose request type → Send
+Needs Action → Provide → Use existing/upload → Submit
+Company Members → Invite → Person + roles → Send
+```
+
+This is a usability rule for routine work, not permission to compress high-risk security/administrative controls beyond what is safe.
 
 ## Data ownership and control language
 
@@ -241,7 +363,7 @@ The system should distinguish where relevant between:
 - storage custodian;
 - responsible-party/operator roles where later confirmed by legal/compliance design.
 
-This prevents technical ownership fields from accidentally making legal conclusions.
+`Company OWNER` is a governance role and should not be confused with legal ownership of information.
 
 ## Data storage boundary
 
@@ -260,6 +382,13 @@ When a person/company relationship ends:
 - the person's account remains independent;
 - company records are not silently deleted;
 - future retention/access rules must be applied by explicit policy.
+
+When a company member is disabled/removed:
+
+- active company access is revoked;
+- historical audit context remains;
+- role grants no longer authorise new actions;
+- membership removal must not damage records they previously created or administered.
 
 Final record-retention and former-employee access rules remain part of the document/data-governance design gate.
 
