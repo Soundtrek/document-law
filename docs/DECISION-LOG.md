@@ -28,14 +28,11 @@ This was superseded after the product model was clarified. A Matter may still be
 
 ## ADR-004 — Document engine design is deferred
 
-**Status:** Accepted / refined by ADR-019  
-**Date:** 2026-09-04
+**Status:** Superseded by ADR-023  
+**Date:** 2026-09-04  
+**Superseded:** 2026-09-05
 
-The surrounding application framework may be designed and coded, but the final document storage schema, sharing semantics, retention implementation, external recipient access, audit evidence, content versioning and storage workflow will not be implemented until separately discussed and approved.
-
-The document design must explicitly consider personal records, company records and person/company relationship-context employment/legal records.
-
-ADR-019 approves a configurable/versioned record-definition policy layer without approving the final document storage engine.
+The surrounding application framework could be designed and coded while the final document storage schema and workflow were deferred. The v1 document knowledge engine is now sufficiently defined for implementation in ADR-023 and `docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`.
 
 ## ADR-005 — Modular monolith first
 
@@ -172,11 +169,11 @@ No technical implementation should be represented as sufficient proof of POPIA c
 **Status:** Accepted  
 **Date:** 2026-09-05
 
-Juanity Platform Admin will define approved record/request/workflow definitions and business-policy configuration rather than requiring application code changes for every employment/legal record type.
+Juanity Governance will define approved record/request/workflow definitions and business-policy configuration rather than requiring application code changes for every employment/legal record type.
 
 Definitions may contain context, category, direction/audience, working classification, allowed functional roles, acknowledgement/Needs Action behaviour, notification policy, approved retention-policy references and other approved behaviour.
 
-Definitions are **versioned**. Editing a definition must not silently alter the policy governing historic records. The final record-instance binding/snapshot implementation will be decided with the document engine.
+Definitions are **versioned**. Editing a definition must not silently alter the policy governing historic records. The v1 engine binds records to a definition version and stores derived retention/review dates as defined in the engine design.
 
 System security invariants remain code/policy enforced and cannot be treated as ordinary configurable switches.
 
@@ -212,3 +209,69 @@ A frequent routine action should normally be reachable from the relevant context
 The rule applies to daily workflows such as requests, record delivery, request responses and staff invitation/role assignment. It does not override necessary security or legal controls.
 
 Smart defaults from Juanity-approved definitions should absorb complexity so daily users are not repeatedly asked to configure security/policy choices.
+
+## ADR-023 — Juanity Law is a document knowledge system and the v1 engine is approved for implementation
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+Juanity Law is defined as a **document knowledge system** rather than a generic file manager, HR suite or legal case-management platform.
+
+V1 uses a deliberately small engine:
+
+```text
+Definition/version
+  ↓
+Record
+  ↓
+File/object
+  ↓
+Person / Company / Relationship profile projection
+  ↓
+Retention + review knowledge
+  ↓
+Access + audit
+```
+
+When a company adds a record such as a payslip to an employee relationship, the person sees it in their profile/Info Center and authorised company users see it on the employee relationship profile. The company does not receive unrelated private-person records.
+
+Retention and review/renewal are separate. Juanity Governance defines the applicable policy; the engine derives record dates from the governing definition version.
+
+See `docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`.
+
+## ADR-024 — Email address is the primary login identifier
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+Juanity Law uses email address as the primary login/sign-up identifier from the start. Normal users do not require a separate public username.
+
+Authentication remains behind an OIDC-compatible identity-provider boundary; the application does not implement password cryptography itself.
+
+Verified email is required before sensitive workspace access. MFA capability is required architecturally and is mandatory for Juanity Governance before production. Company Owner and sensitive functional roles such as HR, Payroll and Legal should default to an MFA-required policy before production unless explicitly changed through an approved security decision.
+
+## ADR-025 — Juanity privileged control surface is Governance, not `/admin`
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+Juanity Law does not use a generic `/admin` product surface.
+
+The Juanity-only privileged control surface is named **Governance**, initially routed as `/governance`.
+
+The route name is not a security control. Every Governance request must be protected by verified identity, Governance membership/capabilities, MFA, server-side deny-by-default authorisation and audit.
+
+Company Owner management remains inside the company workspace and is not Juanity Governance.
+
+See `docs/AUTHENTICATION-AND-GOVERNANCE.md`.
+
+## ADR-026 — External legal professionals use scoped access grants
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+A lawyer or legal professional may receive explicit access to a defined Person ↔ Company relationship and approved records without becoming a company member.
+
+Legal access is explicit, revocable and time-bound by default, with view/download scope controlled by policy. A legal professional does not inherit unrelated company workspace access or the person's unrelated private Info Center.
+
+The grant may represent the company or the person. Sensitive use of the grant is auditable.
