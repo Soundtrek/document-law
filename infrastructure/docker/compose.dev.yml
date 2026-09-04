@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: juanity_law
+      POSTGRES_USER: juanity
+      POSTGRES_PASSWORD: juanity_dev_only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U juanity -d juanity_law"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - juanity-postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.dev
+    environment:
+      DATABASE_URL: postgresql://juanity:juanity_dev_only@db:5432/juanity_law
+      JUANITY_ENV: development
+      JUANITY_BASE_URL: http://localhost:3000
+      JUANITY_DEV_IDENTITY_ENABLED: "true"
+      JUANITY_STORAGE_DRIVER: memory
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  juanity-postgres:
