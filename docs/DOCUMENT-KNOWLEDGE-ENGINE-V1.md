@@ -170,17 +170,49 @@ A separate file/object record contains technical storage metadata:
 RecordFile
 ├── id
 ├── record_id
+├── storage_provider
 ├── storage_key
 ├── original_filename
 ├── content_type
 ├── size
 ├── checksum
 ├── scan_status
+├── processing_status
 ├── created_at
 └── accepted_at
 ```
 
 Do not embed binary files in PostgreSQL by default.
+
+## Storage architecture
+
+The storage boundary is approved and is part of V1 architecture.
+
+```text
+PostgreSQL
+= Record knowledge, context, permissions, retention/review, audit and RecordFile object references/checksums
+
+Private S3-compatible object storage
+= actual binary objects
+```
+
+Production object storage is intended to be separate from the Juanity application VM and independently recoverable.
+
+The engine talks only to a provider-neutral `StorageProvider` interface. It must not depend on provider-specific public URLs, bucket structure or filesystem paths.
+
+Storage invariants:
+
+- private buckets/containers;
+- opaque object keys with no person/company/document names;
+- Juanity server authorisation before object access;
+- short-lived signed access only after authorisation where signed URLs are used;
+- uploads remain untrusted until quarantine/validation/malware-scan/checksum acceptance completes;
+- PostgreSQL remains authoritative for retention/review/access knowledge;
+- object-store lifecycle rules may assist but do not replace Juanity policy;
+- primary object storage is not itself a backup;
+- object/checksum inventory can be reconciled against PostgreSQL during recovery/migration.
+
+See `STORAGE-ARCHITECTURE.md`.
 
 ## Record contexts
 
@@ -271,7 +303,7 @@ The target receives an email invitation, signs in with their verified email iden
 
 ## Email identity
 
-Email is the primary login identifier from the start.
+Email is the primary human-facing login identifier from the start, while a stable internal Account ID remains the Juanity identity key.
 
 Authentication identifies the human. Authorisation resolves their current context:
 
@@ -337,7 +369,7 @@ When real file storage is integrated on the Law VM:
 ```text
 Upload
   ↓
-Quarantine
+Quarantine / untrusted state
   ↓
 Validate type/size/name
   ↓
@@ -345,7 +377,7 @@ Malware scan
   ↓
 Checksum
   ↓
-Accept into private object storage
+Accept into private S3-compatible object storage
   ↓
 Record becomes available
 ```
@@ -415,6 +447,7 @@ This document approves enough of the v1 engine model to start implementation of:
 - legal access grants;
 - email-identity integration boundary;
 - Governance capability surface;
-- storage/scan interfaces.
+- provider-neutral storage/scan interfaces;
+- opaque object-key and checksum/inventory boundaries.
 
 Production legal retention periods, POPIA notices/processing roles, hosting region, final identity-provider deployment and live storage/security configuration still require their respective approval/review gates.
