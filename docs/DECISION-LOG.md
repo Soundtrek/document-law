@@ -28,12 +28,14 @@ This was superseded after the product model was clarified. A Matter may still be
 
 ## ADR-004 — Document engine design is deferred
 
-**Status:** Accepted  
+**Status:** Accepted / refined by ADR-019  
 **Date:** 2026-09-04
 
-The surrounding application framework may be designed and coded, but the final document schema, sharing semantics, retention, external recipient access, audit evidence, versioning and storage workflow will not be implemented until separately discussed and approved.
+The surrounding application framework may be designed and coded, but the final document storage schema, sharing semantics, retention implementation, external recipient access, audit evidence, content versioning and storage workflow will not be implemented until separately discussed and approved.
 
-The document design must now explicitly consider personal records, company records and person/company relationship-context employment/legal records.
+The document design must explicitly consider personal records, company records and person/company relationship-context employment/legal records.
+
+ADR-019 approves a configurable/versioned record-definition policy layer without approving the final document storage engine.
 
 ## ADR-005 — Modular monolith first
 
@@ -84,7 +86,7 @@ Build the application skeleton, domain boundaries, UI, tests and adapters before
 
 Use light layered surfaces, readable constrained person-facing page widths, strong card/status hierarchy, compact pill navigation/status, visible needs-action states and responsive 4→2→1 style navigation where appropriate. Dark mode is not an initial requirement.
 
-The design now supports separate Person Info Center and Company Info Center/workspace experiences using the same visual system.
+The design supports separate Person Info Center and Company Info Center/workspace experiences using the same visual system.
 
 ## ADR-010 — Online learning is deferred
 
@@ -142,7 +144,7 @@ Company access must be explicit, server authorised and scoped to the company/per
 
 ## ADR-016 — Company admin is not universal sensitive-data access
 
-**Status:** Accepted  
+**Status:** Accepted / refined by ADR-020 and ADR-021  
 **Date:** 2026-09-05
 
 The permission model must support separation of duties such as company administration, HR, payroll, legal, management and billing. Company administrator status must not automatically bypass sensitive-resource policy.
@@ -164,3 +166,49 @@ The labels are engineering controls, not a final legal taxonomy.
 Juanity Law is expected to carry sensitive employment/legal information. The architecture must support least privilege, data minimisation, controlled access, retention, offboarding, audit, incident investigation and privacy-aware operations from the beginning.
 
 No technical implementation should be represented as sufficient proof of POPIA compliance on its own. Final production policies, processing roles, contracts and legal/compliance requirements require formal review.
+
+## ADR-019 — Juanity configures record/workflow policy instead of hard-coding record types
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+Juanity Platform Admin will define approved record/request/workflow definitions and business-policy configuration rather than requiring application code changes for every employment/legal record type.
+
+Definitions may contain context, category, direction/audience, working classification, allowed functional roles, acknowledgement/Needs Action behaviour, notification policy, approved retention-policy references and other approved behaviour.
+
+Definitions are **versioned**. Editing a definition must not silently alter the policy governing historic records. The final record-instance binding/snapshot implementation will be decided with the document engine.
+
+System security invariants remain code/policy enforced and cannot be treated as ordinary configurable switches.
+
+## ADR-020 — Company members may hold multiple functional roles
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+Company membership is separate from functional access. A company member may hold one or many roles such as HR, Payroll, Clerk/Records, Legal, Manager, Billing and other Juanity-approved roles.
+
+A one-person company may have one owner holding all required functional roles. A larger company may distribute the same roles across multiple people.
+
+The architecture must support many-to-many company-member ↔ functional-role grants.
+
+## ADR-021 — Company Owner is governance, not an automatic sensitive-data bypass
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+The Company Owner/governance role may invite/remove company staff, assign/revoke approved functional roles, manage approved company settings and assign functional roles to themselves.
+
+`OWNER` must not implicitly grant every HR/Payroll/Legal record permission. Where the owner performs those functions, the relevant functional roles are explicitly granted.
+
+Role and membership changes are server authorised and auditable.
+
+## ADR-022 — Frequent routine actions follow the 3-click / 10-second rule
+
+**Status:** Accepted  
+**Date:** 2026-09-05
+
+A frequent routine action should normally be reachable from the relevant context in no more than three deliberate clicks/taps and be completable in about ten seconds, excluding substantial typing, file selection/upload, reading legal content and required security steps.
+
+The rule applies to daily workflows such as requests, record delivery, request responses and staff invitation/role assignment. It does not override necessary security or legal controls.
+
+Smart defaults from Juanity-approved definitions should absorb complexity so daily users are not repeatedly asked to configure security/policy choices.
