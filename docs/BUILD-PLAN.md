@@ -4,252 +4,341 @@
 
 Build as much of Juanity Law as possible before provisioning the dedicated runtime VM, **but do not fake production-critical boundaries in a way that creates later rewrites**.
 
-The application should progress through clear gates.
+The Document Knowledge Engine V1 architecture is approved. Moodle and social/federated login are known future requirements, but they are **integration targets, not V1 runtime dependencies**.
 
 ## Phase 0 — Repository and design controls
 
-Status: **in progress**
+Status: **complete enough to build**
 
-Deliverables:
+Established:
 
-- project charter;
-- person/company/relationship application framework;
-- configurable record/request definition model;
-- company membership and multi-role access model;
+- Person ↔ Company ↔ Relationship product frame;
+- Document Knowledge Engine V1;
+- configurable/versioned record definitions;
+- company membership and multi-role access;
+- external Legal Access grants;
+- email-first identity and Governance model;
+- stable internal Account identity direction;
 - 3-click / 10-second routine-action UX rule;
 - stack design;
 - Info Center UI direction;
 - security/privacy invariants;
 - disaster recovery plan;
-- prompt capture discipline;
-- decision log;
-- AI/Codex working rules.
+- prompt capture and decision log;
+- future Moodle/social-login integration boundaries.
 
-Exit gate: owner agrees the platform frame is correct enough to start coding around the still-undecided final document storage domain.
-
-## Phase 1 — Code skeleton without full runtime stack
+## Phase 1 — Application and identity skeleton
 
 Build:
 
-- monorepo/workspace structure;
+- workspace/monorepo structure;
 - Next.js application shell;
-- shared TypeScript config/lint/test setup;
+- strict TypeScript/lint/test configuration;
+- environment validation;
 - UI tokens and shell components;
-- person and company route skeletons;
-- domain interfaces/types for people, companies, company members, role grants, relationships, requests, activity, billing and entitlements;
-- Juanity Platform Admin shell;
-- versioned definition interfaces/types for record/request/workflow policy;
-- application-service boundaries;
-- permission-policy interface;
-- data-classification primitives;
-- infrastructure interfaces for identity, storage, mail and payments;
-- mock/dev adapters where needed;
-- focused unit tests.
+- CI for typecheck/lint/focused tests;
+- stable `Account` model with internal ID;
+- `AccountIdentity` provider-link model/interface;
+- email as primary human-facing login/contact identifier;
+- verified-email state;
+- OIDC-compatible identity adapter contract;
+- MFA/step-up policy hooks;
+- Person, Company and Governance route shells;
+- no generic `/admin` route.
 
-Do **not** implement final document storage/domain behaviour.
+Important: do not make email the database primary key and do not make domain code assume password-only authentication.
 
-Exit gate: application compiles and core domain contracts are coherent without requiring persistent production-style infrastructure.
+Social-provider credentials/buttons are deferred. The V1 requirement is only that the identity model can support linked providers later without changing Person/Company relationships.
 
-## Phase 2 — Company membership and configuration slice
+## Phase 2 — Company membership and access
 
 Implement:
 
 ```text
 Create company
   ↓
-Create company owner/governance member
+Create company Owner member
   ↓
-Owner assigns functional roles to self
+Owner assigns required functional roles to self
   ↓
-Owner invites another company staff member
+Owner invites staff by email
   ↓
 Assign one or more approved roles
   ↓
-Invitation accepted
+Invitation accepted into stable Juanity account
   ↓
-Role-limited company workspace is projected
+Role-limited company workspace projected
   ↓
-Role changes and membership events are audited
+Role/membership events audited
 ```
 
-Also build a minimal Juanity Platform Admin proof with synthetic definitions:
+Build:
 
-- create definition;
-- create new version;
-- activate/deactivate version;
-- assign allowed functional roles;
-- prove old definition versions remain addressable and are not silently overwritten.
+- CompanyMember;
+- many-to-many functional role grants;
+- Owner governance capability;
+- HR / Payroll / Clerk / Legal / Manager / Billing working role concepts;
+- role grant/revocation;
+- membership disable/removal;
+- active access re-evaluation hooks;
+- Team & Access UI;
+- negative access tests.
 
-Exit gate: one-person and multi-person company models both work without special-case architecture.
+Exit gate: one-person and multi-person companies both work without special-case architecture.
 
-## Phase 3 — Framework vertical slice
+## Phase 3 — Person / Company relationship and Info Centers
 
-Implement a meaningful non-document workflow:
+Implement:
+
+- Person;
+- Company;
+- PersonCompanyRelationship;
+- active/former relationship lifecycle;
+- Person Info Center;
+- Company Info Center;
+- employee/person profile in company workspace;
+- relationship activity timeline;
+- relationship offboarding without deleting the Person account;
+- requests/actions foundation where useful.
+
+Exit gate: Person ↔ Company relationships and profile projections work with synthetic data and server-side isolation.
+
+## Phase 4 — Governance and configurable knowledge policy
+
+Implement restricted `/governance` surface and domain:
+
+- RecordDefinition;
+- immutable/versioned RecordDefinitionVersion;
+- categories;
+- Person / Company / Relationship context;
+- direction/audience;
+- classification/sensitivity;
+- allowed functional roles;
+- person visibility;
+- retention policy representation;
+- review/renewal interval representation;
+- acknowledgement/Needs Action policy;
+- notification policy;
+- active/inactive definitions;
+- Governance capability checks;
+- definition-policy audit.
+
+Synthetic definitions such as Payslip, Proof of Address and BEE Certificate may be seeded for demonstration, but their behaviour must come from configuration rather than hard-coded engine branches.
+
+## Phase 5 — Document Knowledge Engine V1
+
+Implement the approved V1 model:
 
 ```text
-Create person account (development identity)
-  ↓
-Create company / company members
-  ↓
-Create person/company relationship
-  ↓
-Authorised company role creates request/action using an approved definition
-  ↓
-Person sees Needs Action in their Info Center
-  ↓
-Person completes request/action
-  ↓
-Company sees completion
-  ↓
-Activity/audit records the state changes
+RecordDefinitionVersion
+      ↓
+Record
+      ↓
+RecordFile
+      ↓
+Person / Company / Relationship
+      ↓
+Retention + review dates
+      ↓
+Profile projection
+      ↓
+Access + Activity/Audit
 ```
 
-Also build:
+Build:
 
-- Person Info Center shell;
-- Company Info Center/workspace shell;
-- relationship list/detail shell;
-- relationship lifecycle/status;
-- role/capability checks;
-- company billing/entitlement domain skeleton;
-- company admin/member shell;
-- responsive UI tests;
-- 3-click / 10-second checks for common fixture workflows.
+- Record metadata model;
+- RecordFile metadata model;
+- immutable definition-version binding;
+- context constraints;
+- storage adapter interface;
+- upload-processing/scan interface;
+- checksum metadata;
+- derived `retain_until`;
+- derived `review_due_at`;
+- replacement/supersession link;
+- Person profile record projection;
+- Company employee-profile record projection;
+- contextual `Add record` flow;
+- Needs Action/review-due projection;
+- audit events for create/view/download where approved.
 
-Exit gate: framework demonstrates the Person ↔ Company ↔ Relationship flow and role-limited daily actions without relying on the undecided document storage engine.
+Target common flow:
 
-## Phase 4 — Privacy and permission proof
+```text
+Employee profile
+  ↓
+Add record
+  ↓
+Choose definition + file
+  ↓
+Save
+  ↓
+Person profile updates
+  ↓
+Authorised company roles can view
+```
 
-Before adding sensitive document workflows, prove the access model with non-document fixtures.
+Keep this within the 3-click / 10-second routine-action target where file selection/upload time is excluded.
 
-Validate:
+## Phase 6 — External Legal Access
 
-- one company cannot access another company's relationships;
-- one person cannot access another person's relationship data;
-- company membership does not imply universal sensitive-record access;
-- `OWNER` without HR/Payroll/Legal functional roles does not automatically gain those role-specific rights;
-- one member can safely hold multiple functional roles;
-- invitation/role changes are server authorised and audited;
-- disabling a company member revokes their access;
-- role/capability restrictions are server enforced;
-- relationship termination revokes active relationship capabilities as intended;
-- the person's account remains independent after relationship termination;
-- privileged changes generate audit events;
-- sensitive fields are not unnecessarily logged;
-- editing a definition creates/uses a new version instead of silently mutating historic policy.
+Implement:
 
-Exit gate: tenancy, relationship scoping, definition policy and least-privilege rules are coherent enough to support the document-engine design.
+- LegalAccessGrant;
+- grantor / represented party;
+- PersonCompanyRelationship scope;
+- record/category/definition scope;
+- view/download capability;
+- start/expiry/revocation;
+- restricted Legal Access view;
+- audit;
+- negative tests proving the grant cannot escape its relationship/scope/expiry.
 
-## Phase 5 — Document engine design gate
+Legal professionals do not become company members solely to view granted records.
 
-Pause document implementation expansion and design the legal/employment document domain explicitly.
+## Phase 7 — Privacy and permission proof
 
-The approved framework now assumes a configurable `RecordDefinition`/workflow layer, but the final storage engine still requires explicit design.
+Before production-style infrastructure integration, validate with synthetic data:
 
-Topics to approve before coding:
+- Company A cannot access Company B data;
+- Person A cannot access Person B records;
+- company membership alone does not expose every record;
+- Owner without HR/Payroll/Legal does not inherit those record permissions;
+- multi-role member receives only intended combined access;
+- role revocation removes access;
+- removed/disabled company member loses access;
+- definition version changes do not rewrite historic record policy;
+- legal grants remain scoped and revocable;
+- normal/company users cannot access Governance;
+- sensitive values are not unnecessarily logged;
+- relationship offboarding preserves Person account and history appropriately.
 
-- personal vs company vs relationship-context records;
-- how record instances bind to definition versions;
-- legal/control language versus technical storage ownership;
-- document lifecycle;
-- request/upload/share distinctions;
-- relationship to a person/company relationship;
-- optional future legal matter/case context;
-- versioning, replacement and supersession;
-- recipient identity and access;
-- company functional-role access;
-- view/download controls;
-- expiry/revocation;
-- acknowledgement/receipt/evidence;
-- audit requirements for sensitive access;
-- data classification;
-- retention/destruction;
-- former-employee access/offboarding;
-- object storage model;
-- quarantine/malware workflow;
-- legal/employment-specific metadata;
-- future signing/redaction boundaries;
-- POPIA/privacy operating requirements requiring legal review.
+## Phase 8 — Dedicated Law development VM
 
-Only after approval should the document module/service contract be finalised.
-
-## Phase 6 — Dedicated Law development VM
-
-Provision when real integrations become useful.
+Provision once the code foundation is coherent and real integrations become useful.
 
 Add:
 
 - PostgreSQL persistence;
+- real OIDC/email login/account recovery/MFA;
 - HTTPS/domain via Caddy;
-- real OIDC provider configuration;
 - persistent S3-compatible object storage;
-- Redis/BullMQ if asynchronous jobs are now needed;
-- ClamAV for external uploads;
+- upload quarantine/validation/malware scanning;
+- Redis/BullMQ if asynchronous jobs are needed;
 - SMTP integration;
-- payment sandbox and webhook ingress;
+- payment sandbox/webhook ingress;
 - automated backups;
 - restore testing;
-- external link/access testing;
-- security/access logging appropriate to the approved document design.
+- external Legal Access invitation testing;
+- security/access logging.
 
 The existing NUC is not the runtime target.
 
-## Phase 7 — Commercial, POPIA and security hardening
+## Phase 9 — Social / federated login
+
+Later, when V1 identity is stable:
+
+- configure approved providers through the identity-provider/broker boundary;
+- add provider login options such as Google/Microsoft/Apple where approved;
+- link provider identities to stable Juanity Accounts;
+- implement secure account-link/unlink flows;
+- never auto-merge accounts solely from matching email addresses;
+- test invitation acceptance through linked-provider login;
+- apply the same MFA/step-up and Governance/company permissions after authentication.
+
+This phase should not require changing Person, CompanyMember, Relationship or Record ownership/context keys.
+
+## Phase 10 — Moodle / company training and onboarding
+
+Later, add Moodle or another approved LMS behind a learning integration boundary.
+
+Target capabilities:
+
+- SSO from Juanity to LMS;
+- company assigns onboarding/training to an employee relationship;
+- course enrolment/assignment mapping;
+- progress/completion summary where required;
+- certification/result synchronisation;
+- Info Center `Training` / Needs Action projections;
+- certificate PDF ingestion into the normal Record engine where applicable;
+- training validity/review date where appropriate;
+- audit/integration references.
+
+Authority split:
+
+- Juanity: identity, company, relationship, permissions, entitlements, Info Center;
+- Moodle/LMS: courses, activities, assessment, progress and LMS-generated completion/certification.
+
+Do not copy the whole Moodle data model into Juanity.
+
+See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
+
+## Phase 11 — Commercial, POPIA and security hardening
 
 Before production:
 
 - payment production configuration;
-- MFA policy;
+- final MFA/step-up policy;
 - session/security review;
-- company/tenant isolation tests;
-- relationship isolation tests;
-- privilege-escalation tests;
-- sensitive-role access matrix review;
-- multi-role and owner-governance tests;
-- invitation/revocation tests;
-- definition-version/migration tests;
+- company/tenant and relationship isolation tests;
+- privilege-escalation/IDOR review;
 - upload/download abuse tests;
 - rate limiting;
 - backup/restore rehearsal;
 - disaster recovery drill;
-- incident/breach-response runbook review;
-- log/monitoring baseline;
-- data classification/retention approval;
+- incident/breach-response runbook;
+- monitoring/logging baseline;
+- approved data classification/retention/destruction policy;
 - privacy notice and processing-role review;
 - operator/sub-processor arrangements where applicable;
 - data-subject/access/correction workflow review where applicable;
 - production secrets management;
-- vulnerability/dependency review;
-- formal legal/compliance review before relying on the platform for regulated production data.
+- dependency vulnerability review;
+- formal legal/compliance review before regulated production data.
 
 ## Build sequence rule
 
-Prefer vertical slices over building every database table first.
+Prefer vertical slices over building every table first.
 
-A feature is considered complete only when its:
+A feature is complete only when its:
 
 - domain rule;
-- configurable-policy/definition rule where applicable;
+- configurable policy where applicable;
 - permission/privacy rule;
-- persistence or adapter contract;
-- UI state;
+- persistence/adapter contract;
+- UI projection;
 - activity/audit consequence;
-- focused tests
+- focused positive and negative tests
 
 are understood together.
 
+## Future-readiness rule
+
+Do not overbuild future features. Prepare them by choosing stable boundaries now:
+
+```text
+stable Account ID
++ provider-linked identities
++ integration adapters
++ Person/Company/Relationship context
++ normal Record engine
+```
+
+This is sufficient preparation for both social login and Moodle without adding their runtime complexity to V1.
+
 ## 3-click / 10-second validation
 
-For high-frequency routine workflows, include a simple interaction-path check in UI review:
+For high-frequency routine workflows, check:
 
 - can the user start from the relevant context?
 - is the routine action within three deliberate clicks/taps?
-- are defaults supplied by approved configuration rather than repeated manual policy choices?
-- does the flow remain clear on desktop/tablet/mobile?
-- have we preserved required security/legal steps?
+- are defaults supplied by Governance configuration?
+- is the flow clear on desktop/tablet/mobile?
+- have required security/legal steps been preserved?
 
-This is a usability target, not a reason to remove necessary safeguards.
+This is a usability target, not a reason to remove safeguards.
 
 ## Validation economy
 
-Use the smallest validation set that provides confidence for the change. Repository-wide exhaustive checks are reserved for releases, migrations, dependency changes and genuinely broad refactors.
+Use the smallest validation set that provides confidence for the change. Repository-wide exhaustive checks are reserved for releases, migrations, dependency changes and broad refactors.
