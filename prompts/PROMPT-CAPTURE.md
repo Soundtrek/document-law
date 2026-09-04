@@ -75,9 +75,11 @@ Establish the Juanity Law repository as the planning/build-control base for a ne
 - Create build documentation, plans, skills, prompt capture, stack design and disaster recovery support first.
 - Discuss and design the legal document engine only after the framework/support material is established.
 
-### Accepted interpretation
+### Initial accepted interpretation
 
 Build a modular-monolith platform frame around identity, organisations, matters, requests/actions, activity/audit, billing/entitlements and admin. Reserve a clean document boundary without inventing final document behaviour.
+
+This initial matter-centric interpretation was later superseded by the 2026-09-05 product clarification below.
 
 ### Stack planning baseline
 
@@ -117,9 +119,104 @@ Build a modular-monolith platform frame around identity, organisations, matters,
 
 Repository support-document bootstrap created on `main`.
 
+## Product clarification — 2026-09-05
+
+### Goal
+
+Correct the framework so it reflects the actual Juanity Law product rather than a generic legal matter portal.
+
+### Owner context
+
+The working theory is an Info Center exchange model:
+
+- individuals keep their own information/documents;
+- companies keep their own information/documents;
+- a defined relationship between the individual and company permits controlled requests and sharing;
+- for Juanity Law, the common relationship is employer/employee;
+- companies will pay most of the fees;
+- people should sign up for free;
+- employment records may include payslips, disciplinary hearing outcomes and legal documentation;
+- the application will carry sensitive data and must be significantly more security/privacy conscious, including POPIA considerations.
+
+### Accepted interpretation
+
+Replace the matter-first root with:
+
+```text
+Person  ↔  PersonCompanyRelationship  ↔  Company
+```
+
+The Info Center pattern remains the primary UX. A Person Info Center and Company Info Center share one design system while presenting different workflows.
+
+### Decisions
+
+- Person accounts are independent of employers/companies.
+- People are free in the current commercial direction.
+- Companies are the primary paid tenants/workspaces.
+- The person/company relationship is first-class domain state.
+- Ending employment changes relationship status; it does not delete the person's account.
+- Requests/actions are preferred over blanket access to a person's private information store.
+- Company admin does not imply universal access to sensitive employee records.
+- Permission architecture must support separation such as HR, payroll, legal, management, billing and company administration.
+- A framework-level data classification capability is required.
+- POPIA/privacy, audit, offboarding and incident readiness influence architecture from the start.
+- `Matter` is now an optional future legal-work context, not a v1 root entity.
+
+### Document-domain implication
+
+The future document-engine discussion must explicitly distinguish, at least conceptually:
+
+1. personal/person records;
+2. company records;
+3. employment/legal records held in the person/company relationship context.
+
+No final document tables, ownership semantics, sharing model, retention rules or former-employee document rights were approved in this session.
+
+### Security implications
+
+The framework must be capable of protecting sensitive records such as:
+
+- identity information;
+- payslips/payroll-related information;
+- banking confirmations;
+- employment agreements;
+- disciplinary records/hearing outcomes;
+- legal correspondence.
+
+Development/test data must be synthetic and logging must avoid sensitive values/content.
+
+### Files / areas affected
+
+- `README.md`
+- `AGENTS.md`
+- `docs/PROJECT-CHARTER.md`
+- `docs/APPLICATION-FRAMEWORK.md`
+- `docs/BUILD-PLAN.md`
+- `docs/CODE-BEFORE-VM.md`
+- `docs/DEVELOPMENT-GUARDRAILS.md`
+- `docs/SECURITY-FOUNDATION.md`
+- `docs/STACK-DESIGN.md`
+- `docs/UI-DESIGN-SYSTEM.md`
+- `docs/DECISION-LOG.md`
+- `prompts/PROMPT-CAPTURE.md`
+
+### Deferred / explicitly not changed
+
+- final document engine;
+- final legal definition of ownership/control of records;
+- document retention/destruction;
+- final POPIA policies/contractual roles;
+- production hosting/provider/region;
+- LMS/Moodle;
+- e-signature.
+
+### Result
+
+**PASS — framework documentation reframed around Person ↔ Company ↔ Relationship.**
+
 ### Follow-up
 
-Discuss the document engine domain before implementing it.
+Discuss the document engine using the corrected employment/legal information model.
 
 ## Capture discipline
 
