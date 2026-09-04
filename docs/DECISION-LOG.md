@@ -85,12 +85,12 @@ Use light layered surfaces, readable constrained person-facing page widths, stro
 
 The design supports separate Person Info Center and Company Info Center/workspace experiences using the same visual system.
 
-## ADR-010 — Online learning is deferred
+## ADR-010 — Online learning is deferred from V1
 
-**Status:** Accepted  
+**Status:** Accepted / refined by ADR-028  
 **Date:** 2026-09-04
 
-Do not include Moodle/LMS design in the current framework pass. The Law platform should first establish identity, people, companies, relationships, actions, activity, billing, permissions and the document domain.
+Do not build Moodle/LMS functionality as part of Document Knowledge Engine V1. ADR-028 now records Moodle/company training as an expected future integration and defines the boundary that V1 must preserve.
 
 ## ADR-011 — Prompt/build history lives in the repository
 
@@ -110,7 +110,7 @@ Juanity Law is fundamentally organised around:
 Person  ↔  PersonCompanyRelationship  ↔  Company
 ```
 
-A person has an independent account/Info Center. A company has a company workspace/Info Center. The relationship is the controlled context through which employment information, requests, later records/documents and activity flow.
+A person has an independent account/Info Center. A company has a company workspace/Info Center. The relationship is the controlled context through which employment information, requests, records/documents and activity flow.
 
 A Matter/case is optional future context rather than a mandatory foundation.
 
@@ -151,7 +151,7 @@ The permission model must support separation of duties such as company administr
 **Status:** Accepted  
 **Date:** 2026-09-05
 
-The framework should support a working classification model such as Public, Internal, Personal, Sensitive and Highly Sensitive. Classification can be used as a policy input for authorisation, masking, audit and later document behaviour.
+The framework should support a working classification model such as Public, Internal, Personal, Sensitive and Highly Sensitive. Classification can be used as a policy input for authorisation, masking, audit and document behaviour.
 
 The labels are engineering controls, not a final legal taxonomy.
 
@@ -239,16 +239,18 @@ Retention and review/renewal are separate. Juanity Governance defines the applic
 
 See `docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`.
 
-## ADR-024 — Email address is the primary login identifier
+## ADR-024 — Email is primary human-facing login, but Account ID is stable identity
 
-**Status:** Accepted  
+**Status:** Accepted / refined by ADR-027  
 **Date:** 2026-09-05
 
-Juanity Law uses email address as the primary login/sign-up identifier from the start. Normal users do not require a separate public username.
+Juanity Law uses email address as the primary human-facing login/sign-up/contact identifier from the start. Normal users do not require a separate public username.
 
 Authentication remains behind an OIDC-compatible identity-provider boundary; the application does not implement password cryptography itself.
 
 Verified email is required before sensitive workspace access. MFA capability is required architecturally and is mandatory for Juanity Governance before production. Company Owner and sensitive functional roles such as HR, Payroll and Legal should default to an MFA-required policy before production unless explicitly changed through an approved security decision.
+
+The database identity is a stable internal `Account`/`Person` ID, not the email address itself.
 
 ## ADR-025 — Juanity privileged control surface is Governance, not `/admin`
 
@@ -275,3 +277,35 @@ A lawyer or legal professional may receive explicit access to a defined Person �
 Legal access is explicit, revocable and time-bound by default, with view/download scope controlled by policy. A legal professional does not inherit unrelated company workspace access or the person's unrelated private Info Center.
 
 The grant may represent the company or the person. Sensitive use of the grant is auditable.
+
+## ADR-027 — Social/federated login attaches external identities to a stable Juanity account
+
+**Status:** Accepted as future-ready architecture  
+**Date:** 2026-09-05
+
+Juanity expects to support social/federated login providers later, potentially including Google, Microsoft, Apple or other approved providers.
+
+V1 must therefore use a stable internal Account ID and an `AccountIdentity`-style provider-link boundary. External provider subject IDs and emails are integration attributes, not Juanity primary keys.
+
+A user may later authenticate through several linked providers while remaining one Juanity Person with the same company memberships, employment relationships, Legal Access grants and records.
+
+Do not silently merge Juanity accounts solely because provider emails match. Account linking requires an authenticated/verified flow.
+
+Provider-specific authentication logic remains behind the OIDC/identity-provider boundary.
+
+## ADR-028 — Moodle is the expected future company training/onboarding LMS boundary
+
+**Status:** Accepted as future product direction; deferred from V1 implementation  
+**Date:** 2026-09-05
+
+Juanity expects to add company onboarding, training and certification later, with Moodle currently the leading LMS direction.
+
+Juanity remains authoritative for identity, companies, company members, Person ↔ Company relationships, entitlements and the Info Center. Moodle/LMS remains authoritative for courses, activities, assessments, progress and LMS-generated completion/certification results.
+
+The integration should use SSO and an explicit API/adapter boundary so users do not maintain a separate unrelated Moodle identity/password where avoidable.
+
+Training assignments and completion/certification summaries may attach to the Person/Company/Relationship context in Juanity. Certificate PDFs, when brought into Juanity, use the normal Record/RecordFile engine rather than a second LMS-specific document store.
+
+V1 should prepare only stable IDs and integration seams; Moodle deployment, enrolment/progress APIs and course design are later work.
+
+See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
