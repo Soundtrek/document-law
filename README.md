@@ -43,62 +43,15 @@ Choose type + file
 Save
 ```
 
-The engine then routes the record to the correct profile, applies Juanity policy, computes retention/review dates, determines authorised roles, records audit/activity and notifies the person where required.
-
-The person sees the record in their Info Center/company relationship. Authorised company users see the relationship-shared record on the employee profile.
+The engine routes the record to the correct profile, applies Juanity policy, computes retention/review dates, determines authorised roles, records activity/audit and notifies the person where required.
 
 See [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md).
-
-## Storage architecture
-
-Document knowledge and document binaries are separated.
-
-```text
-PostgreSQL
-├── accounts / people / companies / relationships
-├── record definitions and versions
-├── record metadata
-├── permissions / retention / review
-├── legal access grants
-├── audit/activity
-└── RecordFile storage references + checksums
-
-Private S3-compatible object storage
-└── actual document/file binaries
-```
-
-Production object storage is intended to be **separate from the Juanity application VM** and independently recoverable. Juanity uses a provider-neutral storage adapter so the physical storage provider or region can change without redesigning the Document Knowledge Engine.
-
-Core rules:
-
-- buckets/containers are private;
-- no permanent public document URLs;
-- Juanity authorises access before object retrieval;
-- object keys are opaque and do not contain names, company names or document descriptions;
-- real uploads pass through quarantine, validation, malware scanning and checksum before becoming trusted/available;
-- PostgreSQL remains authoritative for access context, retention and review knowledge;
-- object-store lifecycle rules may support retention but do not replace Juanity policy;
-- primary object storage is not itself a backup.
-
-See [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md).
 
 ## Record policy is configurable
 
 Juanity Governance defines versioned record/request/workflow policy instead of hard-coding every record type.
 
-Definitions may include:
-
-- category;
-- Person / Company / Relationship context;
-- direction/audience;
-- working classification/sensitivity;
-- allowed company functional roles;
-- person visibility;
-- acknowledgement / Needs Action behaviour;
-- notification policy;
-- retention policy;
-- review/renewal interval;
-- active/inactive state.
+Definitions may include category, context, direction/audience, classification, allowed functional roles, person visibility, acknowledgement/Needs Action behaviour, notification policy, retention policy, review/renewal interval and active/inactive state.
 
 Retention and review are deliberately separate. A record may need replacement while the historic record remains retained.
 
@@ -106,60 +59,39 @@ See [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS
 
 ## Authentication and privileged access
 
-Email address is the primary human-facing login/contact identifier from the start, but Juanity accounts use a stable internal account ID rather than treating email as the permanent database identity.
-
-This lets one person later link approved social/federated identities such as Google, Microsoft or Apple to the same Juanity account without duplicating their Person, company memberships or records.
+Email address is the primary human-facing login/contact identifier, while Juanity uses a stable internal Account ID so later social/federated identities can link to the same person without duplicating their records or company relationships.
 
 There is no generic `/admin` surface. Juanity-only privileged controls live under **Governance** (`/governance` initially).
 
-Governance access is protected by server-side capabilities, verified identity, MFA, audit and deny-by-default policy. The route name is not treated as a security control.
-
-Company Owner/governance is separate from Juanity Governance. Company Owners manage only their own team/access and may assign approved functional roles to their staff or themselves.
-
 See [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md).
+
+## Storage architecture
+
+Document binaries do not live in PostgreSQL by default.
+
+```text
+PostgreSQL
+= document knowledge / metadata / permissions / retention / audit
+
+Private S3-compatible object storage
+= document binaries
+```
+
+Production object storage is intended to be private and separate from the application-host failure domain. Juanity authorises access before any object is served. Object keys are opaque, uploads pass through quarantine/validation/malware-scan/checksum before acceptance, and primary object storage is not treated as a backup.
+
+See [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md).
 
 ## Legal-professional access
 
-A lawyer/legal professional may receive an explicit, revocable and time-bound access grant to a defined Person ↔ Company relationship and approved records.
-
-They do not become a company member and do not inherit broader company or personal access.
+A lawyer/legal professional may receive an explicit, revocable and time-bound access grant to a defined Person ↔ Company relationship and approved records. They do not become a company member and do not inherit broader company or personal access.
 
 ## Future learning and training
 
 Juanity is expected to add company onboarding, training and certification later, with **Moodle currently the leading LMS direction**.
 
-The intended boundary is:
-
-```text
-Juanity Law
-identity + company + employee relationship + entitlements
-        │
-      SSO/API
-        │
-      Moodle
-courses + assessments + progress + certification
-```
-
-Juanity remains the authority for people, companies, relationships and access. Moodle remains the learning-delivery engine.
-
-Training completion/certification can later update the employee's Info Center/profile, and certificate files can enter the normal Document Knowledge Engine rather than creating a separate LMS document system.
+Juanity remains the authority for identity, companies, relationships and access; Moodle remains the learning-delivery engine. Training certificates imported into Juanity use the normal Record/RecordFile engine.
 
 See [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md).
-
-## Security and privacy direction
-
-Juanity Law may hold highly sensitive personal and employment information such as payslips, identity information, banking confirmations, disciplinary records, hearing outcomes and legal correspondence.
-
-Therefore:
-
-- company membership must never imply unrestricted access to all employee information;
-- Company Owner is not an automatic universal sensitive-record bypass;
-- authorisation is server-side and context/resource scoped;
-- sensitive access must be auditable;
-- private object storage is the default;
-- uploads pass through validation/quarantine/malware scanning when real storage is integrated;
-- data minimisation, retention, offboarding and incident investigation are structural concerns;
-- the application must support a POPIA-aware operating model, with final legal/compliance policies reviewed before production.
 
 ## Technical direction
 
@@ -168,9 +100,9 @@ Planning baseline:
 - Next.js + React + TypeScript
 - PostgreSQL + Prisma
 - OIDC-compatible identity provider; Keycloak remains the leading self-hosted option
-- email-based sign-in from V1 with stable internal account IDs
+- email-based sign-in from V1 with stable internal Account IDs
 - future linked social/federated identity providers
-- private S3-compatible object storage behind a provider-neutral adapter
+- private S3-compatible object storage
 - document-processing/background worker when required
 - Redis/BullMQ when asynchronous jobs are required
 - ClamAV for external uploads
@@ -180,7 +112,15 @@ Planning baseline:
 - payment gateway adapter layer
 - future Moodle integration through SSO/API boundaries
 
-The existing NUC is not a Juanity Law runtime target.
+## Development runtime
+
+Most V1 code should be built directly from the GitHub repository before production-like infrastructure is required.
+
+The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. Start with `law-web + PostgreSQL`; add S3-compatible development storage, Redis/worker and ClamAV only when needed and only if the NUC remains healthy.
+
+The NUC is not the Juanity production host, not the sole backup destination, and not the production object-storage design. Development on it uses synthetic data only.
+
+See [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md).
 
 ## Repository guide
 
@@ -188,13 +128,13 @@ The existing NUC is not a Juanity Law runtime target.
 - [`docs/PROJECT-CHARTER.md`](docs/PROJECT-CHARTER.md) — product scope
 - [`docs/APPLICATION-FRAMEWORK.md`](docs/APPLICATION-FRAMEWORK.md) — domain/application frame
 - [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md) — approved engine model
-- [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md) — private S3-compatible binary-storage architecture
+- [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md) — approved storage split
 - [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md) — definitions, roles and 3-click rule
-- [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md) — email identity and Governance access
+- [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md) — identity and Governance access
 - [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md) — Moodle and social-login readiness
 - [`docs/STACK-DESIGN.md`](docs/STACK-DESIGN.md) — technical stack
 - [`docs/BUILD-PLAN.md`](docs/BUILD-PLAN.md) — phased implementation
-- [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md) — safe pre-VM build scope
+- [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md) — repository-first build and optional NUC runtime
 - [`docs/SECURITY-FOUNDATION.md`](docs/SECURITY-FOUNDATION.md) — security/privacy invariants
 - [`docs/DISASTER-RECOVERY.md`](docs/DISASTER-RECOVERY.md) — recovery plan
 - [`docs/DECISION-LOG.md`](docs/DECISION-LOG.md) — architecture decisions
@@ -204,8 +144,4 @@ The existing NUC is not a Juanity Law runtime target.
 
 **Document Knowledge Engine V1 architecture approved — ready for implementation.**
 
-Moodle integration and social-login providers are future features, but the V1 identity/domain boundaries must be built so they can be added without replacing Juanity Account/Person IDs or duplicating company/relationship authority.
-
-The storage boundary is approved: PostgreSQL holds document knowledge/metadata and private, independently recoverable S3-compatible object storage holds file binaries.
-
-Production retention values, final POPIA/legal policy wording, production hosting/storage-provider choices and live infrastructure configuration remain controlled approval gates rather than hard-coded assumptions.
+The immediate build target is GitHub Issue #2. A temporary NUC development runtime is permitted if resource checks pass; migration to a dedicated Law VM must remain deployment/configuration work rather than redesign.
