@@ -1,0 +1,26 @@
+{
+  "name": "@juanity/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate --schema prisma/schema.prisma",
+    "validate": "prisma validate --schema prisma/schema.prisma",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "^16.6.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@types/pg": "^8.15.0",
+    "prisma": "7.10.0",
+    "typescript": "^5.9.0"
+  }
+}
