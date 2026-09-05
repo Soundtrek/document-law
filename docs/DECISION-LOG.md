@@ -447,3 +447,20 @@ rollback (callback not completed, or explicit Prisma P2034 transaction abort).
 A confirmed committed file can return success. This tightens the authorised
 failure semantics without a schema/runtime-service expansion; tests cover all
 three outcomes against real PostgreSQL and Garage with disposable fixtures.
+
+## ADR-037 — Development branch promotion policy
+
+2026-09-05: The owner approved `experiment/* → dev → main`. Create experiments
+from current `dev`, validate before integration, and perform NUC integration,
+visual and functional approval on `dev`. Keep `main` stable and deployable as the
+RC branch, receiving only approved `dev` promotions through normal merge /
+fast-forward workflow. Do not normally force-push `main`; preserve useful archives.
+
+For establishment, create/push `dev` from
+`0bc1660f03b8380aedcf24a44881f4196e5eb4de` and switch the canonical NUC checkout to
+it. Commit only policy documentation on `dev`; leave local/remote `main` at the
+baseline and the existing archive at `536a75499976ce96712ac2ad29313f29fa8bc045`.
+Application code and runtime configuration remain unchanged; no rebuild or
+redeploy is needed. This supersedes earlier normal-NUC-branch instructions.
+See the [branch policy](BRANCH-WORKFLOW.md) and
+[captured request](../prompts/history/2026-09-05-branch-workflow.md).

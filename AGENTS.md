@@ -175,3 +175,15 @@ Do not silently expand scope around production identity configuration, social pr
 ## 19. Prompt and decision capture
 
 Significant implementation prompts and accepted decisions must be captured in `prompts/` and `docs/DECISION-LOG.md`.
+
+## 20. Branch workflow
+
+Follow `experiment/* → dev → main`. Start isolated work on
+`experiment/<short-name>` from current `dev`; validate before merging to `dev`.
+The NUC normally runs `dev`, where integration, visual and functional approval
+happens. Never develop directly on `main`: it is the stable, deployable RC branch
+and receives only approved, validated `dev` promotions. Prefer normal merges /
+fast-forwards; do not force-push `main` during normal workflow. Failed experiments
+may be abandoned; preserve useful history in archive branches.
+
+See `docs/BRANCH-WORKFLOW.md` for the policy and workflow.
