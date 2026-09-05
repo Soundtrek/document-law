@@ -283,3 +283,29 @@ it in URLs and is consumed on arrival; blocked storage allows manual entry.
 This action does not authenticate, send email or create an account. Production
 authentication remains a future integration. No document-engine, access-control,
 model, schema or migration changes accompany the landing page.
+
+## ADR-034 — Real authentication through Keycloak
+
+Date: 2026-09-05. Accepted for initial DEV; implementation blocked on DNS.
+
+The owner selects Keycloak for password/recovery/provider-session management,
+verified-email state and future MFA/federation. SAMMA retains stable Account,
+AccountIdentity, Person and all domain authorisation. Use Authorization Code
+with PKCE and maintained session tooling; never implement password/session
+cryptography or merge arbitrary accounts by matching email.
+
+Exactly phil@samma.co.za and juanita@samma.co.za are initial Governance Owners
+through explicit current capabilities, with no SUPERADMIN bypass. Controlled
+administrative email verification is allowed only for these DEV bootstrap
+identities and must be audited. Temporary credentials remain outside Git and
+web, must be supplied manually, and require replacement at first login.
+
+MFA support remains mandatory; enforcement is temporarily disabled for initial
+DEV. Enable Governance MFA before real sensitive data. Public synthetic identity
+must be disabled at authentication cutover. This supersedes the earlier synthetic
+deployment direction as the target, but does not claim the cutover has occurred.
+
+Authoritative DNS returns NXDOMAIN for auth.samma.co.za. Honour the owner's
+explicit DNS/secure-issuer stop condition before implementation/deployment.
+See [preflight](REAL-AUTHENTICATION-V1-PREFLIGHT.md) and
+[owner request](../prompts/history/2026-09-05-real-authentication-v1.md).

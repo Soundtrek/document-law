@@ -1,5 +1,19 @@
 # Authentication and Governance Access
 
+## Current implementation status — 2026-09-05
+
+Keycloak is selected for Real Authentication V1. Implementation is blocked on
+DNS for `auth.samma.co.za`; real authentication has not been deployed. The
+approved initial owners are `phil@samma.co.za` and `juanita@samma.co.za`, using
+explicit SAMMA Governance capabilities. **MFA IS TEMPORARILY DISABLED FOR
+DEV/INITIAL SETUP** is the target policy; enable Governance MFA before real
+sensitive client data. No Keycloak identities have been provisioned.
+
+The blank temporary credential checklist exists outside Git at
+`/etc/samma-dev/bootstrap-credentials.txt` with owner `philip:philip`, mode 0600.
+See [preflight and bootstrap procedure](REAL-AUTHENTICATION-V1-PREFLIGHT.md)
+and ADR-034 for accepted scope and the unchanged synthetic runtime status.
+
 ## Purpose
 
 SAMMA carries sensitive employment and legal information. Identity and privileged access are therefore part of the product foundation, not a later add-on.

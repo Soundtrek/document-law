@@ -1,5 +1,11 @@
 # Temporary NUC DEV deployment
 
+Real Authentication V1 was requested on 2026-09-05 but stopped at DNS preflight:
+`auth.samma.co.za` returns authoritative NXDOMAIN. No auth deployment, migration
+or proxy change has occurred. The existing runtime still enables synthetic
+identity. See [authentication preflight](REAL-AUTHENTICATION-V1-PREFLIGHT.md)
+before continuing; do not treat the requested Keycloak/MFA policy as deployed.
+
 This deployment serves the existing synthetic UI at `https://samma.co.za`.
 It is not a production deployment. UI forms currently demonstrate interactions;
 they do not persist records. The separate Prisma integration check verifies the
