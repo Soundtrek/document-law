@@ -352,3 +352,8 @@ Both private databases, Keycloak and web were restarted with stable identity
 linkage; public negative-access/session checks passed. Correct stale README
 claims about synthetic login. No domain schema or application build changes were
 needed for this handoff. See [the report](REAL-AUTHENTICATION-V1-REPORT.md).
+
+The fast-forward push succeeded. GitHub CI exposed the already-failing Prisma
+transitive dependency audit (`deepmerge-ts`/`mysql2`). Preserve the audit gate and
+record the failure; do not apply npm's forced Prisma 7 → 6 downgrade as an
+authentication handoff workaround. Local validation remains separately recorded.

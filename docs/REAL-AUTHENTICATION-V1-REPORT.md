@@ -1,7 +1,8 @@
 # Real Authentication V1 — handoff report
 
 2026-09-05. **STATUS: PARTIAL — real authentication is deployed; Juanita's final
-password change and successful Governance login remain pending.** Phil has
+password change/Governance login and the existing dependency-audit failure remain
+outstanding.** Phil has
 completed his password change; SAMMA audit confirms successful authentication
 and Governance access. Final password-manager/recovery checklist completion is
 not confirmed for either owner. Automation has not selected their final passwords.
@@ -99,6 +100,15 @@ AccountIdentity; email matching never silently links an existing Account.
 
 ## Validation and remaining work
 
+- Fast-forward push of `68e520f662f8e596338b937f3a2d804420f93394` succeeded.
+  [GitHub CI](https://github.com/Soundtrek/document-law/actions/runs/33974849261)
+  failed at `npm audit --omit=dev --audit-level=high`: four high findings in the
+  Prisma dependency chain, involving `deepmerge-ts` and `mysql2`. The same audit
+  gate failed on the supplied pre-authentication baseline. Later CI steps were
+  skipped; the local checks below ran independently and passed. npm proposes a
+  forced downgrade from Prisma 7 to 6.19.3, which was not applied. This handoff
+  does not waive the audit or claim green CI; dependency remediation remains
+  part of the outstanding security hardening.
 - Prisma generate/validate, migration status/zero-diff, **14 unit tests**,
   workspace typecheck, lint and production build passed in the isolated auth
   worktree with conservative container limits.

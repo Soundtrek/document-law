@@ -197,7 +197,10 @@ GitHub Actions validates:
 - ESLint;
 - full Next.js production build.
 
-The latest current-main validation passed all gates.
+Local authentication handoff validation passed generation/schema checks, tests,
+typecheck, lint and production build. GitHub CI remains blocked at the existing
+Prisma transitive-dependency audit (`deepmerge-ts`/`mysql2`); its later steps did
+not run. See [the current report](docs/REAL-AUTHENTICATION-V1-REPORT.md).
 
 ## Repository guide
 
