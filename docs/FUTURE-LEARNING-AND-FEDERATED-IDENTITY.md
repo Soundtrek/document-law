@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Juanity Law V1 remains focused on the Document Knowledge System. Two later capabilities are now known requirements and must be accommodated without becoming current build dependencies:
+SAMMA V1 remains focused on the Document Knowledge System. Two later capabilities are now known requirements and must be accommodated without becoming current build dependencies:
 
 1. company training, onboarding and certification delivered through Moodle or another approved LMS;
 2. social / federated sign-in providers in addition to email-based login.
@@ -13,7 +13,7 @@ The rule is **prepare the boundaries now; build the integrations later**.
 
 Email remains the primary human-facing login and contact identifier, but an email address is not the permanent database identity of a person.
 
-Juanity must use a stable internal account identifier:
+SAMMA must use a stable internal account identifier:
 
 ```text
 Account
@@ -35,10 +35,10 @@ This supports:
 
 - email/password or email-link login through the selected identity provider;
 - later Google, Microsoft, Apple or other approved providers;
-- one human using several login methods without creating several Juanity accounts;
+- one human using several login methods without creating several SAMMA accounts;
 - safe email-address changes;
-- provider changes without changing the Juanity Person record;
-- one Juanity identity across Person, Company Member, Legal Access and future Learning contexts.
+- provider changes without changing the SAMMA Person record;
+- one SAMMA identity across Person, Company Member, Legal Access and future Learning contexts.
 
 ## Social/federated login boundary
 
@@ -51,16 +51,16 @@ Google / Microsoft / Apple / other provider
                   ↓
            Authenticated actor
                   ↓
-          Juanity Account / Person
+          SAMMA Account / Person
 ```
 
-Juanity domain services consume a resolved authenticated account/actor. They do not care which provider authenticated the session.
+SAMMA domain services consume a resolved authenticated account/actor. They do not care which provider authenticated the session.
 
 ### Safe account linking
 
 Do not silently merge accounts solely because two providers present the same email address.
 
-Linking an additional provider to an existing Juanity account should require an authenticated account session and appropriate re-authentication/verification.
+Linking an additional provider to an existing SAMMA account should require an authenticated account session and appropriate re-authentication/verification.
 
 A newly authenticated provider may create a new account only through the approved onboarding flow. Verified provider email may assist onboarding and invitation matching, but provider-email equality alone is not sufficient proof for an automatic merge.
 
@@ -68,16 +68,16 @@ A newly authenticated provider may create a new account only through the approve
 
 Company and Legal Access invitations remain addressed to an email.
 
-After authentication, Juanity resolves the accepted invitation to the stable internal account. The user may have authenticated with email or a linked social provider, provided the invitation verification rules are satisfied.
+After authentication, SAMMA resolves the accepted invitation to the stable internal account. The user may have authenticated with email or a linked social provider, provided the invitation verification rules are satisfied.
 
 ## Moodle / learning boundary
 
-Moodle is a future **learning delivery engine**, not the identity, company or document authority for Juanity Law.
+Moodle is a future **learning delivery engine**, not the identity, company or document authority for SAMMA.
 
 Target relationship:
 
 ```text
-                     JUANITY LAW
+                     SAMMA
               identity + companies + people
               relationships + entitlements
                          │
@@ -88,7 +88,7 @@ Target relationship:
                     + certifications
 ```
 
-Juanity remains authoritative for:
+SAMMA remains authoritative for:
 
 - Account / Person identity;
 - Company and Company Member context;
@@ -96,7 +96,7 @@ Juanity remains authoritative for:
 - subscription / entitlement context;
 - company access and role policy;
 - which relationship/person a training assignment concerns;
-- the Juanity Info Center and Document Knowledge System.
+- the SAMMA Info Center and Document Knowledge System.
 
 The LMS is authoritative for:
 
@@ -116,13 +116,13 @@ Company employee relationship
        ↓
 Assign onboarding / training
        ↓
-Juanity sends user into LMS through SSO
+SAMMA sends user into LMS through SSO
        ↓
 Employee completes course/assessment
        ↓
 LMS reports status/certification
        ↓
-Juanity Info Center / employee profile updates
+SAMMA Info Center / employee profile updates
 ```
 
 The person should not maintain a separate Moodle password if the approved LMS integration supports single sign-on.
@@ -131,7 +131,7 @@ The person should not maintain a separate Moodle password if the approved LMS in
 
 Training completion and certifications are relevant to the Document Knowledge System.
 
-Juanity should be capable of representing a learning result as knowledge associated with a Person, Company or PersonCompanyRelationship without making Moodle tables part of the Juanity core schema.
+SAMMA should be capable of representing a learning result as knowledge associated with a Person, Company or PersonCompanyRelationship without making Moodle tables part of the SAMMA core schema.
 
 A future projection may contain:
 
@@ -149,7 +149,7 @@ TrainingCertification
   certificate_record_id (optional)
 ```
 
-If Moodle produces a certificate PDF, Juanity may later ingest or reference it through the normal Record/RecordFile engine according to an approved Record Definition. The LMS integration must not create a second uncontrolled document store inside the core application.
+If Moodle produces a certificate PDF, SAMMA may later ingest or reference it through the normal Record/RecordFile engine according to an approved Record Definition. The LMS integration must not create a second uncontrolled document store inside the core application.
 
 ## 3-click / 10-second learning target
 
@@ -169,9 +169,9 @@ Course completion itself is naturally outside the ten-second target.
 
 ## Data minimisation
 
-Do not copy the entire Moodle dataset into Juanity.
+Do not copy the entire Moodle dataset into SAMMA.
 
-Only synchronise information required for Juanity workflows, such as:
+Only synchronise information required for SAMMA workflows, such as:
 
 - assignment identifier/status;
 - course identifier/title snapshot;
@@ -184,7 +184,7 @@ Avoid synchronising detailed quiz answers, learning telemetry or other content u
 
 ## Integration IDs
 
-All external systems must be mapped through explicit integration identifiers rather than replacing Juanity primary keys.
+All external systems must be mapped through explicit integration identifiers rather than replacing SAMMA primary keys.
 
 Examples:
 
@@ -202,7 +202,7 @@ V1 should prepare for these later integrations by:
 - using a stable internal Account/Person ID rather than email as a database primary key;
 - keeping authentication behind an identity adapter/OIDC boundary;
 - allowing multiple external identity links per account;
-- keeping company membership and permissions in Juanity, not in the identity provider;
+- keeping company membership and permissions in SAMMA, not in the identity provider;
 - avoiding assumptions that every user authenticates by password;
 - keeping LMS integration behind a future adapter/API boundary;
 - keeping training/certification context attachable to Person / Company / Relationship;

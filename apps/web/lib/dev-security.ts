@@ -1,4 +1,4 @@
-import { requireCapability, requireMfa, requireVerifiedPrincipal, type AuthenticatedPrincipal } from "@juanity/identity";
+import { requireCapability, requireMfa, requireVerifiedPrincipal, type AuthenticatedPrincipal } from "@samma/identity";
 
 const governanceCapabilities = [
   "platform.definitions.manage",
@@ -7,7 +7,7 @@ const governanceCapabilities = [
 ] as const;
 
 export const getSyntheticGovernancePrincipal = (): AuthenticatedPrincipal | null => {
-  const enabled = process.env.JUANITY_DEV_IDENTITY_ENABLED === "true";
+  const enabled = process.env.SAMMA_DEV_IDENTITY_ENABLED === "true";
   if (!enabled || process.env.NODE_ENV === "production") return null;
   return {
     accountId: "acct-governance-dev",

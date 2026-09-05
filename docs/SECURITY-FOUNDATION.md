@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Juanity Law will handle sensitive personal, employment and legal information. Security and privacy must therefore be structural rather than added after feature development.
+SAMMA will handle sensitive personal, employment and legal information. Security and privacy must therefore be structural rather than added after feature development.
 
 Potential information includes identity data, contact details, payslips, banking confirmations, employment agreements, disciplinary records, hearing outcomes and legal correspondence.
 
 This document establishes framework-level invariants. Document-specific security, retention and evidence rules will be added only after the document engine is designed.
 
-Juanity Law must be designed to support a **POPIA-aware operating model**, but application architecture is not a substitute for formal legal/compliance review before production use.
+SAMMA must be designed to support a **POPIA-aware operating model**, but application architecture is not a substitute for formal legal/compliance review before production use.
 
 ## Security principles
 
@@ -93,7 +93,7 @@ Working role concepts include:
 - `LEGAL`;
 - `MANAGER`;
 - `BILLING`;
-- other Juanity-approved roles.
+- other SAMMA-approved roles.
 
 A small company owner may be assigned `OWNER + HR + PAYROLL + CLERK` while a large company may split those roles across different members.
 
@@ -144,7 +144,7 @@ and fail closed if required context is incomplete.
 
 ## Configurable policy must not configure away security
 
-Juanity Platform Admin may configure business policy such as record definitions, categories, allowed functional roles, acknowledgement behaviour, notifications and approved retention-policy references.
+SAMMA Platform Admin may configure business policy such as record definitions, categories, allowed functional roles, acknowledgement behaviour, notifications and approved retention-policy references.
 
 However, configuration must not disable system invariants such as:
 
@@ -157,7 +157,7 @@ However, configuration must not disable system invariants such as:
 - sensitive logging restrictions;
 - approved definition-version integrity.
 
-Company-level administrators may only configure options Juanity explicitly exposes within safe bounds.
+Company-level administrators may only configure options SAMMA explicitly exposes within safe bounds.
 
 ## Definition versioning and policy integrity
 
@@ -259,7 +259,7 @@ Minimum expectations:
 
 - invitation is issued by an actor with membership-management capability;
 - invitation identifies one company only;
-- assigned roles are validated against Juanity-approved roles;
+- assigned roles are validated against SAMMA-approved roles;
 - accepting an invitation does not create cross-company access;
 - disabling/removing a company member promptly revokes active company access;
 - historical audit context remains;

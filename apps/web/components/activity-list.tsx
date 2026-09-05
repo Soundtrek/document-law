@@ -1,4 +1,4 @@
-import type { ActivityEvent } from "@juanity/domain";
+import type { ActivityEvent } from "@samma/domain";
 
 export function ActivityList({ events }: { readonly events: readonly ActivityEvent[] }) {
   if (events.length === 0) return <p className="muted">No recent activity.</p>;

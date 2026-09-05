@@ -1,4 +1,4 @@
-import { syntheticDefinitions, syntheticFiles, syntheticRecords } from "@juanity/domain";
+import { syntheticDefinitions, syntheticFiles, syntheticRecords } from "@samma/domain";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 

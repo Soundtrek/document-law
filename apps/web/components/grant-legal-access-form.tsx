@@ -1,6 +1,6 @@
 "use client";
 
-import type { RecordDefinitionVersion } from "@juanity/domain";
+import type { RecordDefinitionVersion } from "@samma/domain";
 import { useState } from "react";
 
 export function GrantLegalAccessForm({ definitions }: { readonly definitions: readonly RecordDefinitionVersion[] }) {
@@ -16,7 +16,7 @@ export function GrantLegalAccessForm({ definitions }: { readonly definitions: re
         <input
           onChange={(event) => { setEmail(event.target.value); setSent(false); }}
           placeholder="lawyer@example.com"
-          style={{ minHeight: 44, border: "1px solid var(--jl-border-strong)", borderRadius: "var(--jl-radius-control)", padding: "0 12px", background: "var(--jl-surface)" }}
+          style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
           type="email"
           value={email}
         />
@@ -27,7 +27,7 @@ export function GrantLegalAccessForm({ definitions }: { readonly definitions: re
           <strong>2. Record scope</strong>
           <select
             onChange={(event) => { setDefinitionId(event.target.value); setSent(false); }}
-            style={{ minHeight: 44, border: "1px solid var(--jl-border-strong)", borderRadius: "var(--jl-radius-control)", padding: "0 12px", background: "var(--jl-surface)" }}
+            style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
             value={definitionId}
           >
             {definitions.map((definition) => <option key={definition.id} value={definition.definitionId}>{definition.name}</option>)}
@@ -37,7 +37,7 @@ export function GrantLegalAccessForm({ definitions }: { readonly definitions: re
           <strong>Expiry</strong>
           <select
             onChange={(event) => { setDays(event.target.value); setSent(false); }}
-            style={{ minHeight: 44, border: "1px solid var(--jl-border-strong)", borderRadius: "var(--jl-radius-control)", padding: "0 12px", background: "var(--jl-surface)" }}
+            style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
             value={days}
           >
             <option value="7">7 days</option>

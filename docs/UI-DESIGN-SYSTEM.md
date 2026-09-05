@@ -2,22 +2,22 @@
 
 ## Intent
 
-Juanity Law should feel calm, clear, private and trustworthy. The UI is information-first, not decorative, and should help people and company users understand status and next actions quickly.
+SAMMA should feel calm, clear, private and trustworthy. The UI is information-first, not decorative, and should help people and company users understand status and next actions quickly.
 
 The starting point is the useful interaction pattern learned from a previous Info Center implementation: constrained content width, light layered surfaces, strong section hierarchy, pill navigation/status, visible completion/needs-action states, and responsive layouts.
 
-This document defines a **Juanity Law design direction**, not a code copy.
+This document defines a **SAMMA design direction**, not a code copy.
 
 ## Two Info Centers, one design language
 
-Juanity Law has two primary working surfaces:
+SAMMA has two primary working surfaces:
 
 1. **Person Info Center** — simple, personal and action-oriented.
 2. **Company Info Center** — operational, employee/relationship-oriented and permission-aware.
 
 The same design tokens and component language should serve both, while navigation and information density differ.
 
-A third restricted surface is **Juanity Platform Admin**, used to define approved record/workflow configuration and product policy. It is not a normal company admin screen.
+A third restricted surface is **SAMMA Platform Admin**, used to define approved record/workflow configuration and product policy. It is not a normal company admin screen.
 
 ## Core visual principles
 
@@ -100,7 +100,7 @@ Exact document behaviour remains part of the document-engine design.
 
 ## 3-click / 10-second rule
 
-Juanity Law uses a formal routine-work UX target:
+SAMMA uses a formal routine-work UX target:
 
 > **A frequent routine action should be reachable from the relevant context in no more than three deliberate clicks/taps and normally be completable in about ten seconds, excluding meaningful typing, file selection/upload, reading legal content or required security steps.**
 
@@ -149,7 +149,7 @@ when the same approved action can safely be placed on the person/company relatio
 ## Person shell
 
 ```text
-Juanity Law
+SAMMA
 ────────────────────────────────────────
 Info Center | My Information | My Companies | Actions | Account
 
@@ -164,7 +164,7 @@ Once the document domain is approved, a `My Documents` or equivalent destination
 ## Company shell
 
 ```text
-Juanity Law — [Company]
+SAMMA — [Company]
 ────────────────────────────────────────
 Info Center | People | Actions | Activity | Admin
 
@@ -336,7 +336,7 @@ The company view must not imply that the company can browse all information held
 
 ## Smart-default interaction pattern
 
-When a user chooses a Juanity-approved record/request definition, the UI should inherit approved defaults such as:
+When a user chooses a SAMMA-approved record/request definition, the UI should inherit approved defaults such as:
 
 - context;
 - audience;
@@ -347,11 +347,11 @@ When a user chooses a Juanity-approved record/request definition, the UI should 
 - audit expectations;
 - retention-policy reference once approved.
 
-Do not ask routine users to repeatedly choose security/policy fields that Juanity already defined.
+Do not ask routine users to repeatedly choose security/policy fields that SAMMA already defined.
 
 The user should only provide instance-specific information needed to complete the action.
 
-## Juanity Platform Admin UI
+## SAMMA Platform Admin UI
 
 Platform Admin may include configuration areas such as:
 
@@ -396,33 +396,33 @@ Do not expose sensitive fields such as salary, bank details or disciplinary stat
 Use semantic tokens rather than hard-coded component colours:
 
 ```text
---jl-bg
---jl-surface
---jl-surface-soft
---jl-surface-elevated
---jl-border
---jl-border-strong
---jl-text
---jl-muted
---jl-primary
---jl-primary-dark
---jl-primary-soft
---jl-success
---jl-warning
---jl-danger
---jl-info
---jl-sensitive
---jl-radius-control
---jl-radius-card
---jl-radius-panel
---jl-radius-pill
---jl-shadow-soft
---jl-shadow-card
+--samma-bg
+--samma-surface
+--samma-surface-soft
+--samma-surface-elevated
+--samma-border
+--samma-border-strong
+--samma-text
+--samma-muted
+--samma-primary
+--samma-primary-dark
+--samma-primary-soft
+--samma-success
+--samma-warning
+--samma-danger
+--samma-info
+--samma-sensitive
+--samma-radius-control
+--samma-radius-card
+--samma-radius-panel
+--samma-radius-pill
+--samma-shadow-soft
+--samma-shadow-card
 ```
 
 Brand colours are intentionally not finalised in this document.
 
-`--jl-sensitive` is a semantic affordance only; sensitive status must also be communicated in text/access behaviour, never colour alone.
+`--samma-sensitive` is a semantic affordance only; sensitive status must also be communicated in text/access behaviour, never colour alone.
 
 ## Responsive behaviour
 

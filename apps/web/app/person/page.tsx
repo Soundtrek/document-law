@@ -7,7 +7,7 @@ import {
   syntheticPerson,
   syntheticRecords,
   syntheticRelationship,
-} from "@juanity/domain";
+} from "@samma/domain";
 import Link from "next/link";
 
 import { ActivityList } from "../../components/activity-list";
@@ -26,7 +26,7 @@ export default function PersonInfoCenterPage() {
       <PageHero
         eyebrow="PERSON INFO CENTER"
         title={syntheticPerson.displayName}
-        description="Your employment relationships, records and actions stay attached to your Juanity account even when a company relationship later ends."
+        description="Your employment relationships, records and actions stay attached to your SAMMA account even when a company relationship later ends."
         nav={[
           { href: "/person", label: "Info Center", active: true },
           { href: "/person#companies", label: "My Companies" },
@@ -44,7 +44,7 @@ export default function PersonInfoCenterPage() {
             </div>
             {reviewDue.length > 0 ? <span className="pill warning">Review due</span> : <span className="pill">Up to date</span>}
           </div>
-          {reviewDue.length > 0 ? <RecordList records={reviewDue} /> : <p className="muted">Juanity will surface configured renewal/review dates here without deleting the historical record.</p>}
+          {reviewDue.length > 0 ? <RecordList records={reviewDue} /> : <p className="muted">SAMMA will surface configured renewal/review dates here without deleting the historical record.</p>}
         </article>
 
         <article className="card" id="companies">
@@ -59,8 +59,8 @@ export default function PersonInfoCenterPage() {
 
         <article className="card">
           <p className="eyebrow">Account</p>
-          <h2>Independent Juanity identity</h2>
-          <p className="muted">Your Juanity account is separate from the employer relationship and is designed to survive job changes and future linked login providers.</p>
+          <h2>Independent SAMMA identity</h2>
+          <p className="muted">Your SAMMA account is separate from the employer relationship and is designed to survive job changes and future linked login providers.</p>
           <div className="actions"><Link className="button secondary" href="/">Back to development home</Link></div>
         </article>
 

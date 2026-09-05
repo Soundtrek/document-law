@@ -1,4 +1,4 @@
-import { syntheticDefinitions, syntheticOwnerActor } from "@juanity/domain";
+import { syntheticDefinitions, syntheticOwnerActor } from "@samma/domain";
 import Link from "next/link";
 
 import { AddRecordForm } from "../../../../../components/add-record-form";
@@ -14,7 +14,7 @@ export default function AddRecordPage() {
       <PageHero
         eyebrow="EMPLOYEE PROFILE · ADD RECORD"
         title="Add a relationship record"
-        description="Daily users choose the approved record type and file. Juanity Governance supplies the security, visibility, retention and review defaults."
+        description="Daily users choose the approved record type and file. SAMMA Governance supplies the security, visibility, retention and review defaults."
         nav={[
           { href: "/company/people/alex", label: "Employee" },
           { href: "/company/people/alex/add-record", label: "Add Record", active: true },

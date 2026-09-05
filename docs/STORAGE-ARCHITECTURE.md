@@ -2,7 +2,7 @@
 
 ## Decision
 
-Juanity Law separates **document knowledge** from **document binaries**.
+SAMMA separates **document knowledge** from **document binaries**.
 
 ```text
 PostgreSQL
@@ -44,7 +44,7 @@ Private object storage
 
 The engine must not depend on provider-specific bucket URLs, filesystem paths or vendor-specific object semantics.
 
-This keeps Juanity free to change physical storage provider/location later without redesigning the record engine.
+This keeps SAMMA free to change physical storage provider/location later without redesigning the record engine.
 
 ## Separate from the application host
 
@@ -66,12 +66,12 @@ A future production provider may be managed S3-compatible storage or separately 
 
 Buckets/containers are private.
 
-Juanity authorisation happens before object access:
+SAMMA authorisation happens before object access:
 
 ```text
 User requests file
       ↓
-Juanity resolves actor and context
+SAMMA resolves actor and context
       ↓
 Company / Person / Relationship / LegalAccessGrant
       ↓
@@ -84,7 +84,7 @@ Short-lived authorised object access if allowed
 
 Do not use permanent public object URLs as document sharing.
 
-A storage object key, bucket path or signed URL possession is never a substitute for Juanity authorisation.
+A storage object key, bucket path or signed URL possession is never a substitute for SAMMA authorisation.
 
 Signed URLs, where used, must be short-lived and issued only after a current server-side authorisation decision.
 
@@ -149,7 +149,7 @@ Calculate checksum
   ↓
 Mark accepted / move or promote to trusted object state
   ↓
-Record becomes available according to Juanity permissions
+Record becomes available according to SAMMA permissions
 ```
 
 An upload that is failed, rejected or not yet scanned must not silently become an available trusted record.
@@ -172,7 +172,7 @@ Do not use checksums as a user-facing permission or identity mechanism.
 
 ## Retention and review authority
 
-Juanity Governance defines retention and review/renewal policy through versioned record definitions/policies.
+SAMMA Governance defines retention and review/renewal policy through versioned record definitions/policies.
 
 The Document Knowledge Engine remains authoritative for:
 
@@ -184,7 +184,7 @@ The Document Knowledge Engine remains authoritative for:
 
 S3 lifecycle rules may support storage operations, but **must not be the sole source of truth for legal/business retention behaviour**.
 
-A provider lifecycle rule must never delete an object earlier than Juanity policy permits.
+A provider lifecycle rule must never delete an object earlier than SAMMA policy permits.
 
 Final automated deletion/destruction remains a controlled legal/compliance and implementation gate.
 
@@ -270,4 +270,4 @@ The dedicated Law VM is required before claiming integration of:
 
 ## Guiding principle
 
-**Juanity stores knowledge and permissions in PostgreSQL; document binaries live in private, independently recoverable S3-compatible object storage behind a provider-neutral adapter.**
+**SAMMA stores knowledge and permissions in PostgreSQL; document binaries live in private, independently recoverable S3-compatible object storage behind a provider-neutral adapter.**

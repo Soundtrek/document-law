@@ -8,7 +8,7 @@ The goal is to keep the codebase easy to understand and deploy while preserving 
 
 ## Primary domain model
 
-Juanity Law is built around three foundational concepts:
+SAMMA is built around three foundational concepts:
 
 ```text
 Person  ↔  PersonCompanyRelationship  ↔  Company
@@ -21,7 +21,7 @@ A generic legal `Matter` is not a foundational v1 entity. It may be introduced l
 A second important control plane is:
 
 ```text
-Juanity Platform Admin
+SAMMA Platform Admin
         ↓
 Versioned Record / Request / Workflow Definitions
         ↓
@@ -87,7 +87,7 @@ Initial role concepts may include:
 - `LEGAL`;
 - `MANAGER`;
 - `BILLING`;
-- other Juanity-approved roles later.
+- other SAMMA-approved roles later.
 
 One-person company example:
 
@@ -134,7 +134,7 @@ Ending a relationship must not delete the person account.
 
 ### Configurable Definitions
 
-Juanity Platform Admin owns approved business-policy definitions.
+SAMMA Platform Admin owns approved business-policy definitions.
 
 Framework-level definition concepts should support:
 
@@ -225,7 +225,7 @@ The initial commercial assumption is:
 
 Exact packages, prices and limits remain configurable.
 
-### Juanity Platform Admin
+### SAMMA Platform Admin
 
 Responsibilities:
 
@@ -246,7 +246,7 @@ Responsibilities:
 - company-member invitation/removal;
 - functional role assignment/revocation;
 - assigning roles to the company owner where they perform those functions;
-- company-level settings within Juanity-approved bounds;
+- company-level settings within SAMMA-approved bounds;
 - relationship administration according to policy;
 - use of approved record/request definitions;
 - company billing/subscription administration where authorised.

@@ -2,7 +2,7 @@
 
 ## Build philosophy
 
-Build as much of Juanity Law as possible directly from the GitHub repository before provisioning a dedicated Law VM, **without weakening production-critical boundaries**.
+Build as much of SAMMA as possible directly from the GitHub repository before provisioning a dedicated Law VM, **without weakening production-critical boundaries**.
 
 The Document Knowledge Engine V1 architecture is approved. Moodle and social/federated login are known future requirements, but they remain integration targets rather than V1 runtime dependencies.
 
@@ -62,7 +62,7 @@ Owner invites staff by email
   ↓
 Assign one or more approved roles
   ↓
-Invitation accepted into stable Juanity account
+Invitation accepted into stable SAMMA account
   ↓
 Role-limited workspace projected
   ↓
@@ -207,11 +207,11 @@ The dedicated VM remains the preferred production-like development environment e
 
 ## Phase 10 — Social / federated login
 
-Later configure approved Google/Microsoft/Apple-style providers through the identity-provider/broker boundary, with safe account linking to stable Juanity Accounts and no email-only auto-merge.
+Later configure approved Google/Microsoft/Apple-style providers through the identity-provider/broker boundary, with safe account linking to stable SAMMA Accounts and no email-only auto-merge.
 
 ## Phase 11 — Moodle / company training and onboarding
 
-Later add Moodle or another approved LMS behind SSO/API boundaries. Juanity remains authoritative for identity/company/relationship/access; Moodle owns courses/progress/assessment. Certificates imported into Juanity use the normal Record/RecordFile storage path.
+Later add Moodle or another approved LMS behind SSO/API boundaries. SAMMA remains authoritative for identity/company/relationship/access; Moodle owns courses/progress/assessment. Certificates imported into SAMMA use the normal Record/RecordFile storage path.
 
 ## Phase 12 — Commercial, POPIA and security hardening
 
@@ -244,4 +244,4 @@ For high-frequency workflows, verify the user can start from the relevant contex
 
 ## Guiding deployment rule
 
-**Use the NUC as a temporary accelerator only if it has headroom; build Juanity so moving to the dedicated Law VM is deployment, not redesign.**
+**Use the NUC as a temporary accelerator only if it has headroom; build SAMMA so moving to the dedicated Law VM is deployment, not redesign.**

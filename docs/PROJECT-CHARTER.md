@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Juanity Law is a secure paid portal for companies and people to manage employment/legal information through an **Info Center** experience.
+SAMMA is a secure paid portal for companies and people to manage employment/legal information through an **Info Center** experience.
 
 The product is not primarily a generic file manager and is not initially framed as a legal case-management system.
 
@@ -49,11 +49,11 @@ Personal Info Center              Company Info Center
 
 The relationship is a first-class domain concept. It may represent an employee first, while remaining extensible enough for later roles such as former employee, contractor, director or another approved relationship type.
 
-## Juanity configuration principle
+## SAMMA configuration principle
 
-Juanity Law follows the owner's **no-hardcoding** principle for business policy where practical.
+SAMMA follows the owner's **no-hardcoding** principle for business policy where practical.
 
-Juanity Platform Admin should be able to define approved record/request/workflow definitions such as:
+SAMMA Platform Admin should be able to define approved record/request/workflow definitions such as:
 
 - name/category;
 - person/company/relationship context;
@@ -68,7 +68,7 @@ Juanity Platform Admin should be able to define approved record/request/workflow
 
 Companies then execute these approved definitions rather than reconstructing policy for every record.
 
-Definitions must be versioned. Historic record behaviour must not silently change when Juanity edits a definition.
+Definitions must be versioned. Historic record behaviour must not silently change when SAMMA edits a definition.
 
 System security invariants remain platform-enforced and are not ordinary admin toggles.
 
@@ -89,7 +89,7 @@ Initial role concepts may include:
 - Legal;
 - Manager;
 - Billing;
-- other Juanity-approved roles later.
+- other SAMMA-approved roles later.
 
 Example small company:
 
@@ -128,7 +128,7 @@ The company owner/governance role should be able to invite/remove company staff 
 - Employment/legal record context
 - Activity and audit history
 - Billing, subscriptions and entitlements
-- Juanity Platform Administration
+- SAMMA Platform Administration
 - Company Administration
 - Document capability — intentionally pending detailed design
 
@@ -176,9 +176,9 @@ Operational, but still information-first:
 - Administration
 - Document operations — once designed
 
-### Juanity Platform Admin
+### SAMMA Platform Admin
 
-Juanity's own control plane should manage approved system/business configuration such as:
+SAMMA's own control plane should manage approved system/business configuration such as:
 
 - record/workflow definitions;
 - categories;
@@ -211,7 +211,7 @@ Company
   ├── Company information
   └── Person relationships
 
-Juanity Platform Admin
+SAMMA Platform Admin
   └── Versioned definitions / approved policy configuration
 ```
 
@@ -282,7 +282,7 @@ The framework phase is successful when the repository can support, without redes
 - activity/audit events;
 - products/subscriptions/entitlements;
 - separate person and company Info Center experiences;
-- Juanity Platform Admin and company-admin separation;
+- SAMMA Platform Admin and company-admin separation;
 - a data-classification/privacy-aware security foundation;
 - the 3-click / 10-second daily-use rule in common workflows;
 - later attachment of a legal/employment document storage domain through explicit interfaces;
@@ -290,4 +290,4 @@ The framework phase is successful when the repository can support, without redes
 
 ## Guiding principle
 
-**Juanity defines approved rules once; companies perform simple, role-authorised actions; people receive clear information/actions. Keep business policy configurable, keep security invariants enforced, and do not let configurability or convenience weaken privacy, tenancy, offboarding or audit.**
+**SAMMA defines approved rules once; companies perform simple, role-authorised actions; people receive clear information/actions. Keep business policy configurable, keep security invariants enforced, and do not let configurability or convenience weaken privacy, tenancy, offboarding or audit.**

@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This plan defines how Juanity Law should recover from infrastructure failure, data corruption, accidental deletion, compromised deployment, storage loss or loss of the primary host.
+This plan defines how SAMMA should recover from infrastructure failure, data corruption, accidental deletion, compromised deployment, storage loss or loss of the primary host.
 
-Juanity Law is expected to carry sensitive personal, employment and legal information. Recovery must therefore restore **confidentiality, integrity and access control**, not merely make containers start again.
+SAMMA is expected to carry sensitive personal, employment and legal information. Recovery must therefore restore **confidentiality, integrity and access control**, not merely make containers start again.
 
 It is a framework plan and must be refined once the production hosting provider, document storage architecture, data-retention obligations, POPIA/privacy operating requirements and encryption/key-management decisions are approved.
 
@@ -306,4 +306,4 @@ Every recovery exercise or real incident should capture:
 
 ## Current constraint
 
-The existing NUC must not be treated as either the primary Law runtime or the only backup destination. Juanity Law recovery must remain independent of that machine.
+The existing NUC must not be treated as either the primary Law runtime or the only backup destination. SAMMA recovery must remain independent of that machine.

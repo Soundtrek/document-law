@@ -20,10 +20,10 @@ services:
       dockerfile: infrastructure/docker/Dockerfile.dev
     environment:
       DATABASE_URL: postgresql://juanity:juanity_dev_only@db:5432/juanity_law
-      JUANITY_ENV: development
-      JUANITY_BASE_URL: http://localhost:3000
-      JUANITY_DEV_IDENTITY_ENABLED: "true"
-      JUANITY_STORAGE_DRIVER: memory
+      SAMMA_ENV: development
+      SAMMA_BASE_URL: http://localhost:3000
+      SAMMA_DEV_IDENTITY_ENABLED: "true"
+      SAMMA_STORAGE_DRIVER: memory
     depends_on:
       db:
         condition: service_healthy

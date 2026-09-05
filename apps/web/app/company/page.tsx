@@ -1,4 +1,4 @@
-import { syntheticCompany, syntheticMembers, syntheticPerson, syntheticRelationship, syntheticRoleGrants } from "@juanity/domain";
+import { syntheticCompany, syntheticMembers, syntheticPerson, syntheticRelationship, syntheticRoleGrants } from "@samma/domain";
 import Link from "next/link";
 
 import { PageHero } from "../../components/page-hero";

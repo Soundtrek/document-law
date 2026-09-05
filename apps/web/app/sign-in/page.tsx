@@ -9,7 +9,7 @@ export default function SignInPage() {
       <PageHero
         eyebrow="IDENTITY"
         title="Sign in with your email"
-        description="Email is the primary human-facing login identifier. Juanity keeps a stable internal Account ID so email changes and future linked providers do not create duplicate people or relationships."
+        description="Email is the primary human-facing login identifier. SAMMA keeps a stable internal Account ID so email changes and future linked providers do not create duplicate people or relationships."
       />
       <section className="grid">
         <article className="card">
@@ -18,8 +18,8 @@ export default function SignInPage() {
         <article className="card">
           <p className="eyebrow">Security Model</p>
           <h2>Authentication and authorisation stay separate</h2>
-          <p className="muted">The identity provider proves who you are. Juanity then resolves Person, company membership, functional roles, Legal Access and Governance capabilities for that stable account.</p>
-          <p className="notice">Juanity application code never needs to implement password cryptography.</p>
+          <p className="muted">The identity provider proves who you are. SAMMA then resolves Person, company membership, functional roles, Legal Access and Governance capabilities for that stable account.</p>
+          <p className="notice">SAMMA application code never needs to implement password cryptography.</p>
           <div className="actions"><Link className="button secondary" href="/">Back to development home</Link></div>
         </article>
       </section>

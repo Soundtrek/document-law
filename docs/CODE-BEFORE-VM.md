@@ -2,13 +2,13 @@
 
 ## Objective
 
-Build as much of Juanity Law as possible from the GitHub repository before a dedicated Law VM is required, while preserving production-grade boundaries.
+Build as much of SAMMA as possible from the GitHub repository before a dedicated Law VM is required, while preserving production-grade boundaries.
 
 The Document Knowledge Engine V1 architecture is approved. The current goal is implementation, not another architecture hold.
 
 ## Repository-first build
 
-The following can be built and validated without any persistent Juanity runtime host:
+The following can be built and validated without any persistent SAMMA runtime host:
 
 - Next.js + React + TypeScript application shell;
 - strict TypeScript/lint/test/CI setup;
@@ -69,7 +69,7 @@ Do not start every planned container merely because it exists in the architectur
 
 ### Resource gate
 
-Before adding Juanity services to the NUC, inspect at minimum:
+Before adding SAMMA services to the NUC, inspect at minimum:
 
 - free disk space and filesystem utilisation;
 - available RAM and swap pressure;
@@ -78,13 +78,13 @@ Before adding Juanity services to the NUC, inspect at minimum:
 - current database/storage usage;
 - whether existing production/dev projects are already close to limits.
 
-If Juanity materially destabilises existing workloads, stop the NUC runtime experiment and continue repository-first until the dedicated Law VM is available.
+If SAMMA materially destabilises existing workloads, stop the NUC runtime experiment and continue repository-first until the dedicated Law VM is available.
 
 ### NUC boundaries
 
 Even if development runs successfully on the NUC:
 
-- it is **not** the Juanity production host;
+- it is **not** the SAMMA production host;
 - it is **not** the sole backup destination;
 - it is **not** the production object-storage architecture;
 - real client/employee sensitive data must not be loaded into it for development;
@@ -155,4 +155,4 @@ If this works cleanly, most of the application domain has been proven before the
 
 ## Guiding rule
 
-**Use the NUC if it helps us move faster, but never let Juanity become dependent on it.**
+**Use the NUC if it helps us move faster, but never let SAMMA become dependent on it.**

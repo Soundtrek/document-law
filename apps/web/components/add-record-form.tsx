@@ -1,6 +1,6 @@
 "use client";
 
-import type { RecordDefinitionVersion } from "@juanity/domain";
+import type { RecordDefinitionVersion } from "@samma/domain";
 import { useMemo, useState } from "react";
 
 export function AddRecordForm({ definitions }: { readonly definitions: readonly RecordDefinitionVersion[] }) {
@@ -15,7 +15,7 @@ export function AddRecordForm({ definitions }: { readonly definitions: readonly 
         <strong>1. Record type</strong>
         <select
           onChange={(event) => { setDefinitionId(event.target.value); setSaved(false); }}
-          style={{ minHeight: 44, border: "1px solid var(--jl-border-strong)", borderRadius: "var(--jl-radius-control)", padding: "0 12px", background: "var(--jl-surface)" }}
+          style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
           value={definitionId}
         >
           {definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
@@ -27,14 +27,14 @@ export function AddRecordForm({ definitions }: { readonly definitions: readonly 
         <input
           accept="application/pdf,image/*,.doc,.docx"
           onChange={(event) => { setFileName(event.target.files?.[0]?.name ?? ""); setSaved(false); }}
-          style={{ minHeight: 44, border: "1px solid var(--jl-border-strong)", borderRadius: "var(--jl-radius-control)", padding: 10, background: "var(--jl-surface)" }}
+          style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: 10, background: "var(--samma-surface)" }}
           type="file"
         />
       </label>
 
       {selected ? (
         <div className="notice">
-          Juanity policy will apply automatically: {selected.category} · {selected.classification.replaceAll("_", " ")} · person visible: {selected.personVisible ? "yes" : "no"} · retention: {selected.retentionMonths ?? "none"} months · review: {selected.reviewMonths ?? "none"} months.
+          SAMMA policy will apply automatically: {selected.category} · {selected.classification.replaceAll("_", " ")} · person visible: {selected.personVisible ? "yes" : "no"} · retention: {selected.retentionMonths ?? "none"} months · review: {selected.reviewMonths ?? "none"} months.
         </div>
       ) : null}
 

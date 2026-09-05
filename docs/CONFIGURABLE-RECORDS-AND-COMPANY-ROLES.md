@@ -2,17 +2,17 @@
 
 ## Purpose
 
-Juanity Law should not hard-code every employment/legal record type or every company staffing pattern into application code.
+SAMMA should not hard-code every employment/legal record type or every company staffing pattern into application code.
 
 The platform will instead use two configurable control layers:
 
-1. **Juanity Platform Admin** defines approved record/workflow definitions and safe system policy.
+1. **SAMMA Platform Admin** defines approved record/workflow definitions and safe system policy.
 2. **Company Admin** manages the company's own members, assigns functional roles and uses the approved definitions in daily work.
 
 The operating principle is:
 
 ```text
-Juanity configures the rules once
+SAMMA configures the rules once
           ↓
 Companies perform simple actions
           ↓
@@ -21,9 +21,9 @@ People receive clear records/actions
 
 This supports the project's no-hardcoding rule while preserving platform security invariants.
 
-## 1. Juanity Platform Admin
+## 1. SAMMA Platform Admin
 
-Juanity administrators may define or maintain approved configuration such as:
+SAMMA administrators may define or maintain approved configuration such as:
 
 - record definitions;
 - record categories;
@@ -96,7 +96,7 @@ Payslip definition v1
   ↓
 records created Jan–Jun
 
-Juanity changes access/default workflow
+SAMMA changes access/default workflow
   ↓
 Payslip definition v2
   ↓
@@ -111,7 +111,7 @@ The exact snapshot/reference mechanism will be decided with the document engine.
 
 ### Payslip
 
-Possible Juanity configuration:
+Possible SAMMA configuration:
 
 ```text
 Name: Payslip
@@ -131,7 +131,7 @@ Audit: sensitive access/download according to approved policy
 
 ### Disciplinary Hearing Outcome
 
-Possible Juanity configuration:
+Possible SAMMA configuration:
 
 ```text
 Name: Disciplinary Hearing Outcome
@@ -175,7 +175,7 @@ Company
               ├── LEGAL
               ├── MANAGER
               ├── BILLING
-              └── other Juanity-approved roles
+              └── other SAMMA-approved roles
 ```
 
 One company member may hold multiple functional roles.
@@ -212,10 +212,10 @@ The company owner should be able to:
 - manage company subscription/billing as approved;
 - invite company staff;
 - remove/disable company staff access;
-- assign or revoke Juanity-approved functional roles;
+- assign or revoke SAMMA-approved functional roles;
 - assign roles to themselves where they perform those functions;
 - view company membership and role audit history;
-- configure company-level settings that Juanity permits companies to control.
+- configure company-level settings that SAMMA permits companies to control.
 
 `OWNER` should not automatically be implemented as an unconditional bypass of all sensitive-record policies.
 
@@ -274,9 +274,9 @@ Exact capability grammar may change during implementation, but server-side polic
 
 Prefer role-based assignment for daily administration. Avoid unrestricted ad-hoc per-user overrides in v1 unless a real requirement justifies them; exceptions can become difficult to audit and support.
 
-## 9. Juanity Admin vs Company Admin
+## 9. SAMMA Admin vs Company Admin
 
-### Juanity Platform Admin controls
+### SAMMA Platform Admin controls
 
 - which role types exist;
 - which record/workflow definitions exist;
@@ -290,15 +290,15 @@ Prefer role-based assignment for daily administration. Avoid unrestricted ad-hoc
 
 - who belongs to their company;
 - which approved functional roles each member has;
-- their own company settings within Juanity-approved bounds;
+- their own company settings within SAMMA-approved bounds;
 - use of approved record/request definitions;
 - company workflow execution.
 
-A company must not be able to create a custom role or configuration that bypasses Juanity's system invariants unless Juanity explicitly designs and approves such extensibility later.
+A company must not be able to create a custom role or configuration that bypasses SAMMA's system invariants unless SAMMA explicitly designs and approves such extensibility later.
 
 ## 10. 3-click / 10-second rule
 
-Juanity Law adopts the following UX rule:
+SAMMA adopts the following UX rule:
 
 > **A frequent routine action should be reachable from the relevant context in no more than three deliberate clicks/taps and should normally be completable in about ten seconds, excluding time required to type substantial information, select/upload a file, read legal content or complete a security step.**
 

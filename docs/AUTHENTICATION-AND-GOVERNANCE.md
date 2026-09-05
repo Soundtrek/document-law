@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Juanity Law carries sensitive employment and legal information. Identity and privileged access are therefore part of the product foundation, not a later add-on.
+SAMMA carries sensitive employment and legal information. Identity and privileged access are therefore part of the product foundation, not a later add-on.
 
 ## Login identity
 
-Juanity Law uses **email address as the primary human-facing login and contact identifier** from the start.
+SAMMA uses **email address as the primary human-facing login and contact identifier** from the start.
 
 There is no separate public username concept for normal users.
 
@@ -37,7 +37,7 @@ Initial identity behaviour:
 - secure account recovery through the identity provider;
 - company invitations are sent to a specific email identity;
 - legal-professional access invitations are sent to a specific email identity;
-- one human keeps one Juanity account even when they belong to multiple companies, hold multiple roles or later use more than one login provider.
+- one human keeps one SAMMA account even when they belong to multiple companies, hold multiple roles or later use more than one login provider.
 
 The application must not implement its own password cryptography. Password/session/MFA mechanics belong behind the approved identity-provider boundary.
 
@@ -45,7 +45,7 @@ The leading deployment direction remains an OIDC-compatible provider such as Key
 
 ## Future social / federated sign-in
 
-Juanity is expected to add social/federated login later, potentially including providers such as Google, Microsoft, Apple or other approved providers.
+SAMMA is expected to add social/federated login later, potentially including providers such as Google, Microsoft, Apple or other approved providers.
 
 The domain must therefore assume:
 
@@ -54,14 +54,14 @@ Authentication provider(s)
         ↓
 Identity boundary / broker
         ↓
-Stable Juanity Account
+Stable SAMMA Account
         ↓
 Person / Company Member / Legal Access / Governance contexts
 ```
 
-Provider identities attach to an existing Juanity account. They do not replace the Juanity `Account` or `Person` primary key.
+Provider identities attach to an existing SAMMA account. They do not replace the SAMMA `Account` or `Person` primary key.
 
-Do **not** silently merge two Juanity accounts merely because two identity providers report the same email address. Linking an additional provider to an existing account should require an authenticated session and appropriate verification/re-authentication.
+Do **not** silently merge two SAMMA accounts merely because two identity providers report the same email address. Linking an additional provider to an existing account should require an authenticated session and appropriate verification/re-authentication.
 
 Verified provider email may assist onboarding and invitation matching, but provider-email equality alone must not be treated as sufficient proof for an automatic account merge.
 
@@ -73,20 +73,20 @@ MFA capability is required from the architecture from day one.
 
 Before production use with sensitive records:
 
-- Juanity Governance users: MFA required;
+- SAMMA Governance users: MFA required;
 - Company Owner/governance users: MFA required;
-- HR, Payroll and Legal users: MFA policy should default to required unless Juanity explicitly approves another policy;
+- HR, Payroll and Legal users: MFA policy should default to required unless SAMMA explicitly approves another policy;
 - other users: MFA supported and may become policy-driven by role/sensitivity.
 
 Security-sensitive actions may require re-authentication/step-up later. The 3-click / 10-second rule does not bypass justified authentication controls.
 
-A social/federated provider session does not automatically waive Juanity's MFA/step-up policy for privileged operations.
+A social/federated provider session does not automatically waive SAMMA's MFA/step-up policy for privileged operations.
 
 ## No `/admin`
 
-Juanity Law does not expose a generic `/admin` product surface.
+SAMMA does not expose a generic `/admin` product surface.
 
-The Juanity-only privileged control surface is named **Governance**.
+The SAMMA-only privileged control surface is named **Governance**.
 
 Initial route naming:
 
@@ -99,7 +99,7 @@ This is product/security language, not security-by-obscurity. The route name its
 Actual protection comes from:
 
 - authenticated verified identity;
-- Juanity-only Governance membership;
+- SAMMA-only Governance membership;
 - capability-based server authorisation;
 - MFA;
 - deny-by-default policy;
@@ -111,9 +111,9 @@ A later production deployment may place Governance behind a dedicated hostname o
 
 ## Governance versus company management
 
-Juanity Governance and Company Owner management are different scopes.
+SAMMA Governance and Company Owner management are different scopes.
 
-### Juanity Governance
+### SAMMA Governance
 
 Controls platform policy such as:
 
@@ -133,19 +133,19 @@ Controls platform policy such as:
 Controls only their own company scope, such as:
 
 - invite/remove company staff;
-- assign/revoke Juanity-approved company functional roles;
+- assign/revoke SAMMA-approved company functional roles;
 - assign roles to themselves;
 - manage approved company settings;
 - company billing where permitted;
 - view company membership/role history where permitted.
 
-Company Owner is not Juanity Governance and does not receive platform-wide access.
+Company Owner is not SAMMA Governance and does not receive platform-wide access.
 
 ## Governance roles and capabilities
 
 Do not implement one universal `SUPERADMIN` as the normal operating model.
 
-Juanity Governance should support specific capabilities that may be grouped into roles.
+SAMMA Governance should support specific capabilities that may be grouped into roles.
 
 Working capability families:
 
@@ -171,7 +171,7 @@ Working Governance role concepts may include:
 - Billing Operator;
 - Support Operator.
 
-One Juanity staff member may hold several Governance roles in a small operation. Larger operations may separate them.
+One SAMMA staff member may hold several Governance roles in a small operation. Larger operations may separate them.
 
 ## Break-glass access
 
@@ -190,7 +190,7 @@ Do not build break-glass access until a real operational requirement is approved
 
 ## Company and legal-professional identities
 
-The same Juanity account may have several independent contexts:
+The same SAMMA account may have several independent contexts:
 
 ```text
 Account / Person
@@ -219,7 +219,7 @@ Company staff and external legal-professional invitations should:
 - preserve inviter, target, role/scope and timestamps in audit history;
 - fail closed if the target identity changes unexpectedly.
 
-After authentication, the invitation resolves to the stable Juanity account. The user may have authenticated with email or a safely linked federated identity, provided the invitation verification rules are satisfied.
+After authentication, the invitation resolves to the stable SAMMA account. The user may have authenticated with email or a safely linked federated identity, provided the invitation verification rules are satisfied.
 
 ## Session consequences of privilege changes
 
@@ -237,11 +237,11 @@ The architecture must support prompt invalidation/re-evaluation of active access
 
 ## Future Moodle / learning SSO
 
-Juanity is expected to add company onboarding, training and certification through Moodle or another approved LMS later.
+SAMMA is expected to add company onboarding, training and certification through Moodle or another approved LMS later.
 
-Juanity should remain the identity/company/relationship authority. The LMS should consume SSO/federated identity rather than owning a second unrelated Juanity password/account.
+SAMMA should remain the identity/company/relationship authority. The LMS should consume SSO/federated identity rather than owning a second unrelated SAMMA password/account.
 
-A future learning integration must map the stable Juanity account to an external LMS user ID through an explicit integration link. Moodle user IDs must never replace Juanity Account or Person IDs.
+A future learning integration must map the stable SAMMA account to an external LMS user ID through an explicit integration link. Moodle user IDs must never replace SAMMA Account or Person IDs.
 
 See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
@@ -249,7 +249,7 @@ See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
 Use explicit product language:
 
-- `Governance` — Juanity platform policy/security control;
+- `Governance` — SAMMA platform policy/security control;
 - `Company Access` or `Team & Access` — company staff and functional roles;
 - `Legal Access` — external lawyer/legal-professional grants;
 - `Security` — authentication/session/security settings;

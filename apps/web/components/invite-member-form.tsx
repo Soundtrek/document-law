@@ -1,6 +1,6 @@
 "use client";
 
-import type { FunctionalRoleDefinition } from "@juanity/domain";
+import type { FunctionalRoleDefinition } from "@samma/domain";
 import { useState } from "react";
 
 export function InviteMemberForm({ roles }: { readonly roles: readonly FunctionalRoleDefinition[] }) {
@@ -20,7 +20,7 @@ export function InviteMemberForm({ roles }: { readonly roles: readonly Functiona
         <input
           onChange={(event) => { setEmail(event.target.value); setSent(false); }}
           placeholder="staff@example.com"
-          style={{ minHeight: 44, border: "1px solid var(--jl-border-strong)", borderRadius: "var(--jl-radius-control)", padding: "0 12px", background: "var(--jl-surface)" }}
+          style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
           type="email"
           value={email}
         />

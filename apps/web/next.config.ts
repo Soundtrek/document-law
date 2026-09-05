@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@juanity/domain", "@juanity/identity", "@juanity/storage"],
+  transpilePackages: ["@samma/domain", "@samma/identity", "@samma/storage"],
 };
 
 export default nextConfig;

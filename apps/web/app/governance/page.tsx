@@ -1,4 +1,4 @@
-import { syntheticDefinitions } from "@juanity/domain";
+import { syntheticDefinitions } from "@samma/domain";
 
 import { PageHero } from "../../components/page-hero";
 import { canRenderSyntheticGovernance } from "../../lib/dev-security";
@@ -11,9 +11,9 @@ export default function GovernancePage() {
   return (
     <main className="page-shell">
       <PageHero
-        eyebrow="JUANITY GOVERNANCE"
+        eyebrow="SAMMA GOVERNANCE"
         title="Record policy and platform controls"
-        description="Governance is Juanity's restricted policy surface—not a generic company admin area. Production access requires verified identity, MFA and explicit Governance capabilities on every protected request."
+        description="Governance is SAMMA's restricted policy surface—not a generic company admin area. Production access requires verified identity, MFA and explicit Governance capabilities on every protected request."
         nav={[
           { href: "/governance", label: "Definitions", active: true },
           { href: "/governance#roles", label: "Role Policy" },
@@ -26,7 +26,7 @@ export default function GovernancePage() {
         <section className="card">
           <p className="eyebrow">Access unavailable</p>
           <h2>Governance data is fail-closed without the approved identity path</h2>
-          <p className="muted">Set JUANITY_DEV_IDENTITY_ENABLED=true only in a non-production development environment to view synthetic Governance fixtures. Production will use the OIDC/MFA capability boundary.</p>
+          <p className="muted">Synthetic Governance access is unavailable in this environment. Production requires verified identity, MFA and the appropriate capabilities.</p>
         </section>
       ) : (
         <>
@@ -37,7 +37,7 @@ export default function GovernancePage() {
               <div className="row">
                 <div>
                   <p className="eyebrow">Versioned Record Definitions</p>
-                  <h2>Juanity sets policy once; daily users get smart defaults</h2>
+                  <h2>SAMMA sets policy once; daily users get smart defaults</h2>
                 </div>
                 <button className="button" type="button">New definition</button>
               </div>

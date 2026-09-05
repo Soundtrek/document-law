@@ -1,4 +1,4 @@
-import { syntheticRoleDefinitions } from "@juanity/domain";
+import { syntheticRoleDefinitions } from "@samma/domain";
 import Link from "next/link";
 
 import { InviteMemberForm } from "../../../../components/invite-member-form";

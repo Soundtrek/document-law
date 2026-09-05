@@ -1,4 +1,4 @@
-name: Juanity V1 CI
+name: SAMMA V1 CI
 
 on:
   push:

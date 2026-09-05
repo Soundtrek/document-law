@@ -2,6 +2,8 @@
 
 This file records accepted project-level decisions. Add entries when a decision materially changes architecture, security, deployment, product boundaries or workflow.
 
+> Earlier decisions retain Juanity, the former development name. Their architecture remains applicable to SAMMA.
+
 ## ADR-001 — Build Juanity Law as a new application
 **Status:** Accepted  
 **Date:** 2026-09-04
@@ -244,3 +246,24 @@ See `docs/NUC-DEV-DEPLOYMENT.md` and
 `prompts/history/2026-09-05-nuc-deployment.md`. This authorization supersedes the
 older no-NUC constraint still present in the historical skills map. The UI remains
 synthetic; verifying the Prisma boundary does not make UI forms persistent.
+
+
+## ADR-032 — SAMMA public product name
+
+Date: 2026-09-05
+
+Juanity was the original development/working name.
+The product was renamed SAMMA before public-facing development continued.
+The public descriptor is **Employment Records & Document Management**.
+
+Public strings, package namespaces, product CSS variables and repository-owned
+application/environment configuration use SAMMA. Deployment updates coordinate
+the environment key and workspace command changes after both phases pass.
+Active PostgreSQL identifiers, Compose project/container/network names, archive
+paths and Caddy upstream/include remain unchanged: **LEGACY INTERNAL NAME —
+SAFE TO RENAME LATER**. No schema or migration changes are required. Historical
+prompts and earlier decisions retain their original wording.
+
+Phase A and the public landing page are separate commits. Validation occurs in
+a temporary worktree so the live development server cannot publish partial work.
+See `docs/BRAND-NAMING-AUDIT.md` for the classified occurrence inventory.

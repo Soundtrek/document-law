@@ -5,8 +5,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Juanity Law",
-  description: "Secure document knowledge system for employment and legal records.",
+  title: "SAMMA",
+  description: "Employment Records & Document Management",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -16,8 +16,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <header className="site-header">
           <div className="site-header-inner">
             <Link className="brand" href="/">
-              <strong>Juanity Law</strong>
-              <span>Document Knowledge System</span>
+              <strong>SAMMA</strong>
+              <span>Employment Records & Document Management</span>
             </Link>
             <nav aria-label="Development navigation" className="top-nav">
               <Link href="/sign-in">Sign in</Link>

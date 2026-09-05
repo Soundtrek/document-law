@@ -23,7 +23,7 @@ The stack must support strong company isolation, person independence, relationsh
 | Reverse proxy / TLS | Caddy | Simple HTTPS and routing on the dedicated VM |
 | Packaging | Docker / Docker Compose | Repeatable development and initial deployment |
 | Payments | Gateway adapter layer | Keep provider-specific webhooks/API logic outside product entitlements |
-| Future learning | Moodle or another approved LMS behind SSO/API integration boundary | Keep learning delivery separate from Juanity core identity/documents |
+| Future learning | Moodle or another approved LMS behind SSO/API integration boundary | Keep learning delivery separate from SAMMA core identity/documents |
 
 ## Storage split
 
@@ -83,10 +83,10 @@ On the dedicated Law development VM, add the real storage/scan path:
                      development storage
 ```
 
-Production document storage should be a **separate failure domain from the Juanity application VM**:
+Production document storage should be a **separate failure domain from the SAMMA application VM**:
 
 ```text
-Juanity application runtime
+SAMMA application runtime
          │
          │ authorised S3 API
          ↓
@@ -102,7 +102,7 @@ A loss of the application VM must not imply loss of the primary document reposit
 Moodle is not part of the initial runtime. A later topology may add it as a separate service/integration:
 
 ```text
-Juanity Law ── SSO/API ──> Moodle
+SAMMA ── SSO/API ──> Moodle
      │                      │
  identity/company/          courses/progress/
  relationship authority    assessments/certification
@@ -141,7 +141,7 @@ A future `matters/` or `cases/` package is added only if an actual legal workflo
 
 ## Core relational direction
 
-PostgreSQL should represent stable Juanity identities independently from login provider details:
+PostgreSQL should represent stable SAMMA identities independently from login provider details:
 
 ```text
 Account
@@ -161,11 +161,11 @@ CompanySubscription
 Entitlement
 ```
 
-`Account.id` / `Person.id` are stable Juanity identifiers. Email and external-provider identifiers are attributes/links, not replacement primary keys.
+`Account.id` / `Person.id` are stable SAMMA identifiers. Email and external-provider identifiers are attributes/links, not replacement primary keys.
 
 `RecordFile` stores technical object metadata and references; the binary object itself lives in S3-compatible storage.
 
-Future Moodle/user/course identifiers are integration references and must not replace Juanity primary keys.
+Future Moodle/user/course identifiers are integration references and must not replace SAMMA primary keys.
 
 ## Adapter boundaries
 
@@ -173,7 +173,7 @@ Future Moodle/user/course identifiers are integration references and must not re
 
 Application code asks for an authenticated actor. Provider-specific OIDC claims are translated at the edge.
 
-The identity provider authenticates the account; Juanity Law determines company membership, relationship context, Governance capabilities, legal access and product permissions.
+The identity provider authenticates the account; SAMMA determines company membership, relationship context, Governance capabilities, legal access and product permissions.
 
 Identity architecture must support:
 
@@ -219,7 +219,7 @@ Storage rules:
 - server authorisation precedes object access;
 - signed URLs, if used, are short-lived and issued only after authorisation;
 - uploads remain untrusted until validation/quarantine/malware scan/checksum acceptance completes;
-- provider lifecycle rules do not replace Juanity retention/review policy;
+- provider lifecycle rules do not replace SAMMA retention/review policy;
 - production primary object storage is separate from the app VM and is not itself a backup;
 - object inventory/checksum reconciliation must be possible against PostgreSQL `RecordFile` metadata.
 
@@ -244,7 +244,7 @@ Application/domain services emit structured security/business events through an 
 ### Future learning / Moodle
 
 ```text
-Juanity training assignment / relationship context
+SAMMA training assignment / relationship context
         ↓
 Learning integration adapter
         ↓
@@ -252,14 +252,14 @@ Moodle SSO / API
         ↓
 Completion / certification result
         ↓
-Juanity learning projection / optional Record artefact
+SAMMA learning projection / optional Record artefact
 ```
 
-Juanity remains authoritative for identity, company/relationship context and access. Moodle remains authoritative for course content, activities, progress, assessments and LMS-generated completion/certification results.
+SAMMA remains authoritative for identity, company/relationship context and access. Moodle remains authoritative for course content, activities, progress, assessments and LMS-generated completion/certification results.
 
-Do not copy the whole Moodle data model into Juanity. Synchronise only approved summary/result data needed by Juanity workflows.
+Do not copy the whole Moodle data model into SAMMA. Synchronise only approved summary/result data needed by SAMMA workflows.
 
-A Moodle certificate PDF, when imported into Juanity, uses the normal Record/RecordFile engine and the same private object-storage path rather than a separate LMS-specific document store.
+A Moodle certificate PDF, when imported into SAMMA, uses the normal Record/RecordFile engine and the same private object-storage path rather than a separate LMS-specific document store.
 
 ## Data classification boundary
 
@@ -325,6 +325,6 @@ This is a starting assumption for the application development runtime, not a pro
 
 Development S3-compatible storage may run with the Law development environment for integration testing, but production object storage is intended to be independently recoverable and separate from the application VM failure domain.
 
-Moodle may later justify its own runtime/container resources rather than being forced into the initial Juanity web/database footprint.
+Moodle may later justify its own runtime/container resources rather than being forced into the initial SAMMA web/database footprint.
 
 The production hosting region/provider and object-storage location must be chosen with security, privacy, legal/compliance, backup and operational requirements in mind rather than convenience alone.

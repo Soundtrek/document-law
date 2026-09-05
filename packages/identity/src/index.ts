@@ -31,7 +31,7 @@ export class InMemoryIdentityLinkRegistry {
   link(accountId: string, identity: ExternalIdentityInput, linkedAt: string): LinkedIdentity {
     const key = providerKey(identity);
     const existing = this.#links.get(key);
-    if (existing && existing.accountId !== accountId) throw new Error("Provider identity is already linked to another Juanity account");
+    if (existing && existing.accountId !== accountId) throw new Error("Provider identity is already linked to another SAMMA account");
 
     const linked: LinkedIdentity = { ...identity, accountId, linkedAt };
     this.#links.set(key, linked);
@@ -43,7 +43,7 @@ export class InMemoryIdentityLinkRegistry {
   }
 
   findByProviderEmail(_provider: string, _email: string): never {
-    throw new Error("Juanity does not merge or resolve accounts solely from matching provider email");
+    throw new Error("SAMMA does not merge or resolve accounts solely from matching provider email");
   }
 }
 

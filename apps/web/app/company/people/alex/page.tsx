@@ -8,7 +8,7 @@ import {
   syntheticPerson,
   syntheticRecords,
   syntheticRelationship,
-} from "@juanity/domain";
+} from "@samma/domain";
 import Link from "next/link";
 
 import { ActivityList } from "../../../../components/activity-list";
@@ -51,7 +51,7 @@ export default function CompanyEmployeeProfilePage() {
             <span className="pill">{syntheticRelationship.status}</span>
           </div>
           <p className="muted">Reference: {syntheticRelationship.externalReference}</p>
-          <p className="muted">The employee&apos;s independent Juanity account remains separate from this company relationship.</p>
+          <p className="muted">The employee&apos;s independent SAMMA account remains separate from this company relationship.</p>
         </article>
 
         <article className="card">

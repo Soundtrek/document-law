@@ -16,4 +16,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "--workspace", "@juanity/web", "--", "-H", "0.0.0.0"]
+CMD ["npm", "run", "dev", "--workspace", "@samma/web", "--", "-H", "0.0.0.0"]

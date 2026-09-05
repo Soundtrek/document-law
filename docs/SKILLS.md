@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the practical capability areas that implementation agents should use when working on Juanity Law. It is not a dependency list; it is a work-routing guide.
+This document defines the practical capability areas that implementation agents should use when working on SAMMA. It is not a dependency list; it is a work-routing guide.
 
 ## Skill 1 — Product/domain framing
 
@@ -191,7 +191,7 @@ Use for:
 - monitoring;
 - dedicated VM provisioning.
 
-Constraint: do not deploy Juanity Law runtime services to the existing NUC.
+Constraint: do not deploy SAMMA runtime services to the existing NUC.
 
 ## Skill 11 — Disaster recovery / incident readiness
 

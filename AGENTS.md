@@ -1,10 +1,10 @@
-# Juanity Law — AI / Codex Working Rules
+# SAMMA — AI / Codex Working Rules
 
 This file governs AI-assisted work in this repository.
 
 ## 1. Product boundary
 
-Juanity Law is a new application and **document knowledge system**. Do not couple it to another product runtime, schema, authentication system, database or package model.
+SAMMA is an employment records and document management system. Do not couple it to another product runtime, schema, authentication system, database or package model.
 
 External projects may be used only as design learning unless an explicit extraction/reuse decision is approved.
 
@@ -66,18 +66,18 @@ Mandatory rules:
 - object storage is private;
 - production object storage is separate from the application-host failure domain;
 - no permanent public document URLs;
-- Juanity authorisation occurs before object access;
+- SAMMA authorisation occurs before object access;
 - object keys are opaque and contain no person/company/document naming data;
 - real uploads remain untrusted until accepted through quarantine/validation/malware-scan/checksum;
 - primary object storage is not a backup;
-- S3 lifecycle rules do not replace Juanity retention policy;
+- S3 lifecycle rules do not replace SAMMA retention policy;
 - domain code uses a provider-neutral storage adapter and never depends on local paths or provider URLs.
 
 See `docs/STORAGE-ARCHITECTURE.md`.
 
 ## 5. Configurable policy direction
 
-Juanity Governance defines approved record/request/workflow policy instead of hard-coding every employment/legal record type. Definitions are versioned. System security invariants are not ordinary Governance settings.
+SAMMA Governance defines approved record/request/workflow policy instead of hard-coding every employment/legal record type. Definitions are versioned. System security invariants are not ordinary Governance settings.
 
 See `docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`.
 
@@ -101,13 +101,13 @@ Use stable Account IDs and provider-linked identities behind an OIDC-compatible 
 
 ## 9. Governance, not `/admin`
 
-Do not create a generic `/admin` route. Juanity-only privileged control is **Governance**, initially `/governance`.
+Do not create a generic `/admin` route. SAMMA-only privileged control is **Governance**, initially `/governance`.
 
 Governance requests require verified authentication, Governance capability, MFA in production, deny-by-default server authorisation and audit.
 
 ## 10. Future Moodle / learning boundary
 
-Moodle/company training is a future integration, not V1 runtime. Juanity remains authoritative for account/company/relationship/access; Moodle owns courses/progress/assessment. Certificates imported into Juanity use the normal Record/RecordFile path.
+Moodle/company training is a future integration, not V1 runtime. SAMMA remains authoritative for account/company/relationship/access; Moodle owns courses/progress/assessment. Certificates imported into SAMMA use the normal Record/RecordFile path.
 
 See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
 
@@ -158,7 +158,7 @@ law-web + PostgreSQL
 
 Only add S3-compatible dev storage, Redis/BullMQ, worker and ClamAV when required and when resources permit.
 
-The NUC is not the production host, not the sole backup destination and not the production object-storage architecture. Synthetic data only. If Juanity destabilises existing workloads, stop the NUC runtime experiment and continue repository-first or move to the dedicated Law VM.
+The NUC is not the production host, not the sole backup destination and not the production object-storage architecture. Synthetic data only. If SAMMA destabilises existing workloads, stop the NUC runtime experiment and continue repository-first or move to the dedicated Law VM.
 
 See `docs/CODE-BEFORE-VM.md`.
 

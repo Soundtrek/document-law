@@ -5,9 +5,9 @@ import type {
   RecordDefinitionVersion,
   RecordEntry,
   RecordFile,
-} from "@juanity/domain";
-import { canCompanyMemberViewRecord, deriveRecordDates, validateRecordContext } from "@juanity/domain";
-import { createRecordObjectKey, type StorageProvider } from "@juanity/storage";
+} from "@samma/domain";
+import { canCompanyMemberViewRecord, deriveRecordDates, validateRecordContext } from "@samma/domain";
+import { createRecordObjectKey, type StorageProvider } from "@samma/storage";
 
 export interface Clock {
   now(): string;

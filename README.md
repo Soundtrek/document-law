@@ -1,6 +1,8 @@
-# Juanity Law
+# SAMMA
 
-Juanity Law is a secure **document knowledge system** for employment and legal records.
+SAMMA is an employment records and document management system.
+
+**Employment Records & Document Management**
 
 The product is built around:
 
@@ -12,7 +14,7 @@ Person  ↔  PersonCompanyRelationship  ↔  Company
 - **Companies are the primary paying entities** and operate a company workspace / Info Center.
 - Company members may hold one or many functional roles such as Owner, HR, Payroll, Clerk/Records, Legal, Manager or Billing.
 - A company relationship does not expose a person's unrelated private records.
-- Juanity Governance defines versioned record types, retention/review policy and approved role access rather than hard-coding every document workflow.
+- SAMMA Governance defines versioned record types, retention/review policy and approved role access rather than hard-coding every document workflow.
 - Routine work follows the **3-click / 10-second rule** where security and the nature of the task permit it.
 - External lawyers/legal professionals receive explicit scoped access grants rather than becoming company members.
 - The architecture is prepared for **future Moodle-based company training/onboarding/certification** and **social/federated login**, without making either a V1 dependency.
@@ -71,7 +73,7 @@ The Next.js application contains synthetic development surfaces for:
 - Team & Access staff invitation with multi-role assignment;
 - scoped Legal Access grant workflow;
 - `/legal-access` — restricted external legal view;
-- `/governance` — restricted Juanity Governance shell;
+- `/governance` — restricted SAMMA Governance shell;
 - `/records/[recordId]` — record knowledge/file metadata view;
 - `/api/health` — runtime health endpoint.
 
@@ -79,7 +81,7 @@ Governance synthetic data fails closed unless the non-production development ide
 
 ## Record policy is configurable
 
-Juanity Governance defines versioned record/request/workflow policy instead of hard-coding every record type.
+SAMMA Governance defines versioned record/request/workflow policy instead of hard-coding every record type.
 
 Definitions may include category, context, direction/audience, classification, allowed functional roles, person visibility, acknowledgement/Needs Action behaviour, notification policy, retention policy, review/renewal interval and active/inactive state.
 
@@ -89,9 +91,9 @@ See [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS
 
 ## Authentication and privileged access
 
-Email address is the primary human-facing login/contact identifier, while Juanity uses a stable internal Account ID so later social/federated identities can link to the same person without duplicating their records or company relationships.
+Email address is the primary human-facing login/contact identifier, while SAMMA uses a stable internal Account ID so later social/federated identities can link to the same person without duplicating their records or company relationships.
 
-There is no generic `/admin` surface. Juanity-only privileged controls live under **Governance** (`/governance` initially).
+There is no generic `/admin` surface. SAMMA-only privileged controls live under **Governance** (`/governance` initially).
 
 See [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md).
 
@@ -109,7 +111,7 @@ Private S3-compatible object storage
 
 The repository currently implements the provider-neutral storage boundary and a safe in-memory development adapter. Production object storage remains a later runtime integration.
 
-Production object storage is intended to be private and separate from the application-host failure domain. Juanity authorises access before any object is served. Object keys are opaque, uploads pass through quarantine/validation/malware-scan/checksum before acceptance, and primary object storage is not treated as a backup.
+Production object storage is intended to be private and separate from the application-host failure domain. SAMMA authorises access before any object is served. Object keys are opaque, uploads pass through quarantine/validation/malware-scan/checksum before acceptance, and primary object storage is not treated as a backup.
 
 See [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md).
 
@@ -119,9 +121,9 @@ A lawyer/legal professional may receive an explicit, revocable and time-bound ac
 
 ## Future learning and training
 
-Juanity is expected to add company onboarding, training and certification later, with **Moodle currently the leading LMS direction**.
+SAMMA is expected to add company onboarding, training and certification later, with **Moodle currently the leading LMS direction**.
 
-Juanity remains the authority for identity, companies, relationships and access; Moodle remains the learning-delivery engine. Training certificates imported into Juanity use the normal Record/RecordFile engine.
+SAMMA remains the authority for identity, companies, relationships and access; Moodle remains the learning-delivery engine. Training certificates imported into SAMMA use the normal Record/RecordFile engine.
 
 See [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md).
 
@@ -156,7 +158,7 @@ PostgreSQL
 
 `infrastructure/docker/compose.dev.yml` is intended for the first NUC/runtime proof. It uses synthetic data, development identity and memory storage so Redis, S3-compatible development storage and ClamAV do not consume resources before they are needed.
 
-The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. The NUC is not the Juanity production host, not the sole backup destination, and not the production object-storage design.
+The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. The NUC is not the SAMMA production host, not the sole backup destination, and not the production object-storage design.
 
 See [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md).
 

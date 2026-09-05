@@ -1,8 +1,10 @@
 # Prompt and Build-History Capture
 
+> Historical entries below retain Juanity, the former development name. Current product branding is SAMMA.
+
 ## Purpose
 
-Juanity Law uses AI-assisted development. Important prompts therefore form part of the project record because they often contain intent, constraints and approval boundaries that are not obvious from code alone.
+SAMMA uses AI-assisted development. Important prompts therefore form part of the project record because they often contain intent, constraints and approval boundaries that are not obvious from code alone.
 
 This file defines the capture format. New significant sessions should normally create a dated Markdown file under `prompts/history/`.
 

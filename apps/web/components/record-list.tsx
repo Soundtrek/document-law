@@ -1,4 +1,4 @@
-import type { RecordProjection } from "@juanity/domain";
+import type { RecordProjection } from "@samma/domain";
 import Link from "next/link";
 
 const formatDate = (iso?: string): string => (iso ? new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium" }).format(new Date(iso)) : "—");

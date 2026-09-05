@@ -19,7 +19,7 @@ repository's database boundary. Memory storage is intentionally nonpersistent.
 The ignored `.env.nuc` file supplies a random development database password and
 the pinned Node image reference. Keep its permissions at 0600. Do not copy it to
 Git, logs or image layers. This development database user is scoped to the new
-Juanity instance; production role separation is outside this deployment.
+SAMMA instance; production role separation is outside this deployment.
 
 ## Resources and persistence
 
@@ -29,7 +29,7 @@ caches are under `/srv/nuc-archive/juanity`, with separate subdirectories.
 Docker image storage remains in the existing Docker root.
 
 Both services use `restart: "no"`. A daemon/host restart requires an explicit
-Juanity startup. Use `infrastructure/docker/nuc-compose.sh` for all operations;
+SAMMA startup. Use `infrastructure/docker/nuc-compose.sh` for all operations;
 it checks the archive UUID and required directories. Bind mounts disallow
 automatic source-directory creation. Never recreate missing database directories
 as an automatic recovery step. An absent USB disk must prevent startup.
@@ -52,8 +52,8 @@ After dependency installation has generated `package-lock.json`, subsequent
 preparations use `npm ci`. Run tools through one-off web containers, not an
 unbounded host build. Before starting, verify RAM/disk headroom and port 2020.
 
-For preparation/validation only, set `JUANITY_WEB_MEMORY=2g`,
-`JUANITY_WEB_CPUS=0.5`, and override
+For preparation/validation only, set `SAMMA_WEB_MEMORY=2g`,
+`SAMMA_WEB_CPUS=0.5`, and override
 `NODE_OPTIONS=--max-old-space-size=1536` in the one-off container. Do not run the
 web dev server concurrently with production build validation using the same
 Next cache. Restore normal limits when starting the runtime.

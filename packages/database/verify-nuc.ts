@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createPrismaClient } from "./src/client";
 
-if (process.env.JUANITY_ENV !== "development") {
+if (process.env.SAMMA_ENV !== "development") {
   throw new Error("This synthetic integration check is development-only.");
 }
 

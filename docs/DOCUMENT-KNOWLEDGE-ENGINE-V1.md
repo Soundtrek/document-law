@@ -2,7 +2,7 @@
 
 ## Product definition
 
-Juanity Law is a **document knowledge system**.
+SAMMA is a **document knowledge system**.
 
 The engine does not treat a document as only a file. A record combines:
 
@@ -39,7 +39,7 @@ The engine automatically:
 - resolves the correct Person ↔ Company relationship;
 - binds the record to the active version of the `Payslip` definition;
 - stores the file securely;
-- computes retention/review dates from Juanity policy;
+- computes retention/review dates from SAMMA policy;
 - applies the definition's allowed company functional roles;
 - makes the record visible in the person's Info Center/profile;
 - makes the relationship-shared record visible to authorised company users on the employee profile;
@@ -76,7 +76,7 @@ The company does **not** automatically see unrelated private records in the pers
 
 ## Record definition
 
-Juanity Governance defines record types as versioned configuration.
+SAMMA Governance defines record types as versioned configuration.
 
 Example:
 
@@ -100,7 +100,7 @@ Category: Verification
 Context: Person or PersonCompanyRelationship (per approved definition)
 Allowed company roles: HR, CLERK
 Person view: Yes
-Retention rule: Juanity policy
+Retention rule: SAMMA policy
 Review/renewal rule: 12 months
 Notification: replacement due when review date is reached
 ```
@@ -111,11 +111,11 @@ Another example:
 Name: BEE Certificate
 Category: Compliance
 Context: Company
-Retention rule: Juanity policy
+Retention rule: SAMMA policy
 Review/renewal rule: 12 months
 ```
 
-The examples are policy examples, not hard-coded application values. Juanity Governance owns the definitions.
+The examples are policy examples, not hard-coded application values. SAMMA Governance owns the definitions.
 
 ## Retention and review are different
 
@@ -123,7 +123,7 @@ The engine must distinguish:
 
 ### Retention
 
-How long the record/file must be retained according to the approved Juanity policy.
+How long the record/file must be retained according to the approved SAMMA policy.
 
 ### Review / renewal
 
@@ -196,7 +196,7 @@ Private S3-compatible object storage
 = actual binary objects
 ```
 
-Production object storage is intended to be separate from the Juanity application VM and independently recoverable.
+Production object storage is intended to be separate from the SAMMA application VM and independently recoverable.
 
 The engine talks only to a provider-neutral `StorageProvider` interface. It must not depend on provider-specific public URLs, bucket structure or filesystem paths.
 
@@ -204,11 +204,11 @@ Storage invariants:
 
 - private buckets/containers;
 - opaque object keys with no person/company/document names;
-- Juanity server authorisation before object access;
+- SAMMA server authorisation before object access;
 - short-lived signed access only after authorisation where signed URLs are used;
 - uploads remain untrusted until quarantine/validation/malware-scan/checksum acceptance completes;
 - PostgreSQL remains authoritative for retention/review/access knowledge;
-- object-store lifecycle rules may assist but do not replace Juanity policy;
+- object-store lifecycle rules may assist but do not replace SAMMA policy;
 - primary object storage is not itself a backup;
 - object/checksum inventory can be reconciled against PostgreSQL during recovery/migration.
 
@@ -235,7 +235,7 @@ Employment/legal records that concern the relationship between one person and on
 - warnings/notices;
 - disciplinary/hearing outcomes;
 - legal correspondence;
-- other Juanity-defined employment records.
+- other SAMMA-defined employment records.
 
 The exact record catalogue remains configuration-driven.
 
@@ -303,22 +303,22 @@ The target receives an email invitation, signs in with their verified email iden
 
 ## Email identity
 
-Email is the primary human-facing login identifier from the start, while a stable internal Account ID remains the Juanity identity key.
+Email is the primary human-facing login identifier from the start, while a stable internal Account ID remains the SAMMA identity key.
 
 Authentication identifies the human. Authorisation resolves their current context:
 
 - Person;
 - Company member + functional roles;
-- Juanity Governance capabilities;
+- SAMMA Governance capabilities;
 - LegalAccessGrant.
 
 See `AUTHENTICATION-AND-GOVERNANCE.md`.
 
-## Juanity Governance
+## SAMMA Governance
 
 There is no generic `/admin` surface.
 
-Juanity-only policy control lives under **Governance** (`/governance` initially).
+SAMMA-only policy control lives under **Governance** (`/governance` initially).
 
 Governance manages:
 
@@ -331,7 +331,7 @@ Governance manages:
 - notification policy;
 - platform security/audit functions according to Governance capability.
 
-Company owners manage their own team/access in the company workspace, not in Juanity Governance.
+Company owners manage their own team/access in the company workspace, not in SAMMA Governance.
 
 ## Notification principle
 

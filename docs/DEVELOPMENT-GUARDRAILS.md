@@ -113,7 +113,7 @@ Do not implement a convenience `view all employee personal files` capability bef
 
 ## No NUC dependency
 
-No Juanity Law service should require the existing NUC to run, build, test or deploy.
+No SAMMA service should require the existing NUC to run, build, test or deploy.
 
 ## No premature document-engine coupling
 

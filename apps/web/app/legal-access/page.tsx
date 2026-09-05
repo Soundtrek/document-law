@@ -6,7 +6,7 @@ import {
   syntheticPerson,
   syntheticRecords,
   syntheticRelationship,
-} from "@juanity/domain";
+} from "@samma/domain";
 
 import { PageHero } from "../../components/page-hero";
 import { RecordList } from "../../components/record-list";

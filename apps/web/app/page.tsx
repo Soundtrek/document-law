@@ -8,7 +8,7 @@ export default function HomePage() {
       <PageHero
         eyebrow="V1 DEVELOPMENT FOUNDATION"
         title="Document knowledge, routed to the right people."
-        description="This synthetic development shell proves the Juanity Person ↔ Company ↔ Relationship model, configurable record policy, scoped legal access and Governance separation before real identity and object storage are connected."
+        description="This synthetic development shell proves the SAMMA Person ↔ Company ↔ Relationship model, configurable record policy, scoped legal access and Governance separation before real identity and object storage are connected."
       />
 
       <section className="grid">
@@ -34,7 +34,7 @@ export default function HomePage() {
         </article>
 
         <article className="card">
-          <p className="eyebrow">Juanity only</p>
+          <p className="eyebrow">SAMMA only</p>
           <h2>Governance</h2>
           <p className="muted">Versioned record definitions, retention/review policy and platform controls. This route will require verified identity, MFA and Governance capabilities.</p>
           <div className="actions"><Link className="button" href="/governance">Open Governance shell</Link></div>

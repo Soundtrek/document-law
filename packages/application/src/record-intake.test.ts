@@ -6,8 +6,8 @@ import {
   syntheticOwnerActor,
   syntheticPayrollActor,
   syntheticRelationship,
-} from "@juanity/domain";
-import { InMemoryStorageProvider } from "@juanity/storage";
+} from "@samma/domain";
+import { InMemoryStorageProvider } from "@samma/storage";
 
 import {
   AllowAllSyntheticScanner,

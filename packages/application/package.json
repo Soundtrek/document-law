@@ -1,5 +1,5 @@
 {
-  "name": "@juanity/application",
+  "name": "@samma/application",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "test": "tsx --test src/*.test.ts"
   },
   "dependencies": {
-    "@juanity/domain": "*",
-    "@juanity/storage": "*"
+    "@samma/domain": "*",
+    "@samma/storage": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

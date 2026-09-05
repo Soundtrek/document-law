@@ -1,4 +1,4 @@
-import { syntheticDefinitions } from "@juanity/domain";
+import { syntheticDefinitions } from "@samma/domain";
 import Link from "next/link";
 
 import { GrantLegalAccessForm } from "../../../../../components/grant-legal-access-form";
