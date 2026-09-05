@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { createPrismaClient } from "@samma/database";
-import { RecordIntakeService, type RecordRepository, type UploadScanner, type ScanPolicy } from "@samma/application";
+import { RecordIntakeService, RecordMetadataWriteError, type RecordRepository, type UploadScanner, type ScanPolicy } from "@samma/application";
 import type { StorageProvider, UploadSource } from "@samma/storage";
 import { domainDefinition, domainRecord } from "./record-access";
 type Database = ReturnType<typeof createPrismaClient>;
@@ -25,6 +25,8 @@ export async function persistRelationshipUpload(db: Database, storage: StoragePr
     isFileCommitted: async fileId => Boolean(await db.recordFile.findUnique({ where: { id: fileId }, select: { id: true } })),
     appendActivity: async activity => { await db.activityEvent.create({ data: { ...activity, occurredAt: new Date(activity.occurredAt) } }); },
     createRecord: async ({ record, file, activity }) => {
+      let callbackCompleted = false;
+      try {
       await db.$transaction(async tx => {
         if (input.recordId) await tx.$queryRaw`SELECT id FROM "Record" WHERE id = ${input.recordId} FOR UPDATE`;
         // Re-read current session/account and permissions inside the serializable transaction.
@@ -43,7 +45,15 @@ export async function persistRelationshipUpload(db: Database, storage: StoragePr
         } else await tx.recordFile.updateMany({ where: { recordId: record.id, isCurrent: true }, data: { isCurrent: false } });
         await tx.recordFile.create({ data: { ...file, createdAt: new Date(file.createdAt), acceptedAt: new Date(file.acceptedAt!), isCurrent: true } });
         await tx.activityEvent.create({ data: { ...activity, occurredAt: new Date(activity.occurredAt) } });
+        callbackCompleted = true;
       }, { isolationLevel: "Serializable", timeout: 10000 });
+      } catch (error) {
+        // An unfinished callback cannot issue COMMIT. P2034 explicitly denotes
+        // an aborted write-conflict/deadlock transaction. Other commit errors
+        // may have succeeded and must not trigger destructive compensation.
+        const conflict = typeof error === "object" && error !== null && "code" in error && error.code === "P2034";
+        throw new RecordMetadataWriteError(!callbackCompleted || conflict);
+      }
     },
   };
   const service = new RecordIntakeService(storage, scanner, repository, { next: () => randomUUID() }, { now: () => new Date().toISOString() }, policy);

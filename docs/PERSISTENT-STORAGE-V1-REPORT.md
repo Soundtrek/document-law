@@ -106,19 +106,24 @@ still returned 200.
 ## Validation, Git and deployment
 
 - Application/storage commit: `234c9b7`.
-- Garage deployment commit / deployed application build:
+- Garage deployment commit / initial application cutover:
   **`f985cf5aab952d3c2fa59e9af2c8f797a207a24d`**.
 - Fast-forward push to origin/main; no force push.
-- npm ci, Prisma generate/validate/status/zero-diff, **58 unit tests**, typecheck,
+- npm ci, Prisma generate/validate/status/zero-diff, **59 unit tests**, typecheck,
   lint, production build and production audit gate passed.
 - Audit uses only the existing exact, documented Prisma DEV exception. The S3
   candidate audit had zero findings; no new exception was added.
 - [GitHub CI passed on the deployed SHA](https://github.com/Soundtrek/document-law/actions/runs/33983479980).
-- Runtime Docker revision label matches the validated build SHA. Build ID,
+- Runtime Docker revision label identifies the exact validated build SHA. Build ID,
   lockfile checksum and validation evidence are under
   `/srv/nuc-archive/juanity/validation/storage-private/`.
-- A subsequent documentation-only commit records this report and removes stale
-  memory-storage claims; it does not change or rebuild the deployed application.
+- Documentation commit `9024c7a` records the initial cutover. A subsequent
+  application hardening change preserves objects on uncertain transaction
+  outcomes even when an immediate DB lookup returns no file; only a confirmed
+  rollback permits deletion. Real PostgreSQL/S3 tests cover confirmed rollback,
+  uncertain outcome with no visible row, and a successful commit with a lost
+  acknowledgement. The final revision is recorded in the Docker label and
+  build manifest; no further schema change is required.
 - Previous artifacts are retained at `node_modules-before-storage-f985cf5` and
   `next-cache-before-storage-f985cf5` under the existing archive root. Private
   pre-cutover config/client checkpoint is in `backups/storage-v1-cutover-f985cf5`.

@@ -5,6 +5,9 @@ export interface Clock { now(): string }
 export interface IdGenerator { next(prefix: string): string }
 export type ScanResult = "CLEAN" | "REJECTED" | "NOT_SCANNED_DEV";
 export interface UploadScanner { scan(input: { readonly contentType: string } & UploadContent): Promise<ScanResult> }
+export class RecordMetadataWriteError extends Error {
+  constructor(readonly rolledBack: boolean) { super(rolledBack ? "Metadata transaction rolled back" : "Metadata transaction outcome unknown"); }
+}
 export interface RecordRepository {
   // Metadata/current-version change and success activity must commit atomically.
   createRecord(input: { readonly record: RecordEntry; readonly file: RecordFile; readonly activity: ActivityEvent }): Promise<void>;
@@ -54,6 +57,7 @@ export class RecordIntakeService {
       await this.repository.appendActivity(activity("RECORD_STORAGE_WRITE_FAILED", "Storage intake failed; inspect unlinked quarantine objects for this record before cleanup."));
       throw error;
     }
+    let uncertainCommit = false;
     try {
       const scan = await this.scanner.scan({ contentType: input.contentType, ...content });
       if (!scanAccepted(scan, this.policy)) {
@@ -69,12 +73,15 @@ export class RecordIntakeService {
         await this.repository.createRecord({ record, file, activity: activity(input.existingRecord ? "RECORD_FILE_REPLACED" : "RECORD_CREATED",
           scan === "NOT_SCANNED_DEV" ? "File accepted for DEV; NOT_SCANNED_DEV. No malware scan performed." : "File accepted after clean scanner result.") });
       } catch (error) {
-        // Network loss after COMMIT is ambiguous: never delete a linked object.
+        // A negative read can race an in-flight COMMIT. Only a known rollback
+        // permits deletion; otherwise preserve the object even if absent now.
+        uncertainCommit = !(error instanceof RecordMetadataWriteError && error.rolledBack);
         if (await this.repository.isFileCommitted(fileId)) return { record, file };
         throw error;
       }
       return { record, file };
     } catch (error) {
+      if (uncertainCommit) throw new Error("Metadata outcome unknown; preserve object for reconciliation");
       let committed: boolean;
       try { committed = await this.repository.isFileCommitted(fileId); }
       catch { throw new Error("Metadata outcome unknown; preserve object for reconciliation"); }

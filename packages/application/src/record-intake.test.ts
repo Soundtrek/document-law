@@ -14,6 +14,7 @@ import {
   FixedClock,
   InMemoryRecordRepository,
   RecordIntakeService,
+  RecordMetadataWriteError,
   SequenceIdGenerator,
   type UploadScanner,
 } from "./index.js";
@@ -98,11 +99,11 @@ test("NOT_SCANNED_DEV accepted only with explicit DEV policy and retained honest
 test("DB write failure cleans object; ambiguous commit preserves the linked object", async () => {
   for (const committed of [false, true]) {
     const storage = new InMemoryStorageProvider(), repository = new InMemoryRecordRepository();
-    repository.createRecord = async input => { if (committed) repository.records.push(input); throw new Error("DB connection lost"); };
+    repository.createRecord = async input => { if (committed) repository.records.push(input); throw new RecordMetadataWriteError(!committed); };
     const service = new RecordIntakeService(storage, new AllowAllSyntheticScanner(), repository, new SequenceIdGenerator(), new FixedClock("2026-09-05T12:00:00Z"));
     const operation = service.createRelationshipRecord({ actor: syntheticPayrollActor, relationship: syntheticRelationship, definition: syntheticDefinitions[0]!, title: "Synthetic", originalFilename: "test.pdf", contentType: "application/pdf", bytes });
     if (committed) { await operation; assert.equal((await storage.metadata("records/record_1/files/file_2"))?.state, "ACCEPTED"); }
-    else { await assert.rejects(() => operation, /DB/); assert.equal(await storage.metadata("records/record_1/files/file_2"), null); }
+    else { await assert.rejects(() => operation, /rolled back/); assert.equal(await storage.metadata("records/record_1/files/file_2"), null); }
   }
 });
 test("storage write failure produces no accepted metadata", async () => {
@@ -110,4 +111,14 @@ test("storage write failure produces no accepted metadata", async () => {
   storage.putQuarantined = async () => { throw new Error("S3 unavailable"); };
   await assert.rejects(() => service.createRelationshipRecord({ actor: syntheticPayrollActor, relationship: syntheticRelationship, definition: syntheticDefinitions[0]!, title: "Synthetic", originalFilename: "test.pdf", contentType: "application/pdf", bytes }), /unavailable/);
   assert.equal(repository.records.length, 0);
+});
+
+
+test("an ambiguous commit with an initially absent row preserves the accepted object", async () => {
+  const storage = new InMemoryStorageProvider(), repository = new InMemoryRecordRepository();
+  repository.createRecord = async () => { throw new RecordMetadataWriteError(false); };
+  const service = new RecordIntakeService(storage, new AllowAllSyntheticScanner(), repository, new SequenceIdGenerator(), new FixedClock("2026-09-05T12:00:00Z"));
+  await assert.rejects(() => service.createRelationshipRecord({ actor: syntheticPayrollActor, relationship: syntheticRelationship, definition: syntheticDefinitions[0]!, title: "Synthetic", originalFilename: "test.pdf", contentType: "application/pdf", bytes }), /preserve object/);
+  assert.equal(repository.records.length, 0);
+  assert.equal((await storage.metadata("records/record_1/files/file_2"))?.state, "ACCEPTED");
 });

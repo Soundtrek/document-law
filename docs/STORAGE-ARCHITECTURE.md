@@ -305,7 +305,8 @@ unavailability makes readiness/file operations fail closed.
 
 Metadata/current-version changes and success audit are transactional. Definite
 rollback deletes the fresh object synchronously; ambiguous commit checks DB
-linkage before deletion. If DB cannot answer, preserve the object for operator
+linkage and preserves the object unless rollback is known. An immediately absent
+row is not proof of rollback, because the lookup can race an in-flight commit. If DB cannot answer, preserve the object for operator
 reconciliation. No worker was added. A crash can still leave a staged/unlinked
 object; do not bulk-delete without comparing PostgreSQL linkage.
 

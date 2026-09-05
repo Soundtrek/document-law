@@ -436,3 +436,14 @@ S3-backed data. A recovery set includes PostgreSQL and Garage metadata/data with
 protected configuration. Off-host backup/restore and malware scanning remain
 required before sensitive production use. See the captured
 [continuation authority](../prompts/history/2026-09-05-storage-full-preflight-authorisation.md).
+
+
+### ADR-036 — Ambiguous COMMIT compensation
+
+A negative DB read immediately after a lost COMMIT acknowledgement does not
+prove rollback: it may race the original transaction. Preserve the object on
+uncertain outcomes even if no row is visible yet. Delete only after a known
+rollback (callback not completed, or explicit Prisma P2034 transaction abort).
+A confirmed committed file can return success. This tightens the authorised
+failure semantics without a schema/runtime-service expansion; tests cover all
+three outcomes against real PostgreSQL and Garage with disposable fixtures.

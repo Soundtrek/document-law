@@ -17,7 +17,7 @@ try {
   // Force failure after all transaction statements, exercising actual PostgreSQL rollback.
   const failureDb = new Proxy(db, { get(target, property) {
     if (property === "$transaction") return async (callback: Parameters<typeof db.$transaction>[0]) => target.$transaction(async tx => {
-      await (callback as (tx: unknown) => Promise<unknown>)(tx); throw new Error("Synthetic transaction rollback");
+      await (callback as (tx: unknown) => Promise<unknown>)(tx); throw Object.assign(new Error("Synthetic transaction rollback"), { code: "P2034" });
     });
     return Reflect.get(target, property);
   } });
@@ -25,7 +25,7 @@ try {
   await assert.rejects(() => persistRelationshipUpload(failureDb, storage, new NotScannedDevScanner(), { environment: "development", allowUnscannedDev: true }, {
     accountId: fixture.actorId, relationshipId: fixture.relationshipId, definitionId: fixture.versionId, title: "Synthetic failure", filename: "synthetic.pdf", contentType: "application/pdf", source,
     ...(existing ? { recordId: existing.id } : {}),
-  }), /Synthetic transaction rollback/);
+  }), /rolled back/);
   assert.equal(await storage.metadata(key), null); assert.equal(await db.recordFile.count(), before);
   if (existing) assert.equal((await db.recordFile.findFirst({ where: { recordId: existing.id, isCurrent: true } }))?.id, existing.files[0]?.id);
   const path = "/upload-staging", beforeStaging = await readdir(path);
