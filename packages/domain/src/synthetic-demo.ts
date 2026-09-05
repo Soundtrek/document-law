@@ -11,8 +11,8 @@ import type {
   RecordDefinitionVersion,
   RecordEntry,
   RecordFile,
-} from "./model.js";
-import { deriveRecordDates } from "./policy.js";
+} from "./model";
+import { deriveRecordDates } from "./policy";
 
 const payslipCreatedAt = "2026-09-01T08:00:00.000Z";
 const proofCreatedAt = "2025-08-15T08:00:00.000Z";
