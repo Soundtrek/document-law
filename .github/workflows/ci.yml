@@ -23,8 +23,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+      - name: Audit production dependencies (documented DEV exception)
+        env:
+          SAMMA_ENV: development
+        run: npm run audit:production
 
       - name: Generate Prisma client
         run: npm run db:generate

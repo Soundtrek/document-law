@@ -380,6 +380,15 @@ Minimum release gate:
 - restore drill;
 - privacy/POPIA legal-compliance review.
 
+## Temporary DEV dependency exception
+
+Prisma 7.10.0 currently has an explicit, narrowly enforced
+[transitive dependency exception](PRISMA-SECURITY-EXCEPTION.md). Complete npm
+audit output remains visible; exact approved versions/advisories may pass only
+in DEV. Unknown high and all critical findings fail. Remove the exception before
+production/sensitive-data approval and when official stable Prisma includes the
+fixes. Follow-up: [issue #5](https://github.com/Soundtrek/document-law/issues/5).
+
 ## Incident principle
 
 Preserve evidence before destructive cleanup where legally and operationally appropriate. Recovery procedures must distinguish service restoration from forensic/investigation needs.

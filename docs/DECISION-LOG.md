@@ -357,3 +357,31 @@ The fast-forward push succeeded. GitHub CI exposed the already-failing Prisma
 transitive dependency audit (`deepmerge-ts`/`mysql2`). Preserve the audit gate and
 record the failure; do not apply npm's forced Prisma 7 → 6 downgrade as an
 authentication handoff workaround. Local validation remains separately recorded.
+
+### Prisma transitive override experiment — 2026-09-05
+
+The user authorised only temporary exact overrides for the Prisma 7.10.0
+transitive advisories, preserving the original audit and compatibility gates.
+Registry-confirmed candidates were deepmerge-ts 8.0.2 and mysql2 3.24.3.
+Normal npm install retained the vulnerable resolutions and npm ls marked both
+invalid. Follow the explicit stop condition: revert the overrides, retain the
+baseline, and do not commit/push/deploy the candidate. No workaround is accepted.
+See [the focused experiment report](PRISMA-TRANSITIVE-SECURITY-EXPERIMENT.md)
+and [the captured request](../prompts/history/2026-09-05-prisma-transitive-security-overrides.md).
+
+## ADR-035 — Explicit temporary Prisma security exception for DEV
+
+The owner subsequently authorised a documented exception for Prisma 7.10.0,
+deepmerge-ts 7.1.5 and mysql2 3.15.3, limited to GHSA-ggr8-5vv4-36mx,
+GHSA-3f6p-5ww8-9rcr and GHSA-rgwj-5xj2-c3m3. Keep npm audit running and visible;
+accept only the exact approved dependency graph/versions/advisories in explicit
+DEV context. Unknown high, every critical finding, drift and audit errors fail.
+This replaces the previous unexcepted DEV CI outcome by explicit user decision,
+not by suppressing security debt. No runtime or deployment change is authorised
+or required by this policy change.
+
+Remove the exception when official stable Prisma incorporates patched
+dependencies and before production/sensitive-data approval. Track removal in
+[issue #5](https://github.com/Soundtrek/document-law/issues/5), without inventing
+an upstream release date. See the [policy](PRISMA-SECURITY-EXCEPTION.md) and
+[captured authorisation](../prompts/history/2026-09-05-prisma-security-exception.md).
