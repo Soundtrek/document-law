@@ -7,7 +7,7 @@ export type RecordContext = "PERSON" | "COMPANY" | "RELATIONSHIP";
 export type RecordDirection = "PERSON_TO_COMPANY" | "COMPANY_TO_PERSON" | "INTERNAL_COMPANY" | "BIDIRECTIONAL";
 export type DataClassification = "PUBLIC" | "INTERNAL" | "PERSONAL" | "SENSITIVE" | "HIGHLY_SENSITIVE";
 export type RecordStatus = "ACTIVE" | "SUPERSEDED" | "ARCHIVED" | "RETAINED" | "DELETED";
-export type ScanStatus = "PENDING" | "ACCEPTED" | "REJECTED";
+export type ScanStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "NOT_SCANNED_DEV";
 export type LegalGrantStatus = "PENDING" | "ACTIVE" | "REVOKED" | "EXPIRED";
 
 export interface Account {

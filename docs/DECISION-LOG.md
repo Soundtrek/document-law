@@ -390,3 +390,49 @@ The now-reachable CI build exposed missing OIDC environment inputs. Supply only
 synthetic build-step values and `.invalid` HTTPS origins in the workflow;
 retain disabled synthetic identity activation and the existing auth checks.
 No live secrets, authentication code or deployed configuration change is needed.
+
+## Persistent storage V1 — explicit stop condition observed
+
+2026-09-05: The owner requested private Garage DEV storage behind the existing
+provider boundary, while explicitly requiring a stop if the current scan model
+cannot represent unscanned DEV acceptance. Inspection found `CLEAN | REJECTED`
+scanner results and `PENDING | ACCEPTED | REJECTED` persisted statuses, without
+`NOT_SCANNED_DEV`. Stop implementation rather than return a false clean result.
+No model change or deployment was made. Baseline, private database checkpoint,
+migration status and zero drift were verified. The proposed explicit DEV scan
+extension remains for review, not an accepted schema decision. See
+[preflight evidence](PERSISTENT-STORAGE-V1-PREFLIGHT.md) and
+[the captured request](../prompts/history/2026-09-05-persistent-document-storage-v1.md).
+
+## ADR-036 — Persistent private S3 storage with an explicit DEV scan outcome
+
+The owner superseded the initial stop with a full-preflight requirement and
+explicit authority for grouped non-destructive YELLOW/ORANGE compensations,
+implementation, the scan enum migration, Garage DEV setup, CI, fast-forward push
+and exact-SHA deployment. The completed [preflight](PERSISTENT-STORAGE-V1-PLAN.md)
+found no RED blocker. Keep the original report as historical evidence.
+
+Use pinned Garage v2.3.0 for single-node synthetic DEV only, on the existing
+verified USB archive and private SAMMA network. Keep provider-neutral S3 code;
+production provider/region remains undecided. Core runtime remains web + SAMMA
+PostgreSQL + Garage; existing separate Keycloak services are unchanged.
+
+Add only ScanStatus.NOT_SCANNED_DEV. Storage acceptance remains separate from
+malware outcome: DEV files retain NOT_SCANNED_DEV in DB/UI/audit. Accept only
+under explicit SAMMA_ENV=development and not-scanned-dev scanner policy; all
+other deployment modes fail closed until a real scanner is integrated.
+
+Complete the small authenticated relationship-upload/download/history UI path,
+including Legal Access canDownload, server-resolved roles, CSRF Origin/custom
+header checks, bounded USB staging and streamed S3 SHA-256 verification. New UUID
+key per file version; no shared-checksum deduplication or permanent document URLs.
+Metadata/current-file pointer and audit commit together; compensating deletion
+must not delete an object after an ambiguous successful DB commit.
+
+No public Garage ports, no bucket owner rights for web, no browser credentials,
+no worker/Redis/ClamAV or unrelated product integration. Rollback preserves the
+additive migration and any newly written objects; memory is not a substitute for
+S3-backed data. A recovery set includes PostgreSQL and Garage metadata/data with
+protected configuration. Off-host backup/restore and malware scanning remain
+required before sensitive production use. See the captured
+[continuation authority](../prompts/history/2026-09-05-storage-full-preflight-authorisation.md).

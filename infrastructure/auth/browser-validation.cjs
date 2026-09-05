@@ -71,11 +71,11 @@ async function login(page, email, password) {
   assert.ok((await page.locator('body').innerText()).includes('Synthetic Validation'));
   if (candidate) {
     const { execFileSync } = require('node:child_process');
-    execFileSync('/tmp/samma-auth-run',['node_modules/.bin/tsx','infrastructure/auth/validation-governance.ts','grant'],{stdio:'ignore'});
+    execFileSync(process.env.SAMMA_AUTH_RUN || '/tmp/samma-auth-run',['node_modules/.bin/tsx','infrastructure/auth/validation-governance.ts','grant'],{stdio:'ignore'});
     try {
       await page.goto(base+'/governance');
       assert.ok((await page.locator('body').innerText()).includes('Record policy and platform controls'));
-    } finally {execFileSync('/tmp/samma-auth-run',['node_modules/.bin/tsx','infrastructure/auth/validation-governance.ts','revoke'],{stdio:'ignore'});}
+    } finally {execFileSync(process.env.SAMMA_AUTH_RUN || '/tmp/samma-auth-run',['node_modules/.bin/tsx','infrastructure/auth/validation-governance.ts','revoke'],{stdio:'ignore'});}
     await page.goto(base+'/governance');
     assert.ok((await page.locator('body').innerText()).includes('404'));
     console.log('PASS Governance capability grant and immediate revocation on existing session');

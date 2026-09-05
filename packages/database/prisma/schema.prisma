@@ -66,6 +66,7 @@ enum ScanStatus {
   PENDING
   ACCEPTED
   REJECTED
+  NOT_SCANNED_DEV
 }
 
 enum LegalGrantStatus {

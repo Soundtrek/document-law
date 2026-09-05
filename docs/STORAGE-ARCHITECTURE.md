@@ -271,3 +271,45 @@ The dedicated Law VM is required before claiming integration of:
 ## Guiding principle
 
 **SAMMA stores knowledge and permissions in PostgreSQL; document binaries live in private, independently recoverable S3-compatible object storage behind a provider-neutral adapter.**
+
+## Persistent Storage V1 — current DEV implementation
+
+Garage v2.3.0 is the selected single-node DEV implementation behind
+`S3StorageProvider` (`@aws-sdk/client-s3`). This does not select the production
+provider. Objects are private on `juanity-dev`, with no published S3/website/admin
+endpoint. The app's dedicated key has bucket read/write permissions only.
+
+`records/<random UUID>/files/<random UUID>` identifies each immutable file
+version. Original names, content type, byte count and SHA-256 remain PostgreSQL
+metadata; S3 metadata holds the private quarantine/accept/reject state and hash.
+No permanent signed URLs or binary data are stored in PostgreSQL. Historic file
+objects remain when a new current version commits.
+
+Authenticated same-origin SAMMA routes stream raw uploads into bounded private
+USB staging, compute SHA-256 and check PDF/PNG/JPEG signatures, then upload into
+quarantine and verify a streamed S3 readback before acceptance. This is bounded
+format validation, not proof that a file is safe. UI accepts synthetic files only.
+Downloads reauthorise current Person/company/Legal Access rights, including
+canDownload, before fetching S3 and streaming an attachment through SAMMA.
+Filename sanitisation, nosniff and private no-store headers apply.
+
+The explicit `not-scanned-dev` policy is allowed only with
+`SAMMA_ENV=development`. Accepted files retain `NOT_SCANNED_DEV` in database,
+UI and audit. They are never described as malware-clean. Other environments
+reject this policy; a real scanner is still required before sensitive use.
+The memory adapter remains available for isolated tests/non-production local
+work, and is never a deployed `next start` fallback. S3 misconfiguration or
+unavailability makes readiness/file operations fail closed.
+
+Metadata/current-version changes and success audit are transactional. Definite
+rollback deletes the fresh object synchronously; ambiguous commit checks DB
+linkage before deletion. If DB cannot answer, preserve the object for operator
+reconciliation. No worker was added. A crash can still leave a staged/unlinked
+object; do not bulk-delete without comparing PostgreSQL linkage.
+
+Recovery requires PostgreSQL **and Garage metadata plus data blocks**, protected
+configuration and key recovery. Garage metadata snapshots alone and blocks alone
+are both insufficient. Single-node USB persistence is not off-host backup and
+is not approved for sensitive production data. See the
+[full preflight](PERSISTENT-STORAGE-V1-PLAN.md) and
+[deployment runbook](PERSISTENT-STORAGE-V1-DEPLOYMENT.md).

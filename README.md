@@ -229,3 +229,18 @@ See [authentication](docs/REAL-AUTHENTICATION-V1.md) and
 owner password-change steps. SMTP verification/recovery, enforced Governance
 MFA, persistent S3-compatible storage and scanning, payments, off-host recovery
 automation and social-login/Moodle integrations remain separate work.
+
+### Persistent documents (synthetic DEV)
+
+The S3 adapter and Garage DEV runbook provide persistent private document files
+with authenticated upload/download and immutable file history. Uploads stream
+through SAMMA using bounded USB staging; checksums persist in PostgreSQL. DEV
+files explicitly say `NOT_SCANNED_DEV`, never malware-clean. Memory remains an
+isolated test/development adapter, with no deployed runtime fallback.
+
+Use `/api/health` for liveness and `/api/ready` for database/storage readiness.
+No public bucket, browser S3 credentials or permanent document URLs are used.
+This remains synthetic-only: malware scanning and tested off-host backup/restore
+are required before sensitive production use. See the
+[storage runbook](docs/PERSISTENT-STORAGE-V1-DEPLOYMENT.md) and
+[full preflight](docs/PERSISTENT-STORAGE-V1-PLAN.md).
