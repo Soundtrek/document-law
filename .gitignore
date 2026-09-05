@@ -11,3 +11,5 @@ coverage/
 packages/database/src/generated/
 packages/database/prisma/dev.db
 storage-dev/
+
+__pycache__/

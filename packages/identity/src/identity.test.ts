@@ -28,3 +28,18 @@ test("sensitive access helpers require verified email and MFA", () => {
   });
   assert.throws(() => requireMfa(principal));
 });
+
+test("OIDC verification requires strict claims and retains MFA support", async () => {
+  const { verifiedOidcClaims } = await import("./index.js");
+  for (const profile of [{}, { sub: "s", email: "p@example.test", email_verified: false }, { sub: "s", email: "p@example.test", email_verified: "true" }, { sub: "", email: "p@example.test", email_verified: true }]) assert.throws(() => verifiedOidcClaims(profile));
+  assert.equal(verifiedOidcClaims({ sub: "s", email: "p@example.test", email_verified: true }).mfaSatisfied, false);
+  assert.equal(verifiedOidcClaims({ sub: "s", email: "p@example.test", email_verified: true, acr: "2" }).mfaSatisfied, true);
+});
+
+test("authentication redirects reject foreign origins and encoded bypasses", async () => {
+  const { safeAuthenticationRedirect } = await import("./index.js");
+  for (const path of ["https://evil.example", "//evil.example", "/%2f%2fevil.example", "https://samma.co.za.evil.example", "javascript:alert(1)", "/admin", "/person?next=https://evil.example"]) {
+    assert.equal(safeAuthenticationRedirect(path, "https://samma.co.za"), "https://samma.co.za/person");
+  }
+  assert.equal(safeAuthenticationRedirect("/auth/logout", "https://samma.co.za"), "https://samma.co.za/auth/logout");
+});

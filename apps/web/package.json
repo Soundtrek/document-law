@@ -11,12 +11,14 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@auth/core": "0.41.3",
     "@samma/domain": "*",
     "@samma/identity": "*",
     "@samma/storage": "*",
     "next": "16.3.3",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "@samma/database": "*"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",

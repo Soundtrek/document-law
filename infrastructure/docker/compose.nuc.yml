@@ -42,12 +42,15 @@ services:
     user: "1000:1000"
     working_dir: /app
     init: true
-    command: ["npm", "run", "dev", "--workspace", "@samma/web", "--", "-H", "0.0.0.0"]
+    command: ["npm", "run", "start", "--workspace", "@samma/web", "--", "-H", "0.0.0.0"]
+    env_file:
+      - /etc/samma-dev/web.env
     environment:
+      NODE_ENV: production
       DATABASE_URL: postgresql://juanity:${SAMMA_DB_PASSWORD}@db:5432/juanity_law
       SAMMA_ENV: development
       SAMMA_BASE_URL: https://samma.co.za
-      SAMMA_DEV_IDENTITY_ENABLED: "true"
+      SAMMA_DEV_IDENTITY_ENABLED: "false"
       SAMMA_STORAGE_DRIVER: memory
       NEXT_TELEMETRY_DISABLED: "1"
       NODE_OPTIONS: --max-old-space-size=640

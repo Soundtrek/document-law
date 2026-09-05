@@ -309,3 +309,20 @@ Authoritative DNS returns NXDOMAIN for auth.samma.co.za. Honour the owner's
 explicit DNS/secure-issuer stop condition before implementation/deployment.
 See [preflight](REAL-AUTHENTICATION-V1-PREFLIGHT.md) and
 [owner request](../prompts/history/2026-09-05-real-authentication-v1.md).
+
+### ADR-034 continuation — DNS and passwords supplied
+
+The owner confirmed "domain added and passwords added". Authoritative/public DNS
+and both filled credential fields were verified without displaying values.
+Continue the already approved implementation/deployment. Select pinned Keycloak
+26.7.3 and Auth.js Core 0.41.3, using a custom adapter for the existing domain
+Account/AccountIdentity and only two new tables for sessions/rate windows. Public
+onboarding remains closed; provider-subject bootstrap is explicit. MFA remains
+supported, with enforcement disabled only for initial DEV. The two owners must
+choose/store their final passwords themselves; automation never chooses them.
+
+Deploy the web production build with synthetic identity disabled. Replace demo
+actors on protected pages with Account-bound server projections; static demo
+resource URLs deny instead of granting assumed company context. No unrelated
+persisted document/company workflows or domain schema changes are introduced.
+See docs/REAL-AUTHENTICATION-V1.md for the security/session boundaries.

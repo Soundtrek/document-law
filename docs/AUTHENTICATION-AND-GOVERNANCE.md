@@ -1,18 +1,12 @@
 # Authentication and Governance Access
 
-## Current implementation status — 2026-09-05
+## Real Authentication V1 — 2026-09-05
 
-Keycloak is selected for Real Authentication V1. Implementation is blocked on
-DNS for `auth.samma.co.za`; real authentication has not been deployed. The
-approved initial owners are `phil@samma.co.za` and `juanita@samma.co.za`, using
-explicit SAMMA Governance capabilities. **MFA IS TEMPORARILY DISABLED FOR
-DEV/INITIAL SETUP** is the target policy; enable Governance MFA before real
-sensitive client data. No Keycloak identities have been provisioned.
-
-The blank temporary credential checklist exists outside Git at
-`/etc/samma-dev/bootstrap-credentials.txt` with owner `philip:philip`, mode 0600.
-See [preflight and bootstrap procedure](REAL-AUTHENTICATION-V1-PREFLIGHT.md)
-and ADR-034 for accepted scope and the unchanged synthetic runtime status.
+The DNS prerequisite has been resolved. Keycloak is now the selected provider;
+implementation, bootstrap, session controls and the temporary DEV MFA exception
+are documented in [Real Authentication V1](REAL-AUTHENTICATION-V1.md). Deployment
+validation and any pending owner password changes are recorded separately; the
+historical preflight is not current runtime status.
 
 ## Purpose
 
@@ -55,7 +49,7 @@ Initial identity behaviour:
 
 The application must not implement its own password cryptography. Password/session/MFA mechanics belong behind the approved identity-provider boundary.
 
-The leading deployment direction remains an OIDC-compatible provider such as Keycloak configured for email-based sign-in and capable of later brokering approved external identity providers. The application consumes a verified authenticated actor, not provider-specific claims throughout the codebase.
+The selected deployment provider is Keycloak, configured for email-based sign-in and capable of later brokering approved external identity providers. The application consumes a verified authenticated actor, not provider-specific claims throughout the codebase.
 
 ## Future social / federated sign-in
 

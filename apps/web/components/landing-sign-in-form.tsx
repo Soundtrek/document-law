@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { submitAuth } from "./auth-controls";
 import { useState, type FormEvent } from "react";
 
 const emailPattern = String.raw`[^\s@]+@[^\s@]+\.[^\s@]+`;
 const emailError = "Enter a valid email address, such as name@example.com.";
 
 export function LandingSignInForm() {
-  const router = useRouter();
   const [error, setError] = useState("");
 
   function continueWithEmail(event: FormEvent<HTMLFormElement>) {
@@ -20,23 +19,17 @@ export function LandingSignInForm() {
       return;
     }
 
-    // Temporary handoff only; this does not authenticate or create an account.
-    // Avoid putting the email into URLs, referrers or server request logs.
-    try {
-      sessionStorage.setItem("samma.sign-in.email", email);
-    } catch {
-      // The existing sign-in form remains usable when browser storage is blocked.
-    }
-    router.push("/sign-in");
+    void submitAuth(event.currentTarget, "signin/keycloak").catch(() => setError("Sign in is unavailable. Please try again."));
   }
 
   return (
-    <form action="/sign-in" className="landing-form" onSubmit={continueWithEmail}>
+    <form action="/api/auth/signin" method="post" className="landing-form" onSubmit={continueWithEmail}>
+      <input type="hidden" name="callbackUrl" value="/person" />
       <div className="landing-field">
         <label htmlFor="landing-email">Email address</label>
         <input
           id="landing-email"
-          // No name: native fallback navigation must not put the email in a URL.
+          name="login_hint"
           type="email"
           inputMode="email"
           autoComplete="email"

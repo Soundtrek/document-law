@@ -1,6 +1,10 @@
 # Real Authentication V1 — preflight
 
-2026-09-05: **BLOCKED before implementation/deployment.**
+2026-09-05: **Historical preflight — initially blocked before implementation.**
+
+The owner subsequently added DNS and passwords, authorising continuation. See
+[Real Authentication V1](REAL-AUTHENTICATION-V1.md) and deployment notes for the
+resumed implementation. Findings below describe the original preflight only.
 
 ## Blocker
 

@@ -605,3 +605,13 @@ UNTOUCHED
 BLOCKED before implementation: both authoritative DNS servers return NXDOMAIN for auth.samma.co.za. No connected DNS management tool is available. Follow the owner’s explicit secure-issuer/DNS stop condition. See docs/REAL-AUTHENTICATION-V1-PREFLIGHT.md.
 
 The requested credential checklist was created outside Git at /etc/samma-dev/bootstrap-credentials.txt, owned by philip:philip with mode 0600. Password fields remain empty; no accounts were provisioned.
+
+
+## Owner continuation
+
+"domain added and passwords added"
+
+Verified the DNS and file readiness without displaying credentials; resumed the
+already approved Keycloak implementation, validation and DEV deployment. Owner
+final password changes and password-manager checklist confirmation remain human
+actions and must not be marked complete merely from provisioning.

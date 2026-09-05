@@ -61,3 +61,30 @@ export const requireMfa = (principal: AuthenticatedPrincipal): AuthenticatedPrin
 export const requireCapability = (capabilities: readonly string[], required: string): void => {
   if (!capabilities.includes(required)) throw new Error(`Missing capability: ${required}`);
 };
+
+// The current explicit platform capability set; no universal bypass.
+export const governanceCapabilities = [
+  "platform.policy.manage", "platform.definitions.manage", "platform.retention.manage",
+  "platform.roles.manage", "platform.companies.manage", "platform.security.review",
+  "platform.audit.review", "platform.billing.manage", "platform.support.access",
+  "platform.system.configure",
+] as const;
+
+export function verifiedOidcClaims(profile: { sub?: unknown; email?: unknown; email_verified?: unknown; acr?: unknown; amr?: unknown }) {
+  if (typeof profile.sub !== "string" || !profile.sub ||
+      typeof profile.email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email) ||
+      profile.email_verified !== true) throw new Error("Authentication unavailable");
+  return { subject: profile.sub, email: profile.email,
+    mfaSatisfied: profile.acr === "2" || (Array.isArray(profile.amr) && profile.amr.includes("mfa")) };
+}
+
+export function safeAuthenticationRedirect(url: string, baseUrl: string): string {
+  try {
+    const target = new URL(url, baseUrl);
+    if (target.origin === new URL(baseUrl).origin && !target.username && !target.password &&
+        ["/", "/person", "/company", "/legal-access", "/governance", "/auth/logout"].includes(target.pathname)) {
+      return target.origin + target.pathname;
+    }
+  } catch { /* Fail closed to the authenticated landing. */ }
+  return new URL("/person", baseUrl).href;
+}

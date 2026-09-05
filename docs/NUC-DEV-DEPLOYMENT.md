@@ -1,10 +1,78 @@
 # Temporary NUC DEV deployment
 
-Real Authentication V1 was requested on 2026-09-05 but stopped at DNS preflight:
-`auth.samma.co.za` returns authoritative NXDOMAIN. No auth deployment, migration
-or proxy change has occurred. The existing runtime still enables synthetic
-identity. See [authentication preflight](REAL-AUTHENTICATION-V1-PREFLIGHT.md)
-before continuing; do not treat the requested Keycloak/MFA policy as deployed.
+## Current authentication deployment — 2026-09-05
+
+Real Authentication V1 supersedes the synthetic runtime described in historical
+sections below. The validated target runs `next start` with
+`SAMMA_DEV_IDENTITY_ENABLED=false`, while retaining `SAMMA_ENV=development`
+and the explicitly approved temporary MFA exception. See
+[authentication implementation](REAL-AUTHENTICATION-V1.md).
+
+Keycloak 26.7.3 (pinned image digest) and its dedicated PostgreSQL 17 database
+are managed by `infrastructure/docker/keycloak-compose.sh`. The wrapper checks
+the existing archive UUID and requires `/srv/nuc-archive/juanity/keycloak-postgres`.
+Both services have manual startup, log rotation, CPU/memory limits and persistent
+private DB storage. Keycloak is limited to 1 GiB/0.75 CPU; its DB to 384 MiB/0.5 CPU.
+The provider service joins `caddy-net`; its DB joins only `samma-auth-private`.
+Only loopback `127.0.0.1:2021` exposes administration to the host. There is no
+published database port. Caddy publishes only SAMMA realm/resources over HTTPS;
+master realm and admin paths are blocked. Trusted proxy address is the current
+Caddy container `172.28.0.4/32`; revalidate it if the proxy network changes.
+
+The canonical application uses `/etc/samma-dev/web.env` (0600), which excludes
+owner and Keycloak administrator passwords. Keycloak service secrets live in
+`/etc/samma-dev/keycloak.env` (0600). Never display `docker compose config` or
+container environment output containing those values.
+
+Before migration, a 0600 PostgreSQL custom-format checkpoint was created at
+`/srv/nuc-archive/juanity/backups/auth-v1/samma-before-auth.dump` and its archive
+TOC verified. Reviewed migration `0002_real_authentication_sessions` only creates
+AuthSession/AuthRateLimit and their keys/indexes. It applied successfully with
+zero live schema drift. A private Keycloak checkpoint is at
+`/srv/nuc-archive/juanity/backups/auth-v1/keycloak-after-bootstrap.dump`; it contains
+sensitive provider credential hashes and must be handled as secret backup data.
+These on-host DEV checkpoints are not an off-host production backup strategy.
+
+Caddy's disk configuration matched its loaded configuration before the change;
+both were backed up under the same `auth-v1` directory. Only a new
+`samma-auth.caddy` include was added; complete validation passed before reload.
+No unrelated include or service was modified. HTTPS discovery has the expected
+issuer and S256 PKCE support; public admin returns 404.
+
+Validation passed: Prisma validation, 14 unit tests, typecheck, lint, production
+build; real OIDC browser login/PKCE/state/nonce and secure cookie checks; normal
+user Governance denial; temporary test capability grant then immediate
+revocation; missing logout CSRF rejection; local/provider logout and old-cookie
+replay rejection; unverified account rejection; exact client/callback and OAuth
+parameter override rejection; invalid callback/state rejection. Database negative
+tests cover person/tenant isolation, role/membership revocation, Legal Access
+scope/expiry/revocation, stable identity, no email merging, definition versions,
+session expiry/suspension/unverified/unlinked rejection, and Governance not being
+a record bypass. Existing storage quarantine/key isolation tests also pass.
+
+Keycloak and its database were restarted: owner subjects, verification and
+mandatory password actions survived. Application restart retained the database
+session and resolved the same Person. Real owner credentials were accepted by
+Keycloak and stopped at the required password-change screen; owners must choose
+and store final passwords before complete owner login/Governance validation.
+Do not delete the bootstrap checklist or claim these human steps are complete.
+
+The existing Prisma CLI dependency tree reports four high npm advisory findings
+in `deepmerge-ts`, `mysql2` and their parent CLI packages. The authentication
+change does not invoke those CLI paths in the web runtime. A forced Prisma
+major downgrade/replacement was not applied; tooling remediation remains open.
+
+Startup after reboot (archive must be mounted):
+
+```sh
+infrastructure/docker/keycloak-compose.sh up -d
+infrastructure/docker/nuc-compose.sh up -d --no-deps --no-build web
+```
+
+Start the existing SAMMA DB first if it is not running. This remains DEV,
+with no real sensitive documents, no SMTP recovery, no automatic public
+onboarding and no production object-storage integration. Earlier deployment
+sections below are historical and do not describe current authentication.
 
 This deployment serves the existing synthetic UI at `https://samma.co.za`.
 It is not a production deployment. UI forms currently demonstrate interactions;

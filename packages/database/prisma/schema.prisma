@@ -102,6 +102,7 @@ model Account {
   status              AccountStatus                  @default(ACTIVE)
   createdAt           DateTime                       @default(now())
   updatedAt           DateTime                       @updatedAt
+  authSessions        AuthSession[]
   identities          AccountIdentity[]
   person              Person?
   companyMemberships  CompanyMember[]
@@ -120,6 +121,7 @@ model AccountIdentity {
   providerSubject String
   emailAtProvider String?
   linkedAt        DateTime @default(now())
+  authSessions    AuthSession[]
   account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerSubject])
@@ -417,4 +419,27 @@ model CompanySubscription {
 
   @@index([companyId, status])
   @@index([provider, providerReference])
+}
+
+// Opaque session tokens are generated and handled by Auth.js, never SAMMA crypto.
+model AuthSession {
+  sessionToken String @id
+  accountId String
+  identityId String
+  mfaSatisfied Boolean @default(false)
+  expires DateTime
+  createdAt DateTime @default(now())
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  identity AccountIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([expires])
+}
+
+// Shared, bounded login-initiation windows; no email/password values.
+model AuthRateLimit {
+  key String @id
+  count Int
+  expires DateTime
+  @@index([expires])
 }
