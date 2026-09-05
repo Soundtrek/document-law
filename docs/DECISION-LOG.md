@@ -451,3 +451,7 @@ three outcomes against real PostgreSQL and Garage with disposable fixtures.
 ## 2026-09-05 — Real user and company workflow V1
 
 Accepted user mission: implement, validate, push and deploy the complete real browser workflow from Account/Person to company ownership, employee acceptance and persistent policy-visible records. Full preflight: [REAL-WORKFLOW-V1-PREFLIGHT.md](REAL-WORKFLOW-V1-PREFLIGHT.md). Proceed through documented additive changes; stop for destructive/security blockers. Preserve storage/auth provider/Governance/Legal Access boundaries. Use hashed DEV manual invitations while SMTP is absent, distinct employee relationships and team memberships, explicit Owner self-role assignment, and no email identity merges. Prompt captured in prompts/2026-09-05-real-user-company-workflow-v1.txt.
+
+### Workflow V1 validation and cutover
+
+Feature SHA `f19a4edbaefc9b8ed8d96c44bbc2f293dca5b859` passed local checks and GitHub CI run `33987033594` before public cutover. Real Keycloak browser proof used four disposable identities, two companies, one employee, a restricted Billing membership and three Garage documents. Restart snapshots and public fresh-session replay passed. Report: [REAL-WORKFLOW-V1-REPORT.md](REAL-WORKFLOW-V1-REPORT.md). Existing pending relationships are activatable through invitations; former history stays intact. Temporary Governance probe grants were explicitly revoked. Prior artifacts/configuration retained; no unrelated infrastructure changed.
