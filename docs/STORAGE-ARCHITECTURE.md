@@ -257,10 +257,12 @@ V1 code may implement now:
 - storage-authorisation service boundary;
 - object inventory/reconciliation interfaces.
 
-The dedicated Law VM is required before claiming integration of:
+The original VM-first integration gate has been superseded for synthetic DEV by
+the explicitly authorised, guarded NUC Garage deployment below. Production
+readiness still requires approved infrastructure and integration of:
 
-- persistent S3-compatible storage;
-- real quarantine buckets/prefixes;
+- independently recoverable production S3-compatible storage;
+- production quarantine and safety controls;
 - ClamAV or equivalent malware scanning;
 - real signed access URLs;
 - storage encryption/provider configuration;

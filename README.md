@@ -126,7 +126,7 @@ Private S3-compatible object storage
 = document binaries
 ```
 
-The repository currently implements the provider-neutral storage boundary and a safe in-memory development adapter. Production object storage remains a later runtime integration.
+The repository implements a provider-neutral S3 adapter, with private Garage persistence on the USB archive for synthetic DEV files. The memory adapter is retained for isolated tests/local development. Production object-storage approval remains separate.
 
 Production object storage is intended to be private and separate from the application-host failure domain. SAMMA authorises access before any object is served. Object keys are opaque, uploads pass through quarantine/validation/malware-scan/checksum before acceptance, and primary object storage is not treated as a backup.
 
@@ -168,16 +168,16 @@ Implemented/planned stack:
 The public NUC development stack runs:
 
 ```text
-SAMMA web + application PostgreSQL
+SAMMA web + application PostgreSQL + private Garage
 Keycloak + separate private PostgreSQL
 ```
 
-Use `infrastructure/docker/compose.nuc.yml` and `compose.keycloak.yml` through
+Use `infrastructure/docker/compose.nuc.yml`, `compose.garage.yml` and `compose.keycloak.yml` through
 their archive-checking wrappers. Runtime secrets live outside Git in
 `/etc/samma-dev/` and the ignored `.env.nuc`. The web runs a production build with
 development identity disabled. The original `compose.dev.yml` is a historical
 scaffold and is not the public deployment configuration. Records remain
-synthetic and file storage remains in memory.
+synthetic; private file storage persists in Garage with explicit `NOT_SCANNED_DEV`.
 
 The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. The NUC is not the SAMMA production host, not the sole backup destination, and not the production object-storage design.
 
@@ -222,12 +222,12 @@ not run. See [the current report](docs/REAL-AUTHENTICATION-V1-REPORT.md).
 
 ## Current status
 
-**Real Authentication V1 is deployed for DEV; owner onboarding remains partial.**
+**Real Authentication V1 and persistent private S3 storage are deployed for DEV; owner onboarding remains partial.**
 
 See [authentication](docs/REAL-AUTHENTICATION-V1.md) and
 [deployment evidence](docs/NUC-DEV-DEPLOYMENT.md) for validation and remaining
 owner password-change steps. SMTP verification/recovery, enforced Governance
-MFA, persistent S3-compatible storage and scanning, payments, off-host recovery
+MFA, malware scanning, production object-storage approval, payments, off-host recovery
 automation and social-login/Moodle integrations remain separate work.
 
 ### Persistent documents (synthetic DEV)
