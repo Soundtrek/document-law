@@ -20,7 +20,7 @@ export default function SignInPage() {
           <h2>Authentication and authorisation stay separate</h2>
           <p className="muted">The identity provider proves who you are. SAMMA then resolves Person, company membership, functional roles, Legal Access and Governance capabilities for that stable account.</p>
           <p className="notice">SAMMA application code never needs to implement password cryptography.</p>
-          <div className="actions"><Link className="button secondary" href="/">Back to development home</Link></div>
+          <div className="actions"><Link className="button secondary" href="/">Back to SAMMA</Link></div>
         </article>
       </section>
     </main>

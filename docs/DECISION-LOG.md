@@ -267,3 +267,19 @@ prompts and earlier decisions retain their original wording.
 Phase A and the public landing page are separate commits. Validation occurs in
 a temporary worktree so the live development server cannot publish partial work.
 See `docs/BRAND-NAMING-AUDIT.md` for the classified occurrence inventory.
+
+
+## ADR-033 — Public SAMMA email entry
+
+Date: 2026-09-05
+
+The root route presents only the SAMMA brand/descriptor, supplied introductory
+copy, an email entry card and disabled Privacy/Terms/Help placeholders. Existing
+application routes retain their development navigation; `/` does not show it.
+
+Email format validation and a replaceable handoff lead to the existing sign-in
+preview. Temporary browser session storage carries the input without exposing
+it in URLs and is consumed on arrival; blocked storage allows manual entry.
+This action does not authenticate, send email or create an account. Production
+authentication remains a future integration. No document-engine, access-control,
+model, schema or migration changes accompany the landing page.

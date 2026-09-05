@@ -63,7 +63,14 @@ See [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.m
 
 ## Implemented UI foundation
 
-The Next.js application contains synthetic development surfaces for:
+The public `/` route is a SAMMA email entry page with no development navigation.
+It validates email format and hands off to the existing `/sign-in` preview;
+production email verification and account creation are not implemented yet.
+The temporary email handoff stays in browser session storage, is consumed on
+arrival, and is never placed in a URL. Privacy, Terms and Help are disabled
+placeholders until approved pages exist.
+
+The Next.js application retains synthetic development surfaces for:
 
 - `/sign-in` — email-first identity boundary;
 - `/person` — Person Info Center;

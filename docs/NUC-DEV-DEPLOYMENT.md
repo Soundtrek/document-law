@@ -113,8 +113,9 @@ responses before and after reload.
   used; root 28 GiB free; USB archive 192 GiB free. App and database limits remain
   1 GiB and 512 MiB respectively. Neither container reported an OOM kill.
 
-Deployment configuration, lockfile, verification script, generated Next type
-declarations and these notes remain local uncommitted changes. The ignored
+The deployment configuration, lockfile, verification script, generated Next type
+declarations and initial notes were preserved in checkpoint commit `d5ca5a6`
+before the SAMMA rename. The ignored
 `.env.nuc` is mode 0600. No unrelated service configuration, host firewall,
 Apache configuration, DNS record or systemd unit was modified.
 
@@ -124,3 +125,41 @@ All data must be synthetic. In-memory documents disappear on process restart.
 The current UI's successful render does not establish persisted form workflows,
 real identity, production MFA or durable document storage. The attached USB SSD
 is not an off-host backup. No additional services are part of this deployment.
+
+
+## SAMMA branding and landing deployment
+
+The current product is SAMMA — Employment Records & Document Management.
+Runtime identifiers listed above are **LEGACY INTERNAL NAME — SAFE TO RENAME
+LATER**; the rename does not recreate the database or change Caddy.
+
+Phase A commit `d5b6673b745ab508c90002ad84d9b3a09a2f0477` updates product
+strings, `@samma/*` workspaces, `SAMMA_*` configuration and current documentation.
+The separate landing commit adds the public `/` email entry and retains all
+existing application routes. Both phases pass tests, typecheck, lint and a
+production build before deployment. The runtime remains the existing DEV server.
+
+Coordinate the ignored environment keys (`SAMMA_DB_PASSWORD`, `SAMMA_NODE_IMAGE`)
+with Compose and workspace symlinks when deploying this rename. Values and image
+digests do not change. Stop only the app, fast-forward the canonical checkout,
+update the keys and workspace links, preserve the old Next cache as a rollback
+artifact, then start only web with `up -d --no-deps --no-build web`.
+No migration command is part of this branding deployment.
+
+Chromium checks of the production build passed at 1440×1000, 768×1024,
+390×844 and 320×740. The card is 580px on desktop/tablet and fits mobile
+without horizontal overflow. Empty/malformed emails show an accessible inline
+error; keyboard submission reaches `/sign-in`, consumes the temporary email
+handoff, and never claims to send email. Blocked browser storage also permits
+the handoff. All existing synthetic routes and `/api/health` passed.
+
+Screenshots, the executable browser check and detailed results are retained at
+`/srv/nuc-archive/juanity/validation/samma-brand-landing`. The original deployment
+validation above remains historical evidence.
+
+DEV-mode browser validation additionally checks that JavaScript assets load
+through the deployment origin. Next's development-origin allowlist is limited
+to `samma.co.za` and `127.0.0.1`; no wildcard is enabled. The development badge
+is disabled. The form also has a native validation/navigation fallback when
+JavaScript is unavailable; its input has no submission name, preventing email
+from appearing in a fallback GET URL.
