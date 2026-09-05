@@ -326,3 +326,13 @@ actors on protected pages with Account-bound server projections; static demo
 resource URLs deny instead of granting assumed company context. No unrelated
 persisted document/company workflows or domain schema changes are introduced.
 See docs/REAL-AUTHENTICATION-V1.md for the security/session boundaries.
+
+### ADR-034 deployment validation
+
+Public cutover uses application commit `8ed98f5`; real OIDC, session, logout,
+verification and negative authorisation checks passed. Public synthetic identity
+is disabled. Exactly two initial owner links/capability sets were provisioned.
+Owner passwords must still be replaced and stored by the owners themselves;
+retain the external bootstrap file until those human checklist steps are
+confirmed. See the current NUC deployment report for validation evidence and
+remaining operational limitations.

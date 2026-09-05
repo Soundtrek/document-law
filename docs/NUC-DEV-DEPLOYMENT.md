@@ -237,3 +237,48 @@ to `samma.co.za` and `127.0.0.1`; no wildcard is enabled. The development badge
 is disabled. The form also has a native validation/navigation fallback when
 JavaScript is unavailable; its input has no submission name, preventing email
 from appearing in a fallback GET URL.
+
+## Real Authentication V1 public cutover result
+
+Application commit `8ed98f5` was fast-forwarded into the canonical `main` checkout
+and deployed on 2026-09-05. Only `juanity-app` was stopped/recreated for the
+production command/configuration change; the SAMMA DB was retained. Validated
+worktree dependencies/build artifacts were copied into the existing archive
+mount paths. Previous artifacts remain at
+`/srv/nuc-archive/juanity/node_modules-before-real-auth` and
+`/srv/nuc-archive/juanity/next-cache-before-real-auth`. The app was briefly
+unavailable during cutover; the public landing then returned HTTPS 200.
+Do not restore the old synthetic public runtime as an authentication rollback.
+
+Live verification confirms `NODE_ENV=production`, `SAMMA_ENV=development`,
+`SAMMA_DEV_IDENTITY_ENABLED=false`, `SAMMA_GOVERNANCE_MFA_REQUIRED=false`, and
+no owner bootstrap file mounted inside web. The standard Keycloak and Node
+images are used; no credentials were copied into an image. Web and both
+PostgreSQL containers are healthy, and provider HTTPS discovery returns 200.
+
+The browser suite was repeated against the actual public URLs without candidate
+interception: verified test login and Person projection, protected-route
+redirects, non-Governance denial, secure host cookie, missing logout CSRF
+rejection, provider logout, old-cookie replay rejection, unverified rejection,
+and both approved owners' mandatory password-change screens all passed. HTTP
+checks for canonical client/redirect/PKCE, hostile Origin and invalid callback
+also passed publicly. Full owner SAMMA/Governance login remains pending their
+final password changes; successful temporary-password acceptance is not reported
+as a completed owner login.
+
+Temporary synthetic Keycloak users, matching SAMMA Accounts/Person/Identity/
+session/capability test rows and private validation credential manifests were
+removed after testing. The candidate container was stopped/removed. Only the
+two approved initial Governance Owners remain from this provisioning.
+
+Existing `app.crewfinder.co.za`, `calender-dev.soundtrek.co.za` and
+`celestine.soundtrek.co.za` each returned 200 before and after the change.
+Measured steady-state memory: web ~139 MiB, Keycloak ~451 MiB, Keycloak DB
+~30 MiB, SAMMA DB ~29 MiB. Unrelated NUC workloads were not modified.
+
+The 0600 `philip:philip` owner credential checklist remains present pending
+confirmed final password-manager/recovery completion. No passwords or service
+secrets were committed. Known-secret scanning covered Git candidate files and
+browser static assets. The generated migration's trailing blank line was kept
+unchanged to preserve its already-applied checksum; SQL semantics and live
+schema drift checks passed.
