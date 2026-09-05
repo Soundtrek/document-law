@@ -19,7 +19,7 @@ Person  ↔  PersonCompanyRelationship  ↔  Company
 
 ## Document Knowledge Engine V1
 
-The v1 engine model is approved for implementation.
+The V1 foundation is implemented in the repository.
 
 ```text
 File
@@ -30,6 +30,20 @@ File
 + Activity / audit history
 = Document Knowledge
 ```
+
+The implemented domain/application layer covers:
+
+- stable Account and provider-identity boundaries;
+- Person, Company, CompanyMember and functional-role grants;
+- PersonCompanyRelationship lifecycle;
+- versioned RecordDefinition policy;
+- Record and RecordFile metadata;
+- retention/review date derivation;
+- Person, company-employee and Legal Access record projections;
+- scoped LegalAccessGrant policy;
+- provider-neutral storage with quarantine/accept/reject and SHA-256 metadata;
+- record-intake orchestration through authorisation → quarantine → scan → storage acceptance → metadata → audit;
+- synthetic development fixtures and negative-access tests.
 
 A normal company workflow is deliberately simple:
 
@@ -43,9 +57,25 @@ Choose type + file
 Save
 ```
 
-The engine routes the record to the correct profile, applies Juanity policy, computes retention/review dates, determines authorised roles, records activity/audit and notifies the person where required.
-
 See [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md).
+
+## Implemented UI foundation
+
+The Next.js application contains synthetic development surfaces for:
+
+- `/sign-in` — email-first identity boundary;
+- `/person` — Person Info Center;
+- `/company` — Company Info Center;
+- `/company/people/alex` — company-side employee relationship profile;
+- contextual Add Record workflow;
+- Team & Access staff invitation with multi-role assignment;
+- scoped Legal Access grant workflow;
+- `/legal-access` — restricted external legal view;
+- `/governance` — restricted Juanity Governance shell;
+- `/records/[recordId]` — record knowledge/file metadata view;
+- `/api/health` — runtime health endpoint.
+
+Governance synthetic data fails closed unless the non-production development identity flag is enabled, and its development principal still passes verified-email, MFA and capability checks.
 
 ## Record policy is configurable
 
@@ -77,6 +107,8 @@ Private S3-compatible object storage
 = document binaries
 ```
 
+The repository currently implements the provider-neutral storage boundary and a safe in-memory development adapter. Production object storage remains a later runtime integration.
+
 Production object storage is intended to be private and separate from the application-host failure domain. Juanity authorises access before any object is served. Object keys are opaque, uploads pass through quarantine/validation/malware-scan/checksum before acceptance, and primary object storage is not treated as a backup.
 
 See [`docs/STORAGE-ARCHITECTURE.md`](docs/STORAGE-ARCHITECTURE.md).
@@ -93,34 +125,56 @@ Juanity remains the authority for identity, companies, relationships and access;
 
 See [`docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`](docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md).
 
-## Technical direction
+## Technical foundation
 
-Planning baseline:
+Implemented/planned stack:
 
-- Next.js + React + TypeScript
-- PostgreSQL + Prisma
-- OIDC-compatible identity provider; Keycloak remains the leading self-hosted option
-- email-based sign-in from V1 with stable internal Account IDs
-- future linked social/federated identity providers
-- private S3-compatible object storage
-- document-processing/background worker when required
-- Redis/BullMQ when asynchronous jobs are required
-- ClamAV for external uploads
-- SMTP mail adapter
-- Caddy
-- Docker / Docker Compose
-- payment gateway adapter layer
-- future Moodle integration through SSO/API boundaries
+- Next.js 16 + React 19 + TypeScript;
+- Node 22 LTS baseline;
+- PostgreSQL + Prisma 7 schema/client boundary;
+- OIDC-compatible identity boundary; real provider wiring later;
+- email-based sign-in model with stable internal Account IDs;
+- future linked social/federated identity providers;
+- private S3-compatible object-storage boundary;
+- upload scanning interface; ClamAV integration later;
+- background jobs via Redis/BullMQ only when required;
+- SMTP mail adapter later;
+- Caddy for runtime HTTPS/routing later;
+- Docker / Docker Compose development bootstrap;
+- payment gateway adapter layer later;
+- future Moodle integration through SSO/API boundaries.
 
 ## Development runtime
 
-Most V1 code should be built directly from the GitHub repository before production-like infrastructure is required.
+The repository contains a deliberately small initial development stack:
 
-The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. Start with `law-web + PostgreSQL`; add S3-compatible development storage, Redis/worker and ClamAV only when needed and only if the NUC remains healthy.
+```text
+law-web
++
+PostgreSQL
+```
 
-The NUC is not the Juanity production host, not the sole backup destination, and not the production object-storage design. Development on it uses synthetic data only.
+`infrastructure/docker/compose.dev.yml` is intended for the first NUC/runtime proof. It uses synthetic data, development identity and memory storage so Redis, S3-compatible development storage and ClamAV do not consume resources before they are needed.
+
+The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. The NUC is not the Juanity production host, not the sole backup destination, and not the production object-storage design.
 
 See [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md).
+
+## Validation status
+
+Current V1 pre-infrastructure foundation: **PASS**.
+
+GitHub Actions validates:
+
+- dependency installation;
+- Prisma client generation;
+- Prisma schema validation;
+- domain, identity, storage and record-intake unit tests;
+- strict TypeScript typecheck;
+- ESLint;
+- full Next.js production build.
+
+The latest current-main validation passed all gates.
 
 ## Repository guide
 
@@ -142,6 +196,6 @@ See [`docs/CODE-BEFORE-VM.md`](docs/CODE-BEFORE-VM.md).
 
 ## Current status
 
-**Document Knowledge Engine V1 architecture approved — ready for implementation.**
+**V1 pre-infrastructure foundation implemented and CI validated.**
 
-The immediate build target is GitHub Issue #2. A temporary NUC development runtime is permitted if resource checks pass; migration to a dedicated Law VM must remain deployment/configuration work rather than redesign.
+Next runtime/integration work is deliberately separate: PostgreSQL migration/runtime bring-up, real OIDC/email verification/MFA, persistent S3-compatible storage + malware scanning, SMTP invitations/notifications, payment sandbox, backup/restore automation and later social-login/Moodle integrations.
