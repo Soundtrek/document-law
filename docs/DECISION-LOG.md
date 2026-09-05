@@ -222,3 +222,25 @@ Constraints:
 - if existing workloads become unstable, stop the NUC runtime experiment rather than compromising them.
 
 The dedicated Law VM remains the preferred production-like integration environment. Moving from the temporary NUC runtime to that VM must be deployment/configuration work, not redesign.
+
+## ADR-031 — Two-service synthetic NUC deployment at samma.co.za
+**Status:** Accepted for temporary DEV deployment
+**Date:** 2026-09-05
+
+Use the existing repository in `/opt/Juanita-Labour-Law`, dedicated PostgreSQL,
+development identity and memory storage. Generate the initial migration from the
+unchanged approved Prisma schema, apply it to the new Juanity database and verify
+zero schema drift before committing migration history. Use a pinned Node 22
+container with the checkout mounted to avoid unnecessary image builds. Resource-
+limited preparation and validation are separate from the running web server.
+
+Only web joins the existing Caddy network; the database is private to Juanity.
+Keep host binding `127.0.0.1:2020`; Caddy uses `juanity-app:3000`. Add a scoped
+include only after local validation and a proxy backup/validation. Existing
+services and schemas remain untouched. USB mount checks and manual startup
+prevent automatic fallback to root-backed data after a reboot.
+
+See `docs/NUC-DEV-DEPLOYMENT.md` and
+`prompts/history/2026-09-05-nuc-deployment.md`. This authorization supersedes the
+older no-NUC constraint still present in the historical skills map. The UI remains
+synthetic; verifying the Prisma boundary does not make UI forms persistent.
