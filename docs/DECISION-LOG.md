@@ -385,3 +385,8 @@ dependencies and before production/sensitive-data approval. Track removal in
 [issue #5](https://github.com/Soundtrek/document-law/issues/5), without inventing
 an upstream release date. See the [policy](PRISMA-SECURITY-EXCEPTION.md) and
 [captured authorisation](../prompts/history/2026-09-05-prisma-security-exception.md).
+
+The now-reachable CI build exposed missing OIDC environment inputs. Supply only
+synthetic build-step values and `.invalid` HTTPS origins in the workflow;
+retain disabled synthetic identity activation and the existing auth checks.
+No live secrets, authentication code or deployed configuration change is needed.

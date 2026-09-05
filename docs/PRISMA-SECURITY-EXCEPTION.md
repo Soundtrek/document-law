@@ -86,6 +86,16 @@ The workflow sets DEV mode only for this audit step. Outside DEV mode, the
 known findings fail. There is no `|| true`, ignored audit result, force-fix or
 removal of dependency auditing.
 
+The first CI run with this gate passed the audit and subsequent checks until
+the build exposed missing authentication environment inputs. The build step
+now supplies clearly synthetic values and reserved `.invalid` HTTPS origins,
+with synthetic identity activation still disabled. These values only satisfy
+build-time configuration validation; they are not runtime credentials or a
+working identity provider. CI does not deploy the resulting build. Auth code,
+Keycloak and deployed configuration are unchanged.
+The production build passed with only these synthetic CI inputs in a
+network-disabled container, without database or identity-provider access.
+
 ## Validation and removal
 
 Gate tests use captured audit JSON and cloned in-memory fixtures; they never

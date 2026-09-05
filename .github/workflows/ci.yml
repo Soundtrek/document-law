@@ -44,4 +44,12 @@ jobs:
         run: npm run lint
 
       - name: Build web app
+        # Synthetic build inputs only; this workflow does not deploy its output.
+        env:
+          SAMMA_BASE_URL: https://samma-ci.invalid
+          SAMMA_OIDC_ISSUER: https://identity-ci.invalid/realms/samma
+          SAMMA_OIDC_CLIENT_ID: samma-ci-build
+          SAMMA_OIDC_CLIENT_SECRET: ci-build-placeholder-not-a-credential
+          AUTH_SECRET: ci-build-placeholder-not-a-runtime-secret
+          SAMMA_DEV_IDENTITY_ENABLED: "false"
         run: npm run build
