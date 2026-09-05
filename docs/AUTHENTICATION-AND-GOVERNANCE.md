@@ -8,6 +8,14 @@ are documented in [Real Authentication V1](REAL-AUTHENTICATION-V1.md). Deploymen
 validation and any pending owner password changes are recorded separately; the
 historical preflight is not current runtime status.
 
+Public synthetic login and self-registration are disabled. SMTP verification and
+email recovery are not operational. The approved initial Governance Owners are
+phil@samma.co.za and juanita@samma.co.za; their verified-email state is an audited
+DEV bootstrap exception. Keycloak supports MFA, but enforcement is temporarily
+disabled for DEV and must be enabled/tested before real sensitive records.
+The behaviour below includes future onboarding/invitation policy; it does not
+claim those email services are available in the current deployment.
+
 ## Purpose
 
 SAMMA carries sensitive employment and legal information. Identity and privileged access are therefore part of the product foundation, not a later add-on.

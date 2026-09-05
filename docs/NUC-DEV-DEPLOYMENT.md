@@ -240,6 +240,11 @@ from appearing in a fallback GET URL.
 
 ## Real Authentication V1 public cutover result
 
+For the subsequent validation, owner onboarding status, restart evidence and
+handoff checkpoint, see [the authentication report](REAL-AUTHENTICATION-V1-REPORT.md).
+The cutover observations below are historical; Phil has since completed his
+password change and accessed Governance. Juanita's final login remains pending.
+
 Application commit `8ed98f5` was fast-forwarded into the canonical `main` checkout
 and deployed on 2026-09-05. Only `juanity-app` was stopped/recreated for the
 production command/configuration change; the SAMMA DB was retained. Validated

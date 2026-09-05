@@ -64,27 +64,25 @@ See [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.m
 ## Implemented UI foundation
 
 The public `/` route is a SAMMA email entry page with no development navigation.
-It validates email format and hands off to the existing `/sign-in` preview;
-production email verification and account creation are not implemented yet.
-The temporary email handoff stays in browser session storage, is consumed on
-arrival, and is never placed in a URL. Privacy, Terms and Help are disabled
-placeholders until approved pages exist.
+It validates email format and starts real Keycloak OIDC sign-in, preserving the
+email as a provider login hint. Public self-registration and email recovery stay
+disabled until SMTP verification is operational. Privacy, Terms and Help are
+disabled placeholders until approved pages exist.
 
-The Next.js application retains synthetic development surfaces for:
+The Next.js application provides authenticated, Account-scoped surfaces for:
 
 - `/sign-in` — email-first identity boundary;
 - `/person` — Person Info Center;
 - `/company` — Company Info Center;
-- `/company/people/alex` — company-side employee relationship profile;
-- contextual Add Record workflow;
-- Team & Access staff invitation with multi-role assignment;
-- scoped Legal Access grant workflow;
 - `/legal-access` — restricted external legal view;
 - `/governance` — restricted SAMMA Governance shell;
 - `/records/[recordId]` — record knowledge/file metadata view;
 - `/api/health` — runtime health endpoint.
 
-Governance synthetic data fails closed unless the non-production development identity flag is enabled, and its development principal still passes verified-email, MFA and capability checks.
+Legacy demo employee, Add Record, invitation and Legal Access grant URLs require
+authentication and deny access until real scoped workflows are implemented.
+Public synthetic identity is disabled. Automated tests retain explicit synthetic
+fixtures; Governance uses current SAMMA capability grants.
 
 ## Record policy is configurable
 
@@ -101,6 +99,18 @@ See [`docs/CONFIGURABLE-RECORDS-AND-COMPANY-ROLES.md`](docs/CONFIGURABLE-RECORDS
 Email address is the primary human-facing login/contact identifier, while SAMMA uses a stable internal Account ID so later social/federated identities can link to the same person without duplicating their records or company relationships.
 
 There is no generic `/admin` surface. SAMMA-only privileged controls live under **Governance** (`/governance` initially).
+
+The public DEV deployment uses pinned Keycloak 26.7.3, realm `samma`, client
+`samma-web`, and issuer `https://auth.samma.co.za/realms/samma`. AccountIdentity
+binds issuer and provider subject to a stable Account; matching email never
+silently merges accounts. SAMMA owns authorisation and revocable database
+sessions; Keycloak owns passwords and provider authentication.
+
+The initial Governance Owners are phil@samma.co.za and juanita@samma.co.za, each
+with the ten explicit SAMMA capabilities and no universal record-access bypass.
+Their administratively verified email is a controlled DEV bootstrap exception.
+MFA is supported but temporarily unenforced in DEV. Governance MFA must be
+enabled and tested before any real employment/legal records are introduced.
 
 See [`docs/AUTHENTICATION-AND-GOVERNANCE.md`](docs/AUTHENTICATION-AND-GOVERNANCE.md).
 
@@ -141,29 +151,33 @@ Implemented/planned stack:
 - Next.js 16 + React 19 + TypeScript;
 - Node 22 LTS baseline;
 - PostgreSQL + Prisma 7 schema/client boundary;
-- OIDC-compatible identity boundary; real provider wiring later;
+- Keycloak OIDC authentication with Auth.js and database sessions;
 - email-based sign-in model with stable internal Account IDs;
 - future linked social/federated identity providers;
 - private S3-compatible object-storage boundary;
 - upload scanning interface; ClamAV integration later;
 - background jobs via Redis/BullMQ only when required;
 - SMTP mail adapter later;
-- Caddy for runtime HTTPS/routing later;
+- Caddy for public SAMMA and Keycloak HTTPS routing;
 - Docker / Docker Compose development bootstrap;
 - payment gateway adapter layer later;
 - future Moodle integration through SSO/API boundaries.
 
 ## Development runtime
 
-The repository contains a deliberately small initial development stack:
+The public NUC development stack runs:
 
 ```text
-law-web
-+
-PostgreSQL
+SAMMA web + application PostgreSQL
+Keycloak + separate private PostgreSQL
 ```
 
-`infrastructure/docker/compose.dev.yml` is intended for the first NUC/runtime proof. It uses synthetic data, development identity and memory storage so Redis, S3-compatible development storage and ClamAV do not consume resources before they are needed.
+Use `infrastructure/docker/compose.nuc.yml` and `compose.keycloak.yml` through
+their archive-checking wrappers. Runtime secrets live outside Git in
+`/etc/samma-dev/` and the ignored `.env.nuc`. The web runs a production build with
+development identity disabled. The original `compose.dev.yml` is a historical
+scaffold and is not the public deployment configuration. Records remain
+synthetic and file storage remains in memory.
 
 The existing NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom. The NUC is not the SAMMA production host, not the sole backup destination, and not the production object-storage design.
 
@@ -205,6 +219,10 @@ The latest current-main validation passed all gates.
 
 ## Current status
 
-**V1 pre-infrastructure foundation implemented and CI validated.**
+**Real Authentication V1 is deployed for DEV; owner onboarding remains partial.**
 
-Next runtime/integration work is deliberately separate: PostgreSQL migration/runtime bring-up, real OIDC/email verification/MFA, persistent S3-compatible storage + malware scanning, SMTP invitations/notifications, payment sandbox, backup/restore automation and later social-login/Moodle integrations.
+See [authentication](docs/REAL-AUTHENTICATION-V1.md) and
+[deployment evidence](docs/NUC-DEV-DEPLOYMENT.md) for validation and remaining
+owner password-change steps. SMTP verification/recovery, enforced Governance
+MFA, persistent S3-compatible storage and scanning, payments, off-host recovery
+automation and social-login/Moodle integrations remain separate work.

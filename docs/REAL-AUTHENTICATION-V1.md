@@ -1,5 +1,8 @@
 # Real Authentication V1
 
+Current deployment and remaining owner onboarding steps:
+[handoff report](REAL-AUTHENTICATION-V1-REPORT.md).
+
 Keycloak 26.7.3 is selected for this initial DEV deployment. SAMMA remains
 independent: Account + AccountIdentity + Person are its stable identity/domain
 projection. Keycloak roles do not grant company, document, Legal Access or

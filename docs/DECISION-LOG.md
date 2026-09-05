@@ -336,3 +336,19 @@ Owner passwords must still be replaced and stored by the owners themselves;
 retain the external bootstrap file until those human checklist steps are
 confirmed. See the current NUC deployment report for validation evidence and
 remaining operational limitations.
+
+### ADR-034 handoff — current runtime revalidated
+
+The original Real Authentication V1 request was reissued against a clean checkout
+at `5d73317`, three commits ahead of origin/main. Preserve the existing deployment
+and complete validation/documentation/publication rather than reprovisioning
+owners or resetting passwords. Phil's password change and Governance login are
+now confirmed by provider state and SAMMA audit; Juanita's mandatory password
+change remains pending. Keep the owner worksheet until both credential-storage
+checklists are confirmed. Browser regression checks may explicitly skip obsolete
+bootstrap credentials and validate disposable users on desktop and mobile.
+
+Both private databases, Keycloak and web were restarted with stable identity
+linkage; public negative-access/session checks passed. Correct stale README
+claims about synthetic login. No domain schema or application build changes were
+needed for this handoff. See [the report](REAL-AUTHENTICATION-V1-REPORT.md).
