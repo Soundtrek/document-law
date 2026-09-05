@@ -447,3 +447,7 @@ rollback (callback not completed, or explicit Prisma P2034 transaction abort).
 A confirmed committed file can return success. This tightens the authorised
 failure semantics without a schema/runtime-service expansion; tests cover all
 three outcomes against real PostgreSQL and Garage with disposable fixtures.
+
+## 2026-09-05 — Real user and company workflow V1
+
+Accepted user mission: implement, validate, push and deploy the complete real browser workflow from Account/Person to company ownership, employee acceptance and persistent policy-visible records. Full preflight: [REAL-WORKFLOW-V1-PREFLIGHT.md](REAL-WORKFLOW-V1-PREFLIGHT.md). Proceed through documented additive changes; stop for destructive/security blockers. Preserve storage/auth provider/Governance/Legal Access boundaries. Use hashed DEV manual invitations while SMTP is absent, distinct employee relationships and team memberships, explicit Owner self-role assignment, and no email identity merges. Prompt captured in prompts/2026-09-05-real-user-company-workflow-v1.txt.

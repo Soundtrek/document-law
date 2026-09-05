@@ -148,3 +148,10 @@ Deployment, checkpoint, checks and remaining human steps are recorded in
 [reverse proxy](https://www.keycloak.org/server/reverseproxy),
 [Auth.js adapters](https://authjs.dev/reference/core/adapters), and
 [Keycloak provider](https://authjs.dev/getting-started/providers/keycloak).
+
+
+## Workflow V1 onboarding extension — 2026-09-05
+
+The prelinked-only restriction above is superseded for NEW verified Keycloak subjects by [Real workflow V1](REAL-WORKFLOW-V1.md). After Auth.js verification, a new subject creates Account/Identity/Person atomically only if no existing Account has that normalized email. Existing subjects preserve Account IDs; email collisions never trigger merging/linking. Adapter email lookup and generic create/link operations remain closed. Existing-email conflicts still need explicit operator review. Keycloak configuration, registration, MFA exception and initial Governance grants are unchanged.
+
+DEV invitations target verified Account/email and require independent login plus an expiring one-use manual token. Company ownership creates no Governance access. Normal Info Centers, employee profiles, company creation and role actions are now database-backed.

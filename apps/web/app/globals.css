@@ -244,3 +244,8 @@ button, input, select { font: inherit; }
   .landing-card { padding: 20px; }
   .site-header[data-public="true"] .brand span { font-size: 0.72rem; }
 }
+
+/* Long real company names, emails and opaque invitation links must fit small screens. */
+.card, .hero, .stack { overflow-wrap: anywhere; min-width: 0; }
+input, select, fieldset { min-width: 0; max-width: 100%; }
+input:not([type="checkbox"]), select { width: 100%; }

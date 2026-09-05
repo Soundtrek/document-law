@@ -113,6 +113,9 @@ model Account {
   governanceGrants    GovernanceCapabilityGrant[]
   requestsAssigned    ActionRequest[]                @relation("RequestAssignee")
   requestsCreated     ActionRequest[]                @relation("RequestCreator")
+  invitationsIssued CompanyInvitation[] @relation("InvitationIssuer")
+  invitationsIntended CompanyInvitation[] @relation("InvitationIntended")
+  invitationsAccepted CompanyInvitation[] @relation("InvitationAccepted")
 }
 
 model AccountIdentity {
@@ -150,6 +153,7 @@ model Company {
   relationships PersonCompanyRelationship[]
   records       Record[]                    @relation("CompanyRecords")
   subscriptions CompanySubscription[]
+  invitations CompanyInvitation[]
 
   @@index([name])
 }
@@ -209,6 +213,7 @@ model PersonCompanyRelationship {
   records           Record[]           @relation("RelationshipRecords")
   legalAccessGrants LegalAccessGrant[]
   actions           ActionRequest[]
+  invitations       CompanyInvitation[]
 
   @@index([personId, status])
   @@index([companyId, status])
@@ -443,4 +448,36 @@ model AuthRateLimit {
   count Int
   expires DateTime
   @@index([expires])
+}
+
+
+enum InvitationKind {
+  EMPLOYMENT
+  MEMBERSHIP
+}
+
+model CompanyInvitation {
+  id String @id @default(cuid())
+  companyId String
+  email String
+  kind InvitationKind
+  intendedAccountId String?
+  invitedByAccountId String
+  acceptedByAccountId String?
+  relationshipId String?
+  roleIds Json
+  tokenHash String @unique
+  expiresAt DateTime
+  acceptedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  invitedBy Account @relation("InvitationIssuer", fields: [invitedByAccountId], references: [id], onDelete: Restrict)
+  intendedAccount Account? @relation("InvitationIntended", fields: [intendedAccountId], references: [id], onDelete: Restrict)
+  acceptedBy Account? @relation("InvitationAccepted", fields: [acceptedByAccountId], references: [id], onDelete: Restrict)
+  relationship PersonCompanyRelationship? @relation(fields: [relationshipId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, email, kind])
+  @@index([email, expiresAt])
 }

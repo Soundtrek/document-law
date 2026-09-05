@@ -4,6 +4,7 @@ import Keycloak from "@auth/core/providers/keycloak";
 import { safeAuthenticationRedirect, verifiedOidcClaims } from "@samma/identity";
 import { db } from "./database";
 import { sammaAdapter, type LoginContext } from "./auth-adapter";
+import { onboardVerifiedIdentity } from "./person-onboarding";
 
 export const sessionCookieName = "__Host-samma.session-token";
 export function authSettings() {
@@ -63,7 +64,7 @@ export async function handleAuthentication(request: Request): Promise<Response> 
             if (account?.provider !== "keycloak" || !profile) return false;
             const claims = verifiedOidcClaims(profile);
             if (claims.subject !== account.providerAccountId) return false;
-            const link = await db.accountIdentity.findUnique({ where: { provider_providerSubject: { provider: settings.issuer, providerSubject: claims.subject } }, include: { account: true } });
+            const link = await onboardVerifiedIdentity(db, settings.issuer, profile);
             if (!link || link.account.status !== "ACTIVE" || !link.account.emailVerified) return false;
             login.accountId = link.accountId; login.identityId = link.id; login.mfaSatisfied = claims.mfaSatisfied;
             return true;

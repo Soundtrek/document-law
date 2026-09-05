@@ -9,6 +9,17 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: juanity
+          POSTGRES_PASSWORD: juanity
+          POSTGRES_DB: juanity_law
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U juanity -d juanity_law"
+          --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       DATABASE_URL: postgresql://juanity:juanity@localhost:5432/juanity_law
     steps:
@@ -33,6 +44,16 @@ jobs:
 
       - name: Validate Prisma schema
         run: npm run db:validate
+
+      - name: Apply and verify additive migrations
+        working-directory: packages/database
+        run: |
+          npx prisma migrate deploy
+          npx prisma migrate status
+          npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+      - name: Workflow database isolation tests
+        run: npm run test:workflow
 
       - name: Unit tests
         run: npm test

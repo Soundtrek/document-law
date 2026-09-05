@@ -19,6 +19,7 @@
     "audit:production": "node scripts/check-production-audit.mjs",
     "db:generate": "npm run generate --workspace @samma/database",
     "db:validate": "npm run validate --workspace @samma/database",
-    "test:uploads": "tsx --test infrastructure/storage/*.test.ts"
+    "test:uploads": "tsx --test infrastructure/storage/*.test.ts",
+    "test:workflow": "tsx --test infrastructure/workflow/*.test.ts"
   }
 }

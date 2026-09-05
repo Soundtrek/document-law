@@ -1,0 +1,1081 @@
+SAMMA — REAL USER + COMPANY WORKFLOW V1
+
+GOAL
+
+Turn the currently proven SAMMA domain/storage/auth foundations into a usable real browser workflow.
+
+Repository:
+
+/opt/Juanita-Labour-Law
+
+Remote:
+
+Soundtrek/document-law
+
+Current deployed baseline:
+
+0bc1660f03b8380aedcf24a44881f4196e5eb4de
+
+Public app:
+
+https://samma.co.za
+
+Current foundations already working:
+
+- real Keycloak authentication
+- stable Account + AccountIdentity
+- Person
+- Company
+- CompanyMember / functional roles
+- PersonCompanyRelationship
+- Governance capability model
+- RecordDefinition / Record / RecordFile
+- private persistent Garage S3 storage
+- authenticated upload/download
+- immutable object versions
+- access denial
+- NOT_SCANNED_DEV
+- PostgreSQL migrations
+- CI security gate
+
+This mission is PRODUCT WORKFLOW.
+
+Do not redesign those foundations unless a real workflow blocker is found.
+
+==================================================
+OPERATING MODE
+==================================================
+
+First perform a COMPLETE WORKFLOW PREFLIGHT.
+
+Do not stop at minor gaps.
+
+Classify findings:
+
+GREEN
+already works
+
+YELLOW
+normal implementation work
+
+ORANGE
+material but safe additive change
+
+RED
+true blocker
+
+Proceed automatically through YELLOW and ORANGE findings after documenting them.
+
+Only stop for RED findings such as:
+
+- destructive migration
+- permission model cannot safely express required access
+- identity linkage would require unsafe email merging
+- company creation could accidentally grant platform Governance
+- record visibility cannot be correctly enforced
+- existing data would need destructive conversion
+
+==================================================
+TARGET USER JOURNEY
+==================================================
+
+Build and validate this exact loop:
+
+1. Phil signs in with real Keycloak account.
+
+2. Phil arrives at his real SAMMA Personal Info Center.
+
+3. Phil creates a company.
+
+4. Phil becomes that company's initial Owner through the normal CompanyMember / role system.
+
+5. Phil adds or invites an employee by email.
+
+6. SAMMA creates/preserves the correct PersonCompanyRelationship.
+
+7. Company Owner opens the employee relationship profile.
+
+8. Company Owner adds a Record to the employee.
+
+9. A real synthetic test document is uploaded to persistent Garage storage.
+
+10. Company-side view shows the record.
+
+11. Employee signs into their own real account.
+
+12. Employee Personal Info Center shows only the records they are authorised to see.
+
+13. Unrelated company/private records remain invisible.
+
+==================================================
+PHASE 1 — FULL PREFLIGHT
+==================================================
+
+Inspect the entire existing implementation before coding.
+
+Map:
+
+AUTH
+
+- current authenticated actor resolution
+- Account
+- AccountIdentity
+- Person creation/linkage
+- first-login behaviour
+- current redirect destination after login
+
+PERSON INFO CENTER
+
+- /person
+- whether data is synthetic or DB-backed
+- current Person projection service
+- record list source
+- company relationship list source
+
+COMPANY
+
+- /company
+- company model
+- company creation support
+- company ownership
+- CompanyMember
+- functional role assignments
+- owner capability policy
+- current synthetic company fixtures
+
+RELATIONSHIPS
+
+- PersonCompanyRelationship lifecycle
+- invite/pending/active/offboarded states
+- whether relationship creation is already supported
+- uniqueness constraints
+- email invitation matching
+- historical relationship preservation
+
+TEAM & ACCESS
+
+- current staff/member invite workflow
+- functional-role assignment
+- Owner
+- HR
+- Payroll
+- Clerk/Records
+- Legal
+- Manager
+- Billing
+
+EMPLOYEE PROFILE
+
+- existing /company/people/alex synthetic route
+- current relationship-profile projection
+- Add Record flow
+- access policy
+
+RECORDS
+
+- RecordDefinition selection
+- Record creation
+- RecordFile persistence
+- employee visibility rules
+- acknowledgement/Needs Action state if present
+
+STORAGE
+
+- verify current S3 path from deployed baseline
+- upload API
+- RecordFile linkage
+- download policy
+
+AUDIT
+
+- company creation
+- membership creation
+- relationship creation
+- record creation
+- file upload
+
+UI
+
+- identify which current screens are synthetic-only
+- identify which can be converted to real DB-backed screens without redesign
+
+DATABASE
+
+- identify all missing fields/constraints required
+- propose ALL migration changes together before implementation
+
+EMAIL
+
+- determine whether SMTP invitations are currently available
+
+Because SMTP may not yet be wired:
+
+do NOT make real outbound mail a blocker.
+
+Use an explicit DEV invitation workflow if necessary.
+
+==================================================
+PHASE 2 — ACCOUNT / PERSON BOOTSTRAP
+==================================================
+
+Real authenticated SAMMA users must resolve to:
+
+Account
+  ↓
+Person
+
+If Phil's Account already has a Person:
+
+use it.
+
+If not:
+
+create/link the Person through the intended onboarding flow.
+
+Do not create duplicate Person rows on repeat login.
+
+Do not use email as the permanent Person identifier.
+
+The authenticated Account ID remains authoritative.
+
+==================================================
+PHASE 3 — POST-LOGIN DESTINATION
+==================================================
+
+Replace any synthetic/dev post-login destination.
+
+Normal authenticated person should land at:
+
+/person
+
+or the existing canonical Personal Info Center route.
+
+The screen must be DB-backed.
+
+It should show:
+
+- person's display/basic identity
+- current company relationships
+- records visible to the person
+- clear actions relevant to their account
+
+Keep UI simple.
+
+Do not make this a giant dashboard.
+
+==================================================
+PHASE 4 — COMPANY CREATION
+==================================================
+
+Add real company creation.
+
+From Personal Info Center or appropriate company selector:
+
+Create company
+
+Minimum V1 form:
+
+Company name
+
+Optional only if existing model requires:
+
+registration/reference identifier
+
+Do NOT collect unnecessary data yet.
+
+On successful creation:
+
+- create Company
+- create CompanyMember for authenticated Account/Person
+- grant OWNER functional role through normal role system
+- create appropriate audit events
+
+Company Owner does NOT become SAMMA Governance.
+
+Do not conflate:
+
+Company OWNER
+
+with:
+
+Platform Governance Owner
+
+==================================================
+PHASE 5 — COMPANY INFO CENTER
+==================================================
+
+Convert /company into a real DB-backed company workspace.
+
+Must support current user's selected/current company context.
+
+Display at minimum:
+
+- company name
+- people / relationships
+- records needing action if existing projection supports it
+- Team & Access
+- Add person / invite employee action
+
+If a user belongs to multiple companies:
+
+do not hardcode one company.
+
+Provide a simple company switcher/context selector.
+
+==================================================
+PHASE 6 — ADD / INVITE EMPLOYEE
+==================================================
+
+Build a real company-side employee onboarding action.
+
+Minimum:
+
+Email address
+
+Optional, only if needed:
+
+First name
+Last name
+
+The invitation/request must target a specific company.
+
+Do not silently merge unrelated existing Accounts merely because emails match.
+
+Cases:
+
+A. Email belongs to an existing verified SAMMA Account
+
+Create a pending company relationship/invitation tied to that intended Account only if current security rules permit it.
+
+B. Email does not yet belong to an Account
+
+Create a pending invitation record using the intended invitation model.
+
+Do not create a fake authenticated account.
+
+C. Existing relationship already exists
+
+Handle idempotently.
+
+Do not create duplicates.
+
+==================================================
+SMTP NOT REQUIRED YET
+==================================================
+
+If outbound email is not operational:
+
+implement a clearly DEV-only invitation acceptance mechanism.
+
+Examples:
+
+- Governance/Owner can generate a short-lived invitation link
+- DEV invitation can be copied manually
+
+But:
+
+- token must be cryptographically random
+- expiry required
+- single-use/idempotent acceptance
+- no privileged identity bypass
+- no email-only auto-login
+
+Do not pretend an email was sent.
+
+Document this as DEV behaviour pending SMTP.
+
+==================================================
+PHASE 7 — RELATIONSHIP ACCEPTANCE
+==================================================
+
+When intended employee signs in:
+
+SAMMA should identify valid pending invitations for that verified account/email according to existing invitation policy.
+
+Acceptance should:
+
+- bind invitation to stable Account/Person
+- activate PersonCompanyRelationship
+- preserve inviter/company/timestamps
+- audit acceptance
+
+Do not allow another logged-in account to consume the invitation.
+
+==================================================
+PHASE 8 — EMPLOYEE PROFILE
+==================================================
+
+Replace synthetic route assumptions such as:
+
+/company/people/alex
+
+with stable identifiers.
+
+Preferred:
+
+/company/people/{relationshipId}
+
+or repository-equivalent stable ID.
+
+Do NOT route by:
+
+email
+name
+slug derived from personal identity
+
+unless it is only decorative and never authoritative.
+
+Employee relationship page should show:
+
+- employee identity relevant to this company
+- relationship state
+- company-specific records
+- Add Record
+- relationship history where appropriate
+
+It must NOT expose unrelated personal records or other-company relationships.
+
+==================================================
+PHASE 9 — ADD RECORD
+==================================================
+
+Make existing Add Record workflow real.
+
+Company Owner / authorised role:
+
+Employee profile
+  ↓
+Add Record
+  ↓
+choose RecordDefinition
+  ↓
+choose/upload file
+  ↓
+Save
+
+Use Governance-defined active RecordDefinitions.
+
+Do not hardcode document types into the form.
+
+If no active definitions exist:
+
+seed or create only the minimal synthetic DEV definitions required to prove the flow through the intended Governance mechanism.
+
+Do not special-case UI code around them.
+
+==================================================
+PHASE 10 — RECORD AUTHORISATION
+==================================================
+
+Before creation:
+
+server verifies:
+
+- authenticated Account
+- company membership active
+- required company functional capability/role
+- target PersonCompanyRelationship belongs to same company
+- selected RecordDefinition permits this context
+- current relationship state allows record creation
+
+Do not trust company/relationship IDs supplied by browser without server checks.
+
+==================================================
+PHASE 11 — PERSISTENT FILE
+==================================================
+
+Use the deployed S3 StorageProvider.
+
+Record creation must use:
+
+- opaque immutable object key
+- SHA-256
+- Garage
+- NOT_SCANNED_DEV
+- RecordFile metadata
+- audit
+
+Do not create a second upload implementation.
+
+Use the already validated storage/intake orchestration.
+
+==================================================
+PHASE 12 — PERSON VISIBILITY
+==================================================
+
+Employee Personal Info Center must display the new record only when RecordDefinition/person-visibility policy permits it.
+
+Respect existing policy.
+
+Do not automatically expose every company-side record to the employee.
+
+If current policy supports:
+
+VISIBLE
+HIDDEN
+ACKNOWLEDGEMENT_REQUIRED
+NEEDS_ACTION
+
+or equivalents, use those existing semantics.
+
+Do not invent broad visibility bypasses.
+
+==================================================
+PHASE 13 — DOWNLOAD
+==================================================
+
+From Person Info Center:
+
+authorised employee can download their visible document.
+
+From Company workspace:
+
+authorised company role can download.
+
+Unauthorised:
+
+DENIED.
+
+Test cross-company leakage explicitly.
+
+==================================================
+PHASE 14 — MULTI-COMPANY SAFETY
+==================================================
+
+Create synthetic test scenario:
+
+Person A
+  ↔ Company A
+
+Person A
+  ↔ Company B
+
+Company A Owner must NOT automatically see Company B relationship records.
+
+Company B Owner must NOT automatically see Company A records.
+
+Person A may see only personal-visible records from both relationships according to policy.
+
+==================================================
+PHASE 15 — COMPANY ROLE SAFETY
+==================================================
+
+Test at least:
+
+OWNER
+
+authorised according to policy
+
+and one restricted role:
+
+e.g. BILLING or another role that should not read employment/legal documents.
+
+Do not treat OWNER as a universal sensitive-record bypass if the existing policy says otherwise.
+
+Use the repository's actual capability matrix.
+
+==================================================
+PHASE 16 — GOVERNANCE SEPARATION
+==================================================
+
+SAMMA Platform Governance remains separate.
+
+Phil currently has Governance access.
+
+Creating a Company must not use or require Platform Governance privilege.
+
+Normal company owner creation and operation must work without platform-level capabilities.
+
+Test this with a non-Governance company owner fixture.
+
+==================================================
+PHASE 17 — REAL VS SYNTHETIC DATA
+==================================================
+
+Remove synthetic data from normal live application projections.
+
+Synthetic fixtures may remain for:
+
+- tests
+- development seed tools
+- isolated demos
+
+But live authenticated screens should query real PostgreSQL state.
+
+No hardcoded Alex/company fixtures in production runtime paths.
+
+==================================================
+PHASE 18 — UI
+==================================================
+
+Keep UI simple and operational.
+
+PERSON INFO CENTER
+
+Suggested structure:
+
+SAMMA
+
+Personal Info Center
+
+Your companies
+
+[Company A]
+[Company B]
+
+Your records
+
+[Record cards/list]
+
+Actions:
+
+Create company
+
+COMPANY INFO CENTER
+
+Company Name
+
+People
+Records / Actions
+Team & Access
+
+[Add person]
+
+EMPLOYEE RELATIONSHIP PROFILE
+
+Employee Name
+Relationship status
+
+Records
+
+[Add Record]
+
+Do not add:
+
+charts
+analytics
+marketing widgets
+complex dashboards
+unnecessary tabs
+
+Follow 3-click / 10-second principle.
+
+==================================================
+PHASE 19 — EMPTY STATES
+==================================================
+
+Design proper real empty states.
+
+Examples:
+
+No companies:
+"Create your first company"
+
+No employees:
+"Add your first person"
+
+No records:
+"No records yet"
+
+No available RecordDefinitions:
+"No record types are currently available."
+
+Do not fall back to synthetic fixtures just to avoid empty screens.
+
+==================================================
+PHASE 20 — DATABASE MIGRATION
+==================================================
+
+After full preflight, combine all required additive schema changes into the smallest coherent migration.
+
+Possible areas:
+
+- invitation lifecycle
+- invitation token hash
+- expiry
+- acceptance timestamp
+- selected/default company context if actually required
+
+Do not add fields unless needed.
+
+Prefer not storing raw invitation tokens.
+
+Store token hash where appropriate.
+
+Review SQL before apply.
+
+Create pre-migration backup.
+
+Apply migration.
+
+Verify zero-diff afterwards.
+
+==================================================
+PHASE 21 — TEST MATRIX
+==================================================
+
+Add tests covering:
+
+AUTHENTICATED PERSON
+
+- Account -> Person
+- repeat login does not duplicate Person
+
+COMPANY
+
+- create company
+- creator gets intended Owner membership
+- creator does not gain Platform Governance
+
+RELATIONSHIP
+
+- invite existing user
+- invite unknown email
+- duplicate invite idempotency
+- wrong user cannot accept invite
+- expired invite rejected
+- accepted invitation creates/activates correct relationship
+
+EMPLOYEE PROFILE
+
+- correct company sees relationship
+- wrong company denied
+
+RECORD
+
+- authorised role adds Record
+- unauthorised role denied
+- wrong company denied
+
+STORAGE
+
+- persistent S3 path used
+- checksum
+- immutable key
+- NOT_SCANNED_DEV
+
+PERSON INFO CENTER
+
+- visible record appears
+- hidden record does not
+- unrelated person's record does not
+- other-company leakage denied
+
+DOWNLOAD
+
+- employee authorised
+- company authorised role
+- unrelated user denied
+
+==================================================
+PHASE 22 — BROWSER VALIDATION
+==================================================
+
+Perform real browser test.
+
+Use Phil or disposable real Keycloak DEV identities where appropriate.
+
+Journey:
+
+Login
+  ↓
+Personal Info Center
+  ↓
+Create Company
+  ↓
+Company Info Center
+  ↓
+Add employee
+  ↓
+accept/link employee
+  ↓
+employee profile
+  ↓
+Add Record
+  ↓
+upload synthetic document
+  ↓
+record shown company-side
+  ↓
+employee login
+  ↓
+record shown employee-side
+  ↓
+download succeeds
+
+Test desktop:
+
+1440
+
+Tablet:
+
+768
+
+Mobile:
+
+390
+
+No layout overflow.
+
+==================================================
+PHASE 23 — RESTART PERSISTENCE
+==================================================
+
+After completing journey:
+
+restart app.
+
+Confirm:
+
+- account
+- company
+- membership
+- relationship
+- record
+- RecordFile
+- invitation state
+
+persist.
+
+Storage persistence is already proven, but verify uploaded workflow document still downloads.
+
+No fixture reset on application restart.
+
+==================================================
+PHASE 24 — REMOVE DEV SHORTCUTS
+==================================================
+
+Search public runtime for:
+
+synthetic fixture selectors
+hardcoded Alex
+hardcoded company data
+development identity bypass
+fake employee records
+manual privilege shortcuts
+
+Remove them from normal deployed flows.
+
+Keep test fixtures isolated.
+
+==================================================
+PHASE 25 — HEALTH / REGRESSION
+==================================================
+
+Verify:
+
+https://samma.co.za
+/api/health
+/api/ready if present
+
+Auth:
+
+Phil login
+logout
+Governance
+
+Storage:
+
+s3
+
+Database:
+
+healthy
+
+Existing Legal Access route:
+
+still protected
+
+==================================================
+PHASE 26 — DOCUMENTATION
+==================================================
+
+Update current docs:
+
+README
+APPLICATION-FRAMEWORK
+BUILD-PLAN
+DECISION-LOG
+authentication docs if invitation flow changes
+record/company workflow docs
+
+Document:
+
+- real Person onboarding
+- company creation
+- Company Owner creation
+- employee invitation/relationship acceptance
+- DB-backed Info Centers
+- real persistent record workflow
+- DEV manual invitation method if SMTP not yet active
+
+Do not document test passwords/tokens.
+
+==================================================
+PHASE 27 — CI / COMMIT
+==================================================
+
+Run full:
+
+npm ci
+prisma generate
+prisma validate
+migration status
+zero-diff
+tests
+typecheck
+lint
+production build
+production audit gate
+
+CI must remain green with only the approved Prisma DEV exception.
+
+Use focused commits.
+
+Suggested:
+
+feat: add real person and company workflows
+
+feat: add employee relationship onboarding
+
+feat: connect real record workflow to Info Centers
+
+Use fewer commits if implementation is tightly coupled.
+
+No force push.
+
+==================================================
+PHASE 28 — DEPLOY
+==================================================
+
+Deploy only validated pushed SHA.
+
+Do not rebuild unrelated infrastructure.
+
+Garage stays as-is unless application config genuinely changes.
+
+Keycloak stays as-is.
+
+Caddy stays as-is unless new route handling requires no config change.
+
+==================================================
+FINAL ACCEPTANCE TEST
+==================================================
+
+PASS only if:
+
+REAL PERSON
+- real OIDC user resolves to DB Person
+
+REAL COMPANY
+- company created through browser
+
+OWNER
+- creator receives normal Company Owner privileges
+
+EMPLOYEE
+- employee relationship created/accepted
+
+PROFILE
+- company opens real relationship profile
+
+RECORD
+- RecordDefinition chosen
+- file uploaded
+
+STORAGE
+- persistent Garage object
+- SHA-256 correct
+- NOT_SCANNED_DEV explicit
+
+COMPANY VIEW
+- authorised company role sees document
+
+PERSON VIEW
+- employee sees permitted document
+
+SECURITY
+- wrong company denied
+- wrong user denied
+- restricted role denied where policy requires
+
+PERSISTENCE
+- survives app restart
+
+UI
+- desktop/tablet/mobile pass
+
+CI
+- green
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+PREFLIGHT
+- blocker matrix
+- compensations used
+
+PERSON
+- Account -> Person behaviour
+- Personal Info Center
+
+COMPANY
+- creation
+- Owner assignment
+- multi-company behaviour
+
+RELATIONSHIP
+- invitation
+- acceptance
+- lifecycle
+- stable route/id
+
+RECORD
+- definition
+- upload
+- visibility
+- persistent storage
+
+SECURITY
+- cross-company denial
+- role denial
+- employee visibility
+
+DATABASE
+- migration
+- backup
+- zero-diff
+
+UI
+- desktop
+- tablet
+- mobile
+
+VALIDATION
+- tests
+- typecheck
+- lint
+- build
+- CI
+
+DEPLOYMENT
+- commits
+- pushed SHA
+- deployed SHA
+- public health
+
+UNTOUCHED
+- Keycloak provider configuration unless explicitly reported
+- Garage persistence
+- Legal Access architecture
+- Governance architecture
+- unrelated NUC services
+
+FOLLOW-UPS
+- SMTP invitations
+- malware scanner
+- MFA enforcement
+- off-host backup/restore

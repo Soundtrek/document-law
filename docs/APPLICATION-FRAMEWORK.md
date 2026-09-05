@@ -402,3 +402,10 @@ Only extract when justified:
 - external document service.
 
 Extraction is a later operational decision, not a requirement for v1.
+
+
+## Real user and company workflow V1 — 2026-09-05
+
+The browser workflow now supports stable verified Account/Person onboarding, company creation with normal OWNER membership, selected company workspaces, employee invitations and acceptance, distinct Team & Access membership/roles, relationship-ID profiles, and existing persistent Garage record intake/download. Info Centers query PostgreSQL and enforce definition-specific employee visibility and company roles. DEV manual invitation links explicitly send no mail; Owner can assign self HR without receiving platform Governance.
+
+See [workflow guide](REAL-WORKFLOW-V1.md), [complete preflight](REAL-WORKFLOW-V1-PREFLIGHT.md) and [validation report](REAL-WORKFLOW-V1-REPORT.md). SMTP, scanning, MFA activation and off-host restore remain open. Earlier descriptions of demo-only workflows are historical.
