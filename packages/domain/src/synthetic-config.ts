@@ -1,4 +1,4 @@
-import type { FunctionalRoleDefinition } from "./model.js";
+import type { FunctionalRoleDefinition } from "./model";
 
 export const syntheticRoleDefinitions: readonly FunctionalRoleDefinition[] = [
   { id: "role-owner", code: "OWNER", label: "Company Owner", capabilities: ["company.members.manage", "company.settings.manage"], active: true },
