@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHero } from "../../components/page-hero";
 import { RecordList } from "../../components/record-list";
@@ -15,7 +14,7 @@ export default async function PersonInfoCenterPage() {
   return <main className="page-shell">
     <PageHero eyebrow="PERSON INFO CENTER" title={person.displayName} description="Your account, employment relationships and available records." />
     <section className="grid">
-      <article className="card"><h2>Account</h2><p>{session.account.primaryEmail}</p><p className="muted">Your account remains yours when an employment relationship ends.</p><Link href="/governance">Governance</Link></article>
+      <article className="card"><h2>Account</h2><p>{session.account.primaryEmail}</p><p className="muted">Your account remains yours when an employment relationship ends.</p></article>
       <article className="card" id="companies"><h2>My companies</h2>{person.relationships.length ? person.relationships.map(relationship => <p key={relationship.id}>{relationship.company.name} · {relationship.status}</p>) : <p className="muted">No company relationships yet.</p>}</article>
       <article className="card full" id="records"><h2>My records</h2><RecordList records={records} /></article>
     </section>

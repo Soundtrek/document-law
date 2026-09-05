@@ -477,3 +477,30 @@ artifact unchanged. No database, authentication or storage changes. Work and
 push only on `experiment/dev-version-overlay`; no merge or deployment is
 approved by this request. See the [captured prompt](../prompts/history/2026-09-06-dev-version-overlay.md)
 and [build procedure](BUILD-VERSION-OVERLAY.md).
+
+## ADR-039 — Person / Company entry experiment
+
+2026-09-05: Implement the owner's requested Person or Company entry from `dev`
+`67c2a8973a6ec0dfb437944176f8da4878fb4a58` on
+`experiment/onboarding-person-company`. Person remains free and independent.
+Company onboarding asks only for a company name and creates Company, active
+CompanyMember and the approved OWNER grant transactionally with audit. OWNER
+never supplies implicit HR/Payroll/Legal or platform capabilities.
+
+Use existing Account/Identity/Person schema and verified Keycloak callbacks;
+never merge matching emails or classify Accounts permanently. Encrypted,
+short-lived flow state is bound to OAuth state, then Account/identity. The opaque
+flow nonce doubles as the Company creation idempotency key. Repeat login and
+concurrent submissions preserve entity identity. No migration is required.
+
+The overengineered Real Workflow V1 is rejected/archived at
+`archive/overengineered-workflow-2026-09-05`; it is not the approved signup model.
+This experiment does not reuse that branch or add approvals, packages, billing,
+invitations, relationships, SMTP, document workflows or Governance changes.
+Provider registration remains disabled pending its separate verification setup.
+
+Normal NUC checkout/runtime remain on `dev`; validate in a separate worktree,
+synthetic database and loopback candidate. Push the experiment for Phil's review;
+**do not merge to dev or touch main without approval**. See the
+[captured request](../prompts/2026-09-05-onboarding-person-company.md) and
+[validation report](ONBOARDING-PERSON-COMPANY-REPORT.md).

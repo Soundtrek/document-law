@@ -271,3 +271,19 @@ body[data-build-overlay="true"] { padding-bottom: calc(64px + env(safe-area-inse
   .build-overlay strong { font-size: 0.6rem; }
 }
 @media print { .build-overlay { display: none; } body[data-build-overlay="true"] { padding-bottom: 0; } }
+
+/* Person / Company account entry. */
+button:disabled { cursor: wait; opacity: 0.65; }
+.onboarding-shell { max-width: 780px; width: min(100% - 40px, 780px); }
+.onboarding-entry { text-align: center; display: grid; gap: 20px; }
+.onboarding-entry h2, .onboarding-entry p { margin: 0; }
+.onboarding-entry h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
+.onboarding-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; text-align: left; }
+.onboarding-choice { width: 100%; height: 100%; display: grid; gap: 16px; padding: 28px; text-align: left; border: 1px solid var(--samma-border-strong); border-radius: var(--samma-radius-card); background: var(--samma-surface); color: var(--samma-text); cursor: pointer; }
+.onboarding-choice strong { font-size: 1.35rem; color: var(--samma-primary-dark); }
+.onboarding-choice span { line-height: 1.6; color: var(--samma-muted); }
+.onboarding-choice .onboarding-continue { color: var(--samma-primary-dark); font-weight: 600; }
+.onboarding-choice:hover { border-color: var(--samma-primary); background: var(--samma-surface-soft); }
+.onboarding-choice:focus-visible { outline: 3px solid var(--samma-primary); outline-offset: 4px; }
+.card p, .card h2 { overflow-wrap: anywhere; }
+@media (max-width: 600px) { .onboarding-choices { grid-template-columns: 1fr; } .onboarding-choice { padding: 22px; } }

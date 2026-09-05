@@ -63,11 +63,16 @@ See [`docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`](docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.m
 
 ## Implemented UI foundation
 
-The public `/` route is a SAMMA email entry page with no development navigation.
-It validates email format and starts real Keycloak OIDC sign-in, preserving the
-email as a provider login hint. Public self-registration and email recovery stay
-disabled until SMTP verification is operational. Privacy, Terms and Help are
-disabled placeholders until approved pages exist.
+The public `/` and `/onboarding` routes offer Person and Company account entry.
+Both use real Keycloak authentication. Person establishes a free independent
+Account/Person and opens `/person`. Company continues to a company-name form at
+`/onboarding/company`, then creates the workspace, active membership and approved
+OWNER role together before opening `/company`. Existing members can use both Info
+Centers; normal Person navigation does not offer Create Company.
+
+The experiment awaits approval before integration to `dev`. Keycloak DEV public
+self-registration and recovery remain disabled; SMTP is not configured. Validation
+uses disposable verified provider identities, with no SAMMA password handling.
 
 The Next.js application provides authenticated, Account-scoped surfaces for:
 

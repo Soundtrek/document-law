@@ -8,7 +8,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     <section className="card">
       {error ? <p className="notice warning" role="alert">Sign-in could not be completed. Check your account access and try again.</p> : null}
       <SignInForm />
-      <p className="muted">Access is currently available to invited accounts. Password changes and account recovery are handled by our secure sign-in service.</p>
+      <p className="muted">New to SAMMA? <Link href="/onboarding">Create your account</Link>.</p>
       <Link href="/">Back to SAMMA</Link>
     </section>
   </main>;
