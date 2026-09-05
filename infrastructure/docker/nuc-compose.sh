@@ -12,4 +12,5 @@ for directory in postgres node_modules next-cache npm-cache; do
     exit 1
   }
 done
-exec docker compose --env-file "$project_dir/.env.nuc" -f "$project_dir/infrastructure/docker/compose.nuc.yml" "$@"
+"$project_dir/infrastructure/docker/check-storage-mount.sh"
+exec docker compose --env-file "$project_dir/.env.nuc" -f "$project_dir/infrastructure/docker/compose.nuc.yml" -f "$project_dir/infrastructure/docker/compose.garage.yml" "$@"

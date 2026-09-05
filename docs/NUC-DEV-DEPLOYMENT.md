@@ -287,3 +287,13 @@ secrets were committed. Known-secret scanning covered Git candidate files and
 browser static assets. The generated migration's trailing blank line was kept
 unchanged to preserve its already-applied checksum; SQL semantics and live
 schema drift checks passed.
+
+## Persistent Storage V1 supersedes historical memory-storage sections
+
+The storage implementation and activation runbook is now
+[Persistent Storage V1](PERSISTENT-STORAGE-V1-DEPLOYMENT.md). It adds private Garage
+on the verified USB archive, strict S3 runtime config, explicit NOT_SCANNED_DEV,
+authenticated file routes and DB/storage readiness. Earlier descriptions of
+memory storage and non-persisting forms are historical. See the storage report
+for the exact validated/deployed SHA and observed cutover results; this runbook
+alone is not evidence of successful deployment.

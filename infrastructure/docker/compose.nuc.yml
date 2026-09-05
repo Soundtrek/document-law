@@ -39,19 +39,22 @@ services:
   web:
     image: ${SAMMA_NODE_IMAGE:?Set pinned SAMMA_NODE_IMAGE in .env.nuc}
     container_name: juanity-app
+    labels:
+      org.opencontainers.image.revision: ${SAMMA_DEPLOYED_SHA:?Set the validated application SHA}
     user: "1000:1000"
     working_dir: /app
     init: true
     command: ["npm", "run", "start", "--workspace", "@samma/web", "--", "-H", "0.0.0.0"]
     env_file:
       - /etc/samma-dev/web.env
+      - /etc/samma-dev/storage.env
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://juanity:${SAMMA_DB_PASSWORD}@db:5432/juanity_law
       SAMMA_ENV: development
       SAMMA_BASE_URL: https://samma.co.za
       SAMMA_DEV_IDENTITY_ENABLED: "false"
-      SAMMA_STORAGE_DRIVER: memory
+      SAMMA_STORAGE_DRIVER: s3
       NEXT_TELEMETRY_DISABLED: "1"
       NODE_OPTIONS: --max-old-space-size=640
       npm_config_cache: /npm-cache
@@ -82,12 +85,17 @@ services:
         target: /npm-cache
         bind:
           create_host_path: false
+      - type: bind
+        source: /srv/nuc-archive/juanity/object-storage/staging
+        target: /upload-staging
+        bind:
+          create_host_path: false
     networks:
       private: {}
       proxy:
         aliases: [juanity-app]
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
