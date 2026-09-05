@@ -13,15 +13,18 @@ jobs:
       DATABASE_URL: postgresql://juanity:juanity@localhost:5432/juanity_law
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
       - name: Install dependencies
         run: npm install
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Generate Prisma client
         run: npm run db:generate
