@@ -3,11 +3,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const users = JSON.parse(fs.readFileSync('/etc/samma-dev/validation-users.json','utf8'));
-const credentialText = fs.readFileSync('/etc/samma-dev/bootstrap-credentials.txt','utf8');
+// After owners change their passwords, skip the bootstrap-only check explicitly.
+// Never retry an obsolete temporary password or ask for their final password.
+const checkOwnerBootstrap = process.env.SAMMA_SKIP_OWNER_BOOTSTRAP_CHECKS !== 'true';
+const credentialText = checkOwnerBootstrap ? fs.readFileSync('/etc/samma-dev/bootstrap-credentials.txt','utf8') : '';
 const base = 'https://samma.co.za';
 const candidate = process.env.SAMMA_CANDIDATE_URL;
 async function contextFor(browser) {
-  const context = await browser.newContext();
+  const viewport = process.env.SAMMA_TEST_VIEWPORT === 'mobile' ? {width:390,height:844} : {width:1440,height:1000};
+  const context = await browser.newContext({viewport});
   if (candidate) await context.route(/^https:\/\/(auth\.)?samma\.co\.za\//, async route => {
     try {
       const original = new URL(route.request().url());
@@ -26,10 +30,12 @@ async function contextFor(browser) {
 }
 async function login(page, email, password) {
   await page.goto(base);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),'Landing fits viewport');
   await page.locator('#landing-email').fill(email);
   await page.getByRole('button',{name:'Continue with email'}).click();
   await page.waitForTimeout(1500);
   await page.waitForURL('https://auth.samma.co.za/**');
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),'Provider login fits viewport');
   assert.equal(await page.locator('#username').inputValue(),email);
   const url = new URL(page.url());
   assert.equal(url.searchParams.get('redirect_uri'),base+'/api/auth/callback/keycloak');
@@ -85,10 +91,14 @@ async function login(page, email, password) {
     if (await button.count()) await button.click();
   }
   await page.waitForURL(base+'/');
+  await page.goBack();
+  await page.reload();
+  await page.goto(base+'/person');
+  assert.equal(new URL(page.url()).pathname,'/sign-in');
   await context.addCookies([cookie]);
   await page.goto(base+'/person');
   assert.equal(new URL(page.url()).pathname,'/sign-in');
-  console.log('PASS local/provider logout and old-session replay rejection');
+  console.log('PASS local/provider logout, browser back/reload, and old-session replay rejection');
   await context.close();
   const unverified = users.find(user=>!user.verified);
   const unverifiedContext = await contextFor(browser), unverifiedPage = await unverifiedContext.newPage();
@@ -100,7 +110,8 @@ async function login(page, email, password) {
   assert.equal(new URL(unverifiedPage.url()).pathname,'/sign-in');
   console.log('PASS unverified account cannot enter SAMMA');
   await unverifiedContext.close();
-  for (const email of ['phil@samma.co.za','juanita@samma.co.za']) {
+  if (!checkOwnerBootstrap) console.log('SKIP owner temporary-password checks; owners complete final password changes themselves.');
+  for (const email of checkOwnerBootstrap ? ['phil@samma.co.za','juanita@samma.co.za'] : []) {
    const block = credentialText.split('Email: '+email)[1].split('Password manager item:')[0];
    const password = block.split('Temporary password:')[1].trim();
    const ownerContext = await contextFor(browser), ownerPage = await ownerContext.newPage();
