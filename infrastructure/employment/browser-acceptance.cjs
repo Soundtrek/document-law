@@ -104,7 +104,9 @@ async function screenshot(page, label) {
     async function send(email) {
       await owner.page.goto(base + '/company');
       await owner.page.getByRole('link', { name: 'Add person', exact: true }).click();
+      await owner.page.waitForURL(base + '/company/people/add?companyId=*');
       results.companyId = new URL(owner.page.url()).searchParams.get('companyId');
+      assert.ok(results.companyId);
       await owner.page.getByLabel('Email address').fill(email);
       const sentResponse = owner.page.waitForResponse(response => response.url() === base + '/api/employment-invitations' && response.request().method() === 'POST');
       await owner.page.getByRole('button', { name: 'Send invite', exact: true }).click();

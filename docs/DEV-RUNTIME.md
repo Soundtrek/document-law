@@ -11,6 +11,18 @@ Limits: 1 GiB RAM, no additional swap, 0.75 CPU, bounded logs, manual startup.
 The existing archive mount checks must pass. The logout release requires the
 additive `0004_session_logout_hint` migration before deploying its web build.
 
+## Person ↔ Company introduction V1 — 2026-09-07
+
+DEV runs `4e138dd5509e5f0631e2f157ac70933f9c6b67fb`, with compiled overlay
+`DEV / dev / 4e138dd`. Employment invitations, Mailpit delivery and actual
+existing/new Person acceptance passed. Additive migration
+`0005_employment_invitations` is applied with migration status and schema zero-diff
+PASS. DEV web additionally joins `samma-mailpit-inbox` for private app SMTP.
+Keycloak configuration/auth flows, RC/main and preview runtimes were unchanged.
+See the [acceptance report](PERSON-COMPANY-INTRODUCTION-V1-REPORT.md).
+Later validation/documentation-only commits do not change this application build.
+Stopped for Phil approval; no main promotion is included.
+
 ## Accepted Company registration resume release — 2026-09-06
 
 DEV runs `8a96e2f524016ad4a92e0dfeefcef66de3f1113b`, with compiled overlay
