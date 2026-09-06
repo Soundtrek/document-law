@@ -64,7 +64,7 @@ test("verified Governance reviewer with only security.review can list and read",
 });
 test("normal person, company OWNER, missing/revoked sessions and unverified/suspended accounts are denied", async () => {
   for (token of ["person-session", "owner-session", "missing-session"]) {
-    await assert.rejects(directory.list(), /Denied/);
+    for (const view of ["all", "person", "company", "governance", "invalid"]) await assert.rejects(directory.list("", 1, view), /Denied/);
     await assert.rejects(directory.detail("person"), /Denied/);
   }
   token = "reviewer-session";
@@ -73,6 +73,44 @@ test("normal person, company OWNER, missing/revoked sessions and unverified/susp
     await assert.rejects(directory.list(), /Denied/);
   }
   await db.account.update({ where: { id: "reviewer" }, data: { emailVerified: true, status: "ACTIVE" } });
+});
+test("directory views overlap and use Person linkage, active memberships and unrevoked grants", async () => {
+  const ids = async (view: string, query = "") => (await directory.list(query, 1, view)).users.map(user => user.id).sort();
+  assert.deepEqual(await ids("all"), ["empty", "owner", "person", "reviewer", "unrelated"]);
+  assert.deepEqual(await ids("person"), ["owner", "person", "reviewer", "unrelated"]);
+  assert.deepEqual(await ids("company"), ["owner", "unrelated"]);
+  assert.deepEqual(await ids("governance"), ["owner", "reviewer"]);
+  for (const membershipStatus of ["INVITED", "DISABLED", "REMOVED"] as const) {
+    await db.companyMember.update({ where: { id: "owner-member" }, data: { status: membershipStatus } });
+    assert.deepEqual(await ids("company"), ["unrelated"]);
+  }
+  await db.companyMember.update({ where: { id: "owner-member" }, data: { status: "ACTIVE" } });
+  await db.governanceCapabilityGrant.updateMany({ where: { accountId: "owner" }, data: { revokedAt: new Date() } });
+  assert.deepEqual(await ids("governance"), ["reviewer"]);
+  await db.governanceCapabilityGrant.updateMany({ where: { accountId: "owner" }, data: { revokedAt: null } });
+  assert.deepEqual(await ids("company", "Company OWNER"), ["owner"]);
+  assert.deepEqual(await ids("company", "Alex"), []);
+  assert.deepEqual(await ids("person", "EMPTY@directory.example.test"), []);
+  assert.deepEqual(await ids("governance", "person@directory.example.test"), []);
+  for (const view of ["", "invalid", "COMPANY", "__proto__"]) {
+    assert.deepEqual(await ids(view), await ids("all"));
+    assert.equal((await directory.list("Alex", 1, view)).view, "all");
+    assert.deepEqual(await ids(view, "Alex"), ["person"]);
+  }
+});
+test("filter, search, clear and pagination links preserve the appropriate URL state", async () => {
+  const result = await directory.list("owner & example", 1, "company");
+  const html = renderToStaticMarkup(<GovernanceUsers result={{ ...result, page: 2, hasNext: true }} />);
+  assert.match(html, /name="view" value="company"/);
+  assert.match(html, /href="\/governance\/users\?view=company"[^>]*>Clear/);
+  assert.match(html, /data-active="true" aria-current="page" href="\/governance\/users\?view=company&amp;q=owner\+%26\+example">Company user/);
+  assert.match(html, /data-active="false" href="\/governance\/users\?q=owner\+%26\+example">All/);
+  assert.match(html, /href="\/governance\/users\?view=company&amp;q=owner\+%26\+example&amp;page=3">Next/);
+  assert.match(html, /href="\/governance\/users\?view=company&amp;q=owner\+%26\+example">Previous/);
+  assert.ok(html.indexOf('aria-label="User filters"') > html.indexOf('</form>'));
+  assert.ok(html.indexOf('aria-label="User filters"') < html.indexOf('<table'));
+  const invalid = renderToStaticMarkup(<GovernanceUsers result={await directory.list("", 1, "invalid")} />);
+  assert.match(invalid, /data-active="true" aria-current="page" href="\/governance\/users">All/);
 });
 test("revoked Governance capability and missing production MFA deny access immediately", async () => {
   await db.governanceCapabilityGrant.updateMany({ where: { accountId: "reviewer" }, data: { revokedAt: new Date() } });

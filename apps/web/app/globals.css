@@ -292,6 +292,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .directory-search { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
 .directory-search .landing-field { flex: 1 1 260px; }
 .directory-search .button { min-height: 50px; }
+.directory-filters { display: flex; flex-wrap: wrap; }
 .directory-table-scroll { overflow-x: auto; min-width: 0; }
 .directory-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
 .directory-table caption { text-align: left; padding: 8px 0 16px; }

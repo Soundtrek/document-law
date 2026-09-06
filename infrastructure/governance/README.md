@@ -33,3 +33,9 @@ configuration (issuer `https://identity.example.test`), Governance MFA enabled,
 and `SAMMA_DEV_IDENTITY_ENABLED=false`, then run with
 `SAMMA_DIRECTORY_TEST_URL=http://127.0.0.1:<port>`. The harness uses only the
 synthetic test sessions, never a real user's cookie or provider credentials.
+
+For the filter row, `verify-filters.cjs` uses the same isolated loopback server
+and disposable fixtures. Set `SAMMA_DIRECTORY_TEST_URL` and `PLAYWRIGHT_MODULE`.
+It checks all four views, search/clear, invalid/repeated query values and responsive
+layout at 1440, 768, 390 and 320 pixels. Optional `SAMMA_DIRECTORY_SCREENSHOTS`
+points to an existing private output directory for synthetic screenshots.
