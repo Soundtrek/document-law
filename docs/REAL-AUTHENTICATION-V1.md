@@ -20,7 +20,9 @@ Governance permissions.
   database adapter, not password hashing/recovery or session cryptography.
 - Provider claims must contain a subject, email and strict boolean verified
   email. Links resolve by the fixed issuer plus provider subject. Public account
-  creation/linking is disabled; a matching email never creates a link.
+  creation is allowed only after a valid Person/Company selection and verified
+  callback. Account, provider link and Person bootstrap are transactional. Generic
+  adapter creation/linking remains disabled; matching email never creates a link.
 - Sessions are persisted in PostgreSQL with an absolute one-hour deadline,
   Account and AccountIdentity links, and per-session MFA evidence. Expired
   sessions are pruned during login. Cookies are host-only
@@ -36,6 +38,27 @@ Governance permissions.
 - No refresh/access/ID tokens or passwords are stored in SAMMA PostgreSQL.
   Keycloak-side session revocation alone does not instantly delete SAMMA sessions;
   operators must revoke SAMMA sessions as well. Back-channel logout is not V1.
+
+## Onboarding flow state
+
+The `/onboarding` choice is limited to PERSON or COMPANY. After Auth.js accepts
+sign-in CSRF, SAMMA encrypts a 15-minute, HttpOnly/Secure/SameSite=Lax host cookie,
+bound to Auth.js's generated OAuth state. The verified callback consumes it and
+clears it. Company setup receives a separately purpose-bound encrypted cookie
+containing the resolved Account/identity and an opaque random nonce; it retains
+the original expiry and is cleared after submission. New sign-in clears old setup.
+No choice, Account classification, token or sensitive information is added to URLs.
+
+The company POST requires the canonical Origin, valid setup cookie and a live
+verified session for that same identity. Only one company-name field is accepted.
+The transaction locks the Account, verifies the active approved OWNER definition,
+creates Company/member/grant and audit together. The flow nonce is the opaque
+Company ID, so a retry can recover an existing result after a lost response;
+concurrent/repeated logins cannot duplicate an initial workspace. Revoked access
+is never restored by replay. No new table, field or migration is needed.
+
+Keycloak DEV self-registration remains disabled with SMTP unconfigured; this
+experiment does not enable provider registration or change verification settings.
 
 ## Server authorisation
 

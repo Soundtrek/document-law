@@ -4,6 +4,8 @@ import Keycloak from "@auth/core/providers/keycloak";
 import { safeAuthenticationRedirect, verifiedOidcClaims } from "@samma/identity";
 import { db } from "./database";
 import { sammaAdapter, type LoginContext } from "./auth-adapter";
+import { resolveOnboardingIdentity } from "./onboarding-service";
+import { flowCookieName, setupCookieName, newFlow, onboardingChoice, onboardingCookie, readOnboarding, requestCookie, sealOnboarding, type OnboardingChoice } from "./onboarding-state";
 
 export const sessionCookieName = "__Host-samma.session-token";
 export function authSettings() {
@@ -29,10 +31,19 @@ export async function handleAuthentication(request: Request): Promise<Response> 
     // Fixed canonical origin; untrusted Host/proxy headers cannot change callback URLs.
     const canonical = new URL(incoming.pathname + incoming.search, settings.baseUrl);
     let loginHint = "";
+    let choice: OnboardingChoice | undefined;
+    const flow = action === "callback/keycloak" ? readOnboarding(requestCookie(request, flowCookieName), settings.secret, "authentication") : null;
+    const verifiedFlow = flow && flow.oauthState === incoming.searchParams.get("state") ? flow : null;
     if (action.startsWith("signin")) {
       canonical.search = ""; // Never forward arbitrary OAuth parameter overrides.
       if (request.method === "POST") {
         const form = await request.clone().formData();
+        if (form.has("onboardingChoice")) {
+          try {
+            if (form.getAll("onboardingChoice").length !== 1) throw new Error("Invalid choice");
+            choice = onboardingChoice(form.get("onboardingChoice"));
+          } catch { return new Response("Choose Person or Company.", { status: 400 }); }
+        }
         const hint = form.get("login_hint");
         if (typeof hint === "string" && hint.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hint)) loginHint = hint;
         // Fixed shared window is conservative and cannot be bypassed by forged IP headers.
@@ -63,9 +74,10 @@ export async function handleAuthentication(request: Request): Promise<Response> 
             if (account?.provider !== "keycloak" || !profile) return false;
             const claims = verifiedOidcClaims(profile);
             if (claims.subject !== account.providerAccountId) return false;
-            const link = await db.accountIdentity.findUnique({ where: { provider_providerSubject: { provider: settings.issuer, providerSubject: claims.subject } }, include: { account: true } });
-            if (!link || link.account.status !== "ACTIVE" || !link.account.emailVerified) return false;
-            login.accountId = link.accountId; login.identityId = link.id; login.mfaSatisfied = claims.mfaSatisfied;
+            // A callback carrying expired/tampered onboarding state cannot become an ordinary login.
+            if (requestCookie(request, flowCookieName) && !verifiedFlow) return false;
+            const resolved = await resolveOnboardingIdentity(db, settings.issuer, profile, Boolean(verifiedFlow));
+            login.accountId = resolved.account.id; login.identityId = resolved.identity.id; login.mfaSatisfied = resolved.mfaSatisfied;
             return true;
           } catch { return false; }
         },
@@ -82,6 +94,28 @@ export async function handleAuthentication(request: Request): Promise<Response> 
     const response = new Response(authResponse.body, { status: authResponse.status, headers: new Headers(authResponse.headers) });
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("Referrer-Policy", "no-referrer");
+    if (action === "signin/keycloak" && request.method === "POST") {
+      // Auth.js must first accept CSRF and produce its own provider authorization URL.
+      const location = response.headers.get("location");
+      const authorization = location ? new URL(location, settings.baseUrl) : null;
+      response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
+      if (choice && authorization?.origin === new URL(settings.issuer).origin && authorization.searchParams.get("state")) {
+        response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, sealOnboarding(newFlow(choice, authorization.searchParams.get("state")!), settings.secret)));
+      } else response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
+    }
+    if (action === "callback/keycloak") {
+      response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
+      const location = response.headers.get("location");
+      if (verifiedFlow && login.accountId && login.identityId && location && !new URL(location, settings.baseUrl).searchParams.has("error")) {
+        let destination = "/person";
+        if (verifiedFlow.choice === "COMPANY") {
+          const membership = await db.companyMember.findFirst({ where: { accountId: login.accountId, status: "ACTIVE", company: { status: "ACTIVE" } } });
+          destination = membership ? "/company" : "/onboarding/company";
+          if (!membership) response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, sealOnboarding({ purpose: "company", accountId: login.accountId, identityId: login.identityId, nonce: verifiedFlow.nonce, expires: verifiedFlow.expires }, settings.secret)));
+        }
+        response.headers.set("Location", new URL(destination, settings.baseUrl).href);
+      }
+    }
     if (action === "callback/keycloak" && response.headers.get("location")?.includes("error=")) {
       await db.activityEvent.create({ data: { type: "AUTH_LOGIN_DENIED", summary: "OIDC login denied" } });
     }

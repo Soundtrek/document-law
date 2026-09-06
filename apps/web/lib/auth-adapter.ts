@@ -18,7 +18,8 @@ export function sammaAdapter(db: Database, issuer: string, login: LoginContext):
   const closed = async (): Promise<never> => { throw new Error("Controlled onboarding required"); };
   return {
     createUser: closed, updateUser: closed, linkAccount: closed,
-    // Public authentication can only resolve pre-linked provider subjects.
+    // Only resolve provider subjects. The verified callback owns transactional onboarding;
+    // Auth.js generic create/link methods remain closed and email matching never links accounts.
     getUserByEmail: async () => null,
     async getUser(id) {
       const account = await db.account.findUnique({ where: { id } });

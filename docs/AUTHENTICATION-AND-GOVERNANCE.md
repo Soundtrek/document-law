@@ -1,5 +1,20 @@
 # Authentication and Governance Access
 
+## Person / Company account entry
+
+Account entry offers **Person** or **Company** before real Keycloak authentication.
+Person creates a free independent Account/Person and opens `/person`, with no
+company creation action in normal navigation. Company asks only for a company
+name at `/onboarding/company`, then creates Company, active CompanyMember and
+approved OWNER together before opening `/company`. OWNER supplies no implicit
+functional or SAMMA Governance access. Existing members can use both Info Centers.
+
+The choice is a short-lived journey, never a permanent Account classification.
+This isolated experiment awaits approval before `dev`; no migration, billing,
+approval queue, invitation or employment workflow is added. Provider registration
+remains disabled with SMTP unconfigured. See [authentication flow details](REAL-AUTHENTICATION-V1.md#onboarding-flow-state).
+
+
 ## Real Authentication V1 — 2026-09-05
 
 The DNS prerequisite has been resolved. Keycloak is now the selected provider;

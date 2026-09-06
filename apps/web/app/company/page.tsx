@@ -9,7 +9,7 @@ export default async function CompanyPage() {
   const stored = await db.record.findMany({ where: { companyId: { in: memberships.map(member => member.companyId) }, context: { not: "PERSON" }, status: { not: "DELETED" } }, include: { definitionVersion: true }, orderBy: { createdAt: "desc" }, take: 100 });
   const records = [];
   for (const record of stored) if (await canReadStoredRecord(db, session.accountId, record)) records.push(record);
-  return <main className="page-shell"><PageHero eyebrow="COMPANY" title="My company access" description="Companies where you have active membership." />
+  return <main className="page-shell"><PageHero eyebrow="COMPANY" title="Company Info Center" description="Companies where you have active membership." />
     <section className="grid">{memberships.length ? memberships.map(member => <article className="card" key={member.id}><h2>{member.company.name}</h2><p>{member.roleGrants.map(grant => grant.functionalRole.label).join(", ") || "No functional roles assigned"}</p>
       {member.company.relationships.map(relationship => <p key={relationship.id}>{relationship.person.displayName} · <Link href={`/company/relationships/${relationship.id}/add-record`}>Add record</Link></p>)}
     </article>) : <article className="card"><h2>No company access yet</h2><p className="muted">An authorised company owner can arrange your membership.</p></article>}</section>

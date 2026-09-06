@@ -478,7 +478,49 @@ push only on `experiment/dev-version-overlay`; no merge or deployment is
 approved by this request. See the [captured prompt](../prompts/history/2026-09-06-dev-version-overlay.md)
 and [build procedure](BUILD-VERSION-OVERLAY.md).
 
-## ADR-039 — Dedicated public DEV runtime
+## ADR-039 — Person / Company entry experiment
+
+2026-09-05: Implement the owner's requested Person or Company entry from `dev`
+`67c2a8973a6ec0dfb437944176f8da4878fb4a58` on
+`experiment/onboarding-person-company`. Person remains free and independent.
+Company onboarding asks only for a company name and creates Company, active
+CompanyMember and the approved OWNER grant transactionally with audit. OWNER
+never supplies implicit HR/Payroll/Legal or platform capabilities.
+
+Use existing Account/Identity/Person schema and verified Keycloak callbacks;
+never merge matching emails or classify Accounts permanently. Encrypted,
+short-lived flow state is bound to OAuth state, then Account/identity. The opaque
+flow nonce doubles as the Company creation idempotency key. Repeat login and
+concurrent submissions preserve entity identity. No migration is required.
+
+The overengineered Real Workflow V1 is rejected/archived at
+`archive/overengineered-workflow-2026-09-05`; it is not the approved signup model.
+This experiment does not reuse that branch or add approvals, packages, billing,
+invitations, relationships, SMTP, document workflows or Governance changes.
+Provider registration remains disabled pending its separate verification setup.
+
+Normal NUC checkout/runtime remain on `dev`; validate in a separate worktree,
+synthetic database and loopback candidate. Push the experiment for Phil's review;
+**do not merge to dev or touch main without approval**. See the
+[captured request](../prompts/2026-09-05-onboarding-person-company.md) and
+[validation report](ONBOARDING-PERSON-COMPANY-REPORT.md).
+
+## ADR-040 — Approved overlay promotion and one LAN experiment slot
+
+2026-09-06: Phil visually approved the overlay at `deed84b` for fast-forward
+promotion into dev. Rebase the existing onboarding experiment onto that dev,
+with only straightforward conflict resolution and proportional build checks.
+Preserve both features; do not merge onboarding into dev before Phil approves.
+
+Reserve `192.168.1.152:2022` exclusively for a single experiment build. Phil uses
+`http://192.168.1.152:2022`; never run dev/main there or allocate additional
+experiment ports. Replace only the previous experiment runtime after the exact
+new experiment SHA is built with an enabled, immutable experiment overlay.
+Keep samma.co.za, main and shared services unchanged. Smoke-check the entry UI,
+health and badge, then stop for Phil. This supersedes the earlier loopback-only
+experiment inspection instructions. See the [captured request](../prompts/history/2026-09-06-overlay-promotion-onboarding-lan.md).
+
+## ADR-041 — Dedicated public DEV runtime
 
 2026-09-06: Explicitly approved `dev.samma.co.za` for exact `dev` builds,
 `samma.co.za` for `main` RC, and LAN port 2022 for experiment previews only.
@@ -492,3 +534,18 @@ as explicitly instructed; no main promotion or RC/experiment restart.
 See [request](../prompts/history/2026-09-06-dedicated-dev-runtime.md) and
 [operations](DEV-RUNTIME.md). Validation is limited to build and focused
 runtime/auth smoke checks, with no full regression suite.
+
+## ADR-042 — Approved onboarding promotion to public DEV
+
+2026-09-06: Phil approved merging `experiment/onboarding-person-company` into
+`dev` with a normal merge, building the exact new dev SHA with the DEV overlay,
+and deploying only the existing dedicated public DEV runtime. Verify actual
+Person and Company Keycloak journeys and their database outcomes using disposable
+synthetic identities, public health/readiness, and quick desktop/mobile visuals.
+Use proportional validation; do not repeat the full regression suite. Preserve
+main/RC, the Keycloak issuer/callback configuration and port 2022 experiment
+runtime. Stop for Phil's visual/functional approval before any main promotion.
+The merge conflict was confined to appended decision-log entries; preserve both
+sets of decisions, numbering the dedicated runtime entry ADR-041 to avoid the
+independent ADR-039 collision. No onboarding/auth semantics changed.
+See the [captured request](../prompts/history/2026-09-06-onboarding-dev-promotion.md).
