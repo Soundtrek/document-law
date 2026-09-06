@@ -1,5 +1,15 @@
 # Temporary NUC DEV deployment
 
+## Build identity for the next DEV / candidate deployment
+
+Use the [build overlay procedure](BUILD-VERSION-OVERLAY.md) for new builds.
+It embeds the clean candidate checkout's branch and SHA in both UI and health
+metadata. A checkout switch or container-label edit cannot update that identity.
+Build in an isolated worktree with `infrastructure/docker/build-candidate.sh`;
+keep the resulting `.next` artifact together with its matching source/dependencies.
+The live cache is never used for candidate builds. Promotion still requires the
+normal `experiment/* → dev → main` review; this feature does not deploy itself.
+
 ## Current authentication deployment — 2026-09-05
 
 Real Authentication V1 supersedes the synthetic runtime described in historical

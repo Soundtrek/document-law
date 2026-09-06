@@ -244,3 +244,30 @@ button, input, select { font: inherit; }
   .landing-card { padding: 20px; }
   .site-header[data-public="true"] .brand span { font-size: 0.72rem; }
 }
+
+/* Reserve the bottom edge so the badge cannot cover end-of-page actions. */
+body[data-build-overlay="true"] { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+.build-overlay {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 7px 11px;
+  border: 1px solid var(--samma-border);
+  border-radius: var(--samma-radius-control);
+  background: var(--samma-surface-soft);
+  color: var(--samma-muted);
+  box-shadow: var(--samma-shadow-soft);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.build-overlay strong { display: block; color: var(--samma-primary-dark); font-size: 0.65rem; letter-spacing: 0.05em; }
+.build-overlay-version { display: flex; white-space: nowrap; }
+.build-overlay-branch { overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) {
+  .build-overlay { font-size: 0.625rem; padding: 5px 8px; max-width: min(230px, calc(100vw - 24px)); }
+  .build-overlay strong { font-size: 0.6rem; }
+}
+@media print { .build-overlay { display: none; } body[data-build-overlay="true"] { padding-bottom: 0; } }

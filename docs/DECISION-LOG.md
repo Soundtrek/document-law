@@ -464,3 +464,16 @@ Application code and runtime configuration remain unchanged; no rebuild or
 redeploy is needed. This supersedes earlier normal-NUC-branch instructions.
 See the [branch policy](BRANCH-WORKFLOW.md) and
 [captured request](../prompts/history/2026-09-05-branch-workflow.md).
+
+## ADR-038 — Explicit build identity for DEV and experiment candidates
+
+2026-09-06: Add an opt-in build overlay and public health build metadata, using
+only a build-time branch/channel/full SHA snapshot. Map dev → DEV,
+experiment/* → EXPERIMENT, main → RC. Never infer deployed identity from runtime
+Git, container labels or the mutable canonical checkout. The visibility flag is
+also frozen at build time; disabled builds omit public build metadata. Capture
+clean candidate identity before bounded isolated builds, leaving the live
+artifact unchanged. No database, authentication or storage changes. Work and
+push only on `experiment/dev-version-overlay`; no merge or deployment is
+approved by this request. See the [captured prompt](../prompts/history/2026-09-06-dev-version-overlay.md)
+and [build procedure](BUILD-VERSION-OVERLAY.md).
