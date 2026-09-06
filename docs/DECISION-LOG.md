@@ -684,3 +684,11 @@ Rackzar, Caddy and existing database/storage networking are unchanged. NUC RC ma
 behavior changes intentionally. Smoke only; no full suite or application build.
 Merge the validated experiment to dev; no main promotion. See
 [final operations and acceptance](DEV-MAILPIT.md).
+
+## 2026-09-06 — Governance user directory V1 experiment
+
+- Request: `prompts/2026-09-06-governance-user-directory.txt`; isolated from current dev on `experiment/governance-user-directory`. Phil approval is required before dev merge/deployment.
+- `/governance/users` and stable Account ID detail require verified database session, current `platform.security.review` grant and existing Governance MFA policy. The shared layout checks authentication; each Governance page retains its own capability checks. Security-only reviewers enter via Users; the existing overview retains its three capability requirements.
+- Read-only V1. No account suspension service exists; session revocation remains its existing operator service. No new mutations or account/record access powers.
+- Existing name/email only; no phone/contact schema additions. Explicit metadata projections, bounded name/email search, current grants, historical relationship/membership counts, actor-scoped safe activity types without summaries or secrets. Detail reads audit the viewer and target stable Account ID.
+- No migrations, identity/provider configuration, storage changes, or dev/main promotion. Port 2022 remains a non-auth visual preview; real login acceptance follows approval on dev.

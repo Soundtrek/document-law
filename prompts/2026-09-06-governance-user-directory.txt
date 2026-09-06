@@ -1,0 +1,361 @@
+SAMMA — GOVERNANCE USER DIRECTORY V1
+
+GOAL
+
+Add a simple Governance-only user directory so Phil can inspect SAMMA users and contact details during onboarding testing.
+
+Repository:
+
+/opt/Juanita-Labour-Law
+
+Branch model:
+
+experiment/*
+→ 192.168.1.152:2022
+
+dev
+→ https://dev.samma.co.za
+
+main
+→ https://samma.co.za
+
+Create:
+
+experiment/governance-user-directory
+
+from current dev.
+
+Do NOT work directly on dev or main.
+
+==================================================
+SCOPE
+==================================================
+
+Add:
+
+/governance/users
+
+and:
+
+/governance/users/{accountId}
+
+This is a Governance user directory.
+
+Do NOT create a generic /admin route.
+
+==================================================
+USER LIST
+==================================================
+
+Show real database-backed users only.
+
+Columns/fields:
+
+- Name
+- Email
+- Mobile / phone if stored
+- Account status
+- Email verified
+- Created date
+- Company relationship count
+- Company membership count
+- Governance: Yes/No
+
+Add simple search:
+
+- name
+- email
+
+Optional simple filter:
+
+- Active
+- Suspended
+- Verified / Unverified
+
+Do not add complex reporting.
+
+==================================================
+USER DETAIL
+==================================================
+
+Show:
+
+ACCOUNT
+- stable Account ID
+- primary email
+- verified status
+- account status
+- created date
+
+PERSON
+- display/name fields already stored
+- phone/mobile if available
+- other basic contact fields already in the model
+
+COMPANY RELATIONSHIPS
+- company name
+- relationship status
+- role/context where relevant
+
+COMPANY MEMBERSHIPS
+- company
+- active/inactive
+- functional roles
+
+GOVERNANCE
+- current Governance capabilities
+- no capabilities if none
+
+AUTH / ACTIVITY
+- recent login/auth activity if already available
+- recent relevant audit events if easy to query safely
+
+Do not invent contact fields that SAMMA does not currently store.
+
+==================================================
+ACTIONS
+==================================================
+
+Only include actions already supported safely.
+
+Allowed if existing services already exist:
+
+- suspend/reactivate Account
+- revoke SAMMA sessions
+
+Do NOT add:
+
+- password reset from SAMMA
+- password viewing
+- impersonation
+- arbitrary document access
+- universal role grant
+- company membership editing
+- direct employment-record editing
+
+If suspend/reactivate is not already cleanly supported through application services, leave it read-only for V1.
+
+==================================================
+AUTHORISATION
+==================================================
+
+Governance user directory must require:
+
+authenticated Account
++
+appropriate Platform Governance capability
+
+Use an existing capability such as:
+
+platform.security.review
+
+or the most appropriate existing capability.
+
+Do not rely only on navigation hiding.
+
+Normal users:
+
+DENIED
+
+Company OWNER:
+
+DENIED unless separately granted Governance capability.
+
+Governance access must not grant document/private-record visibility.
+
+==================================================
+NAVIGATION
+==================================================
+
+Add:
+
+Users
+
+to the Governance navigation.
+
+Keep existing Governance areas unchanged.
+
+Suggested Governance nav:
+
+Definitions
+Roles
+Users
+Audit / Security
+
+Use the actual current structure.
+
+==================================================
+PRIVACY
+==================================================
+
+This directory contains personal information.
+
+Rules:
+
+- show only data SAMMA actually needs/stores
+- no document contents
+- no passwords/tokens
+- no unnecessary provider payloads
+- no sensitive auth secrets
+- no private records merely because user is viewed in Governance
+
+Audit user-detail access if current Governance audit patterns support it.
+
+==================================================
+UI
+==================================================
+
+Keep it simple.
+
+User list:
+
+search bar
+table/list
+click row/user name
+
+Detail page:
+
+clear cards/sections
+
+Account
+Contact
+Relationships
+Memberships
+Governance
+Activity
+
+Use current SAMMA design.
+
+Desktop first, responsive enough for tablet/mobile.
+
+No dashboards/charts.
+
+==================================================
+DATA / DATABASE
+==================================================
+
+First use existing schema.
+
+Do NOT add migration merely for the directory.
+
+If phone/contact fields do not exist:
+
+show only email/name currently available.
+
+Do not add fields until normal onboarding actually collects them.
+
+==================================================
+FOCUSED VALIDATION ONLY
+==================================================
+
+Do NOT run full historical suites.
+
+Test:
+
+1. Governance user can open /governance/users
+2. Normal user denied
+3. Company OWNER without Governance denied
+4. Search by email works
+5. Search by name works
+6. User detail loads by stable Account ID
+7. Relationships/memberships are scoped correctly
+8. Governance capabilities display correctly
+9. No document contents/private record bypass
+10. empty phone/contact fields render cleanly
+
+Run:
+
+- targeted tests
+- typecheck affected workspace
+- lint affected files
+- production build
+
+No storage regression.
+No full auth regression.
+No migration checks unless schema changed.
+
+==================================================
+EXPERIMENT PREVIEW
+==================================================
+
+Build with overlay:
+
+EXPERIMENT
+governance-user-directory
+<short SHA>
+
+Run experiment on:
+
+http://192.168.1.152:2022
+
+Note:
+
+Port 2022 remains visual/non-auth experiment preview.
+
+For real Governance testing after approval:
+
+merge to dev
+→ deploy dev.samma.co.za
+→ use Phil's real Governance login
+
+==================================================
+MERGE GATE
+==================================================
+
+Do NOT merge to dev automatically.
+
+Return for Phil approval after:
+
+- experiment build passes
+- UI visible on 2022
+- targeted tests pass
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+BRANCH
+- experiment branch
+- SHA
+- pushed
+
+USER LIST
+- fields
+- search
+- filters
+
+USER DETAIL
+- Account
+- contact
+- relationships
+- memberships
+- Governance
+- activity
+
+SECURITY
+- Governance allowed
+- normal user denied
+- company Owner denied
+- document bypass: NO
+
+DATABASE
+- migration: YES/NO
+
+VALIDATION
+- targeted tests
+- typecheck
+- lint
+- build
+- full suite rerun: NO
+
+PORT 2022
+- overlay
+- visual result
+
+DEV
+- unchanged
+
+MAIN
+- unchanged
