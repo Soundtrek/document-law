@@ -13,3 +13,5 @@ packages/database/prisma/dev.db
 storage-dev/
 
 __pycache__/
+# Generated experiment-only visual artifact; never part of DEV/RC source.
+apps/web/public/experiment-preview/

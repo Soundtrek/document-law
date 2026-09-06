@@ -1,0 +1,305 @@
+SAMMA — PROMOTE GOVERNANCE USER DIRECTORY TO DEV
+
+GOAL
+
+Promote the visually approved Governance Users experiment into dev and deploy it to:
+
+https://dev.samma.co.za
+
+Then verify the live Governance directory using Phil's real Governance access.
+
+Do NOT touch main.
+Do NOT rerun the full historical test suite.
+
+==================================================
+BRANCH MODEL — LOCKED
+==================================================
+
+experiment/*
+→ http://192.168.1.152:2022
+
+dev
+→ https://dev.samma.co.za
+
+main
+→ https://samma.co.za
+
+==================================================
+CURRENT EXPERIMENT
+==================================================
+
+Branch:
+
+experiment/governance-user-directory
+
+This experiment has been visually approved by Phil.
+
+Expected functionality:
+
+/governance/users
+/governance/users/{accountId}
+
+Includes:
+
+- user list
+- search
+- account/contact details
+- company relationships
+- company memberships
+- Governance capabilities
+- recent relevant activity
+
+Security model:
+
+- Governance capability required
+- normal users denied
+- company Owner alone denied
+- no document/private-record bypass
+
+==================================================
+1. FOCUSED PRECHECK
+==================================================
+
+Verify only:
+
+- dev working tree clean
+- local dev == origin/dev
+- experiment branch == origin experiment
+- main/origin-main unchanged
+- no unexpected dev commits
+
+Fetch origin.
+
+If there is a material merge conflict affecting Governance/security semantics:
+
+STOP.
+
+Otherwise continue.
+
+==================================================
+2. MERGE TO DEV
+==================================================
+
+Merge:
+
+experiment/governance-user-directory
+→ dev
+
+Use normal branch workflow.
+
+Push dev normally.
+
+Do not force dev.
+Do not touch main.
+
+Record exact resulting dev SHA.
+
+==================================================
+3. BUILD DEV
+==================================================
+
+Build exact new dev SHA.
+
+Inject:
+
+SAMMA_SHOW_BUILD_OVERLAY=true
+SAMMA_BUILD_CHANNEL=dev
+SAMMA_BUILD_BRANCH=dev
+SAMMA_BUILD_SHA=<exact dev SHA>
+
+Overlay must display:
+
+DEV
+dev
+<short SHA>
+
+==================================================
+4. PROPORTIONAL VALIDATION ONLY
+==================================================
+
+Do NOT rerun the full suite.
+
+The experiment has already been validated and visually approved.
+
+Run only:
+
+- merge sanity
+- targeted Governance Users tests if merge changed relevant files
+- typecheck affected workspace if needed
+- production build
+
+No storage regression.
+No full auth regression.
+No full Legal Access suite.
+No full CI rerun unless required by current branch policy.
+
+==================================================
+5. DEPLOY DEV ONLY
+==================================================
+
+Deploy exact new dev build to:
+
+https://dev.samma.co.za
+
+Do not deploy to:
+
+https://samma.co.za
+
+Do not modify main.
+
+Do not change Keycloak, Mailpit, Garage, PostgreSQL schema or Caddy unless the existing dev deployment procedure requires no config change.
+
+==================================================
+6. LIVE GOVERNANCE CHECK
+==================================================
+
+Using Phil's existing Governance account:
+
+open:
+
+https://dev.samma.co.za/governance/users
+
+Confirm:
+
+- real DB-backed users appear
+- search by email works
+- search by name works where name exists
+- account status visible
+- email verification visible
+- created date visible
+- relationship count visible
+- membership count visible
+- Governance status visible
+
+Open one user detail page.
+
+Confirm:
+
+ACCOUNT
+- stable Account ID
+- email
+- status
+- verified
+- created
+
+PERSON / CONTACT
+- existing stored fields only
+- empty phone/contact fields render cleanly
+
+RELATIONSHIPS
+- correct company relationships
+
+MEMBERSHIPS
+- correct company memberships/functional roles
+
+GOVERNANCE
+- current capabilities
+
+ACTIVITY
+- safe recent auth/audit events if implemented
+
+==================================================
+7. SECURITY SMOKE
+==================================================
+
+Focused only.
+
+Confirm:
+
+- Phil Governance access → PASS
+- normal non-Governance user → DENIED
+- Company Owner without Governance → DENIED
+- user detail does NOT expose document contents
+- user detail does NOT bypass record permissions
+- no passwords/tokens/provider secrets shown
+
+==================================================
+8. HEALTH / OVERLAY
+==================================================
+
+Verify:
+
+https://dev.samma.co.za
+→ 200
+
+/api/health
+→ 200
+
+/api/ready
+→ 200
+
+Overlay:
+
+DEV
+dev
+<new short SHA>
+
+==================================================
+9. MAIN / RC SAFETY
+==================================================
+
+Confirm:
+
+https://samma.co.za
+→ unchanged
+
+main branch:
+unchanged
+
+RC application deployment:
+unchanged
+
+No RC restart/rebuild.
+
+==================================================
+10. STOP FOR PHIL
+==================================================
+
+Once the live Governance Users directory works on DEV:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+DEV
+- merge SHA
+- final dev SHA
+- origin/dev
+- deployed SHA
+- overlay
+
+GOVERNANCE USERS
+- list
+- search
+- detail
+- contact data
+- relationships
+- memberships
+- Governance capabilities
+- activity
+
+SECURITY
+- Governance allowed
+- normal user denied
+- Company Owner denied
+- document bypass: NO
+
+VALIDATION
+- proportional checks only
+- full suite rerun: NO
+
+HEALTH
+- root
+- health
+- readiness
+
+MAIN / RC
+- unchanged: YES
+
+STOPPED FOR PHIL APPROVAL
