@@ -128,7 +128,11 @@ try {
   assert.equal(await db.governanceCapabilityGrant.count(), 0);
   const csrf = await (await person.request("/api/auth/csrf")).json();
   response = await person.request("/api/auth/signout", new URLSearchParams({ csrfToken: csrf.csrfToken, callbackUrl: "/auth/logout" }));
-  assert.equal(response.headers.get("location"), base + "/auth/logout");
+  const logoutTarget = new URL(response.headers.get("location")!);
+  assert.equal(logoutTarget.origin + logoutTarget.pathname, issuer + "/protocol/openid-connect/logout");
+  assert.equal(logoutTarget.searchParams.get("client_id"), process.env.SAMMA_OIDC_CLIENT_ID);
+  assert.equal(logoutTarget.searchParams.get("post_logout_redirect_uri"), base + "/");
+  assert.ok(logoutTarget.searchParams.get("id_token_hint"));
   assert.ok(!person.cookies.has(sessionCookieName));
   assert.ok(!person.cookies.has(setupCookieName));
   assert.deepEqual(await db.person.findUnique({ where: { id: account.person.id } }), account.person);

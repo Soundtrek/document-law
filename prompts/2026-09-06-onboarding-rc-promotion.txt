@@ -1,0 +1,414 @@
+SAMMA — PROMOTE ACCEPTED DEV ONBOARDING TO MAIN / RC
+
+GOAL
+
+Promote the current accepted DEV state to main and deploy it to the current NUC RC surface:
+
+https://samma.co.za
+
+This closes the current onboarding milestone.
+
+Branch/runtime model:
+
+experiment/*
+→ 192.168.1.152:2022
+
+dev
+→ https://dev.samma.co.za
+
+main
+→ https://samma.co.za
+
+Future:
+main/RC will eventually move to Rackzar.
+Do NOT work on Rackzar in this task.
+
+==================================================
+1. PRE-PROMOTION CHECK
+==================================================
+
+Verify:
+
+- dev working tree clean
+- local dev == origin/dev
+- main working tree clean
+- local main == origin/main
+- no unexpected divergence
+- current DEV deployed SHA recorded
+- current RC/main deployed SHA recorded
+
+Fetch origin.
+
+Do not force-push.
+
+==================================================
+2. PROMOTION SCOPE
+==================================================
+
+Promote the complete accepted dev state.
+
+This includes the accepted work for:
+
+- Person / Company onboarding
+- real registration
+- email verification
+- password recovery
+- Mailpit DEV auth mail
+- Company onboarding resume
+- logout/account switching fixes
+- Governance Users directory
+- Person / Company user / Governance filters
+- build-version overlay
+- branch/runtime workflow
+
+Do not cherry-pick individual pieces.
+
+The integrated DEV branch is the promotion source.
+
+==================================================
+3. FULL PROMOTION VALIDATION
+==================================================
+
+Because this is dev → main / RC, run the broader validation ONCE here.
+
+This is the correct place for the comprehensive suite.
+
+Run:
+
+- npm ci
+- Prisma generate
+- Prisma validate
+- migration status
+- schema zero-diff
+- full automated tests
+- typecheck
+- lint
+- production build
+- production dependency audit gate
+
+The existing documented Prisma DEV exception may remain only under its approved policy.
+
+If any new high/critical dependency issue appears:
+STOP.
+
+==================================================
+4. ONBOARDING ACCEPTANCE
+==================================================
+
+Confirm the accepted DEV behaviour before promotion:
+
+PERSON
+
+- register
+- Mailpit verification
+- Account
+- AccountIdentity
+- Person
+- Personal Info Center
+- no active Company membership
+
+COMPANY
+
+- register
+- Mailpit verification
+- Account
+- AccountIdentity
+- Person
+- company setup
+- Company
+- ACTIVE CompanyMember
+- OWNER
+- Company Info Center
+
+INTERRUPTED COMPANY
+
+- Continue Company setup
+- existing verified Keycloak identity
+- fresh protected COMPANY onboarding intent
+- successful callback
+- Company setup resumes
+
+ACCOUNT SWITCHING
+
+- Sign out
+- Keycloak SSO ends
+- another account can sign in in same browser
+
+Do not rerun every manual journey if the current accepted DEV evidence is already sufficient; use one focused live sanity journey plus automated coverage.
+
+==================================================
+5. GOVERNANCE USERS
+==================================================
+
+Confirm directory semantics:
+
+All
+→ all Governance-visible Accounts
+
+Person
+→ Person with NO ACTIVE CompanyMembership
+
+Company user
+→ at least one ACTIVE CompanyMembership
+
+Governance
+→ active Governance capability
+
+Governance may overlap with Person or Company user.
+
+No document/private-record bypass.
+
+==================================================
+6. MAIL / KEYCLOAK CURRENT NUC RULE
+==================================================
+
+Current NUC rule is intentional:
+
+Keycloak realm:
+samma
+
+Mail:
+Mailpit
+
+Applies to BOTH current NUC surfaces:
+
+dev.samma.co.za
+samma.co.za
+
+Inbox:
+
+http://192.168.1.152:8025
+
+This is temporary NUC development behaviour.
+
+Do not restore real SMTP now.
+
+Do not touch Rackzar.
+
+==================================================
+7. DATABASE / USER DATA
+==================================================
+
+IMPORTANT:
+
+Promoting dev → main does NOT migrate or copy users.
+
+Current NUC DEV and RC surfaces share infrastructure, so both currently see the same:
+
+- Keycloak users
+- SAMMA Accounts
+- Person rows
+- Company rows
+- memberships
+- documents
+- Mailpit messages
+
+Leave that shared NUC data untouched.
+
+Do not delete test users.
+Do not clone databases.
+Do not reset Keycloak.
+Do not recreate Garage.
+
+Future Rackzar RC will use a separate clean environment.
+
+==================================================
+8. MERGE DEV → MAIN
+==================================================
+
+If validation passes:
+
+merge:
+
+dev
+→ main
+
+Prefer normal fast-forward/merge according to repository policy.
+
+Do not rewrite history.
+
+Do not force-push.
+
+Push main.
+
+Record exact resulting main SHA.
+
+==================================================
+9. BUILD RC
+==================================================
+
+Build exact main SHA.
+
+Inject:
+
+SAMMA_SHOW_BUILD_OVERLAY=true
+SAMMA_BUILD_CHANNEL=rc
+SAMMA_BUILD_BRANCH=main
+SAMMA_BUILD_SHA=<exact main SHA>
+
+Overlay should show:
+
+RC
+main
+<short SHA>
+
+Current NUC RC overlay remains useful until Rackzar exists.
+
+==================================================
+10. DEPLOY MAIN TO CURRENT RC
+==================================================
+
+Deploy exact main SHA to:
+
+https://samma.co.za
+
+Do not change:
+
+dev.samma.co.za
+
+Do not change:
+
+192.168.1.152:2022
+
+Do not modify Garage/PostgreSQL/Keycloak data.
+
+==================================================
+11. RC SMOKE
+==================================================
+
+Verify:
+
+https://samma.co.za
+→ 200
+
+/api/health
+→ 200
+
+/api/ready
+→ 200
+
+Overlay:
+
+RC
+main
+<short SHA>
+
+Check:
+
+- sign in
+- logout
+- registration page
+- Person / Company choices
+- Governance route protection
+- storage readiness
+
+One real login is enough.
+
+Do not create unnecessary additional test users during RC smoke.
+
+==================================================
+12. DEV SAFETY
+==================================================
+
+Confirm:
+
+https://dev.samma.co.za
+→ still 200
+
+Overlay:
+DEV
+dev
+<dev SHA>
+
+Do not redeploy dev unless needed.
+
+==================================================
+13. EXPERIMENT SAFETY
+==================================================
+
+Confirm:
+
+192.168.1.152:2022
+
+remains experiment-only.
+
+No main/dev runtime should own 2022.
+
+==================================================
+14. DOCUMENT PROMOTION
+==================================================
+
+Record:
+
+SAMMA ONBOARDING RC BASELINE
+
+- main SHA
+- promoted from dev SHA
+- deployed RC SHA
+- validation result
+- current NUC shared-data caveat
+- future Rackzar separation
+
+Do not add future Rackzar implementation details beyond the agreed boundary:
+
+NUC = DEV
+Rackzar = future RC/main
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+DEV
+- source SHA
+- origin/dev
+
+MAIN
+- previous SHA
+- promoted SHA
+- origin/main
+
+VALIDATION
+- full tests
+- typecheck
+- lint
+- build
+- Prisma
+- audit
+
+ONBOARDING
+- Person
+- Company
+- Company resume
+- logout/account switching
+
+GOVERNANCE USERS
+- Person filter
+- Company user filter
+- Governance filter
+
+RC
+- URL
+- deployed SHA
+- overlay
+- health
+- readiness
+
+DEV
+- unchanged/healthy
+- overlay
+
+DATA
+- user/account data copied during promotion: NO
+- current NUC shared infrastructure retained: YES
+
+MAIL
+- NUC Keycloak → Mailpit
+- real SMTP restored: NO
+
+RACKZAR
+- untouched: YES
+
+EXPERIMENT PORT 2022
+- remains experiment-only: YES

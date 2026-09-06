@@ -158,7 +158,11 @@ try {
   const oldSession = company.cookies.get(sessionCookieName)!;
   const csrf = await (await company.request("/api/auth/csrf")).json();
   response = await company.request("/api/auth/signout", new URLSearchParams({ csrfToken: csrf.csrfToken, callbackUrl: "/auth/logout" }));
-  assert.equal(response.headers.get("location"), base + "/auth/logout");
+  const logoutTarget = new URL(response.headers.get("location")!);
+  assert.equal(logoutTarget.origin + logoutTarget.pathname, issuer + "/protocol/openid-connect/logout");
+  assert.equal(logoutTarget.searchParams.get("client_id"), process.env.SAMMA_OIDC_CLIENT_ID);
+  assert.equal(logoutTarget.searchParams.get("post_logout_redirect_uri"), base + "/");
+  assert.ok(logoutTarget.searchParams.get("id_token_hint"));
   assert.equal(await db.authSession.findUnique({ where: { sessionToken: oldSession } }), null);
   const key = `signin:${Math.floor(Date.now() / 60000)}`;
   await db.authRateLimit.upsert({ where: { key }, create: { key, count: 30, expires: new Date(Date.now() + 120000) }, update: { count: 30 } });
