@@ -759,3 +759,11 @@ Merge the validated experiment to dev; no main promotion. See
   and local session counts were zero before cleanup. See
   [the focused report](LOGOUT-ACCOUNT-SWITCHING-REPORT.md). Phil's own named-account
   Chrome confirmation remains pending; main and RC runtime were unchanged.
+
+
+## 2026-09-06 — Explicit incomplete Company registration resume
+
+- Approved a Company-only recovery page at `/onboarding/company/resume`, reachable from Company onboarding and the `OnboardingRequired` sign-in message. It requires an explicit Company continuation POST; the error alone never assigns Company intent.
+- The POST carries `onboardingChoice=COMPANY` and the strictly validated `onboardingAction=resume-company`. It reuses Auth.js CSRF/origin checks and existing encrypted 15-minute OAuth-state-bound onboarding cookies, while omitting registration prompt. Raw query fields remain ignored.
+- Verified issuer/subject account resolution, Person branching, ordinary sign-in, setup expiry and explicit Company/member/OWNER creation remain unchanged. No Keycloak configuration or schema change.
+- User authorised focused validation, normal experiment → dev merge and DEV deployment; main is excluded. Live acceptance uses a fresh synthetic incomplete identity, preserving company3.

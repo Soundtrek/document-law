@@ -24,6 +24,7 @@ export function OnboardingChoices({ companyOnly = false }: { companyOnly?: boole
         </button>
       </form>)}
     </div>
+    <p className="muted">Already registered for Company setup? <Link href="/onboarding/company/resume">Continue company setup</Link></p>
     {error ? <p className="landing-error" role="alert">Sign in is unavailable. Please try again.</p> : null}
     {!companyOnly ? <p className="muted">Already have an account? <Link href="/sign-in">Sign in</Link></p> : null}
   </section>;

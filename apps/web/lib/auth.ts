@@ -42,6 +42,11 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       canonical.search = ""; // Never forward arbitrary OAuth parameter overrides.
       if (request.method === "POST") {
         const form = await request.clone().formData();
+        const resumeCompany = form.has("onboardingAction");
+        if (resumeCompany && (form.getAll("onboardingAction").length !== 1 || form.get("onboardingAction") !== "resume-company" ||
+            form.getAll("onboardingChoice").length !== 1 || form.get("onboardingChoice") !== "COMPANY")) {
+          return new Response("Choose Company to continue company setup.", { status: 400 });
+        }
         if (form.has("onboardingChoice")) {
           try {
             if (form.getAll("onboardingChoice").length !== 1) throw new Error("Invalid choice");
@@ -49,8 +54,9 @@ export async function handleAuthentication(request: Request): Promise<Response> 
           } catch { return new Response("Choose Person or Company.", { status: 400 }); }
           const token = requestCookie(request, sessionCookieName);
           const session = token ? await resolveDatabaseSession(db, token) : null;
-          // Existing authenticated people can explicitly start Company setup without registering again.
-          registration = !session || session.identity.provider !== settings.issuer;
+          // Explicit Company recovery uses login even before a SAMMA session exists.
+          // Existing authenticated people can also start Company setup without registering again.
+          registration = !resumeCompany && (!session || session.identity.provider !== settings.issuer);
         }
         const hint = form.get("login_hint");
         if (typeof hint === "string" && hint.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hint)) loginHint = hint;
