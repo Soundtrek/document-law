@@ -3,7 +3,8 @@ import { Auth } from "@auth/core";
 import Keycloak from "@auth/core/providers/keycloak";
 import { safeAuthenticationRedirect, verifiedOidcClaims } from "@samma/identity";
 import { db } from "./database";
-import { sammaAdapter, type LoginContext } from "./auth-adapter";
+import { sammaAdapter, resolveDatabaseSession, type LoginContext } from "./auth-adapter";
+import { AuthEntryError, type AuthFailure } from "./auth-errors";
 import { resolveOnboardingIdentity } from "./onboarding-service";
 import { flowCookieName, setupCookieName, newFlow, onboardingChoice, onboardingCookie, readOnboarding, requestCookie, sealOnboarding, type OnboardingChoice } from "./onboarding-state";
 
@@ -32,6 +33,8 @@ export async function handleAuthentication(request: Request): Promise<Response> 
     const canonical = new URL(incoming.pathname + incoming.search, settings.baseUrl);
     let loginHint = "";
     let choice: OnboardingChoice | undefined;
+    let registration = false;
+    let failure: AuthFailure | undefined;
     const flow = action === "callback/keycloak" ? readOnboarding(requestCookie(request, flowCookieName), settings.secret, "authentication") : null;
     const verifiedFlow = flow && flow.oauthState === incoming.searchParams.get("state") ? flow : null;
     if (action.startsWith("signin")) {
@@ -43,6 +46,10 @@ export async function handleAuthentication(request: Request): Promise<Response> 
             if (form.getAll("onboardingChoice").length !== 1) throw new Error("Invalid choice");
             choice = onboardingChoice(form.get("onboardingChoice"));
           } catch { return new Response("Choose Person or Company.", { status: 400 }); }
+          const token = requestCookie(request, sessionCookieName);
+          const session = token ? await resolveDatabaseSession(db, token) : null;
+          // Existing authenticated people can explicitly start Company setup without registering again.
+          registration = !session || session.identity.provider !== settings.issuer;
         }
         const hint = form.get("login_hint");
         if (typeof hint === "string" && hint.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hint)) loginHint = hint;
@@ -62,7 +69,7 @@ export async function handleAuthentication(request: Request): Promise<Response> 
     const authResponse = await Auth(normalized, {
       basePath: "/api/auth", trustHost: true, secret: settings.secret, useSecureCookies: true,
       providers: [Keycloak({ issuer: settings.issuer, clientId: settings.clientId, clientSecret: settings.clientSecret,
-        checks: ["pkce", "state", "nonce"], authorization: { params: { scope: "openid email profile", ...(loginHint ? { login_hint: loginHint } : {}) } },
+        checks: ["pkce", "state", "nonce"], authorization: { params: { scope: "openid email profile", ...(registration ? { prompt: "create" } : {}), ...(loginHint ? { login_hint: loginHint } : {}) } },
       })],
       adapter: sammaAdapter(db, settings.issuer, login),
       session: { strategy: "database", maxAge: 3600, updateAge: 3600 },
@@ -72,14 +79,18 @@ export async function handleAuthentication(request: Request): Promise<Response> 
         async signIn({ account, profile }) {
           try {
             if (account?.provider !== "keycloak" || !profile) return false;
+            if (profile.email_verified !== true) throw new AuthEntryError("EmailUnverified");
             const claims = verifiedOidcClaims(profile);
             if (claims.subject !== account.providerAccountId) return false;
             // A callback carrying expired/tampered onboarding state cannot become an ordinary login.
-            if (requestCookie(request, flowCookieName) && !verifiedFlow) return false;
+            if (requestCookie(request, flowCookieName) && !verifiedFlow) throw new AuthEntryError("OnboardingExpired");
             const resolved = await resolveOnboardingIdentity(db, settings.issuer, profile, Boolean(verifiedFlow));
             login.accountId = resolved.account.id; login.identityId = resolved.identity.id; login.mfaSatisfied = resolved.mfaSatisfied;
             return true;
-          } catch { return false; }
+          } catch (error) {
+            if (error instanceof AuthEntryError) failure = error.code;
+            return false;
+          }
         },
         redirect({ url }) { return safeAuthenticationRedirect(url, settings.baseUrl); },
         session({ session, user }) { return { expires: session.expires, user: { id: user.id, email: user.email } }; },
@@ -106,17 +117,19 @@ export async function handleAuthentication(request: Request): Promise<Response> 
     if (action === "callback/keycloak") {
       response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
       const location = response.headers.get("location");
-      if (verifiedFlow && login.accountId && login.identityId && location && !new URL(location, settings.baseUrl).searchParams.has("error")) {
+      if (login.accountId && login.identityId && location && !new URL(location, settings.baseUrl).searchParams.has("error")) {
         let destination = "/person";
-        if (verifiedFlow.choice === "COMPANY") {
+        if (!verifiedFlow || verifiedFlow.choice === "COMPANY") {
           const membership = await db.companyMember.findFirst({ where: { accountId: login.accountId, status: "ACTIVE", company: { status: "ACTIVE" } } });
-          destination = membership ? "/company" : "/onboarding/company";
-          if (!membership) response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, sealOnboarding({ purpose: "company", accountId: login.accountId, identityId: login.identityId, nonce: verifiedFlow.nonce, expires: verifiedFlow.expires }, settings.secret)));
+          destination = membership ? "/company" : verifiedFlow ? "/onboarding/company" : "/person";
+          if (!membership && verifiedFlow) response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, sealOnboarding({ purpose: "company", accountId: login.accountId, identityId: login.identityId, nonce: verifiedFlow.nonce, expires: verifiedFlow.expires }, settings.secret)));
         }
         response.headers.set("Location", new URL(destination, settings.baseUrl).href);
       }
     }
     if (action === "callback/keycloak" && response.headers.get("location")?.includes("error=")) {
+      response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
+      if (failure) response.headers.set("Location", new URL(`/sign-in?error=${failure}`, settings.baseUrl).href);
       await db.activityEvent.create({ data: { type: "AUTH_LOGIN_DENIED", summary: "OIDC login denied" } });
     }
     return response;

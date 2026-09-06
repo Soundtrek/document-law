@@ -1,5 +1,10 @@
 # Auth and registration V1 preflight — 2026-09-06
 
+**Historical preflight.** The owner subsequently supplied dedicated mailbox
+credentials. See the [continuation report](AUTH-REGISTRATION-V1-REPORT.md) for
+current SMTP, provider settings, implementation and validation status. Findings
+below describe the initial inspection before those changes.
+
 **STATUS: BLOCKED — no suitable SAMMA SMTP credentials/sender available.**
 
 The request explicitly requires stopping at this RED blocker. No application,

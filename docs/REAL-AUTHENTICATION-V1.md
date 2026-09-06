@@ -1,8 +1,9 @@
 # Real Authentication V1
 
-2026-09-06 registration completion preflight: **BLOCKED on dedicated SAMMA SMTP**.
-Public registration and email recovery remain disabled; no delivery is claimed.
-See [live findings and exact missing requirement](AUTH-REGISTRATION-V1-PREFLIGHT.md).
+2026-09-06: dedicated SMTP, public registration, verified email and recovery are
+enabled at Keycloak. Actual verification/reset delivery and password recovery
+pass. Application changes remain on the experiment, pending approved DEV merge
+and full Person/Company acceptance. See the [current report](AUTH-REGISTRATION-V1-REPORT.md).
 
 Current deployment and remaining owner onboarding steps:
 [handoff report](REAL-AUTHENTICATION-V1-REPORT.md).
@@ -55,6 +56,21 @@ containing the resolved Account/identity and an opaque random nonce; it retains
 the original expiry and is cleared after submission. New sign-in clears old setup.
 No choice, Account classification, token or sensitive information is added to URLs.
 
+The registration experiment sends Keycloak's standard `prompt=create` only for
+an explicit PERSON/COMPANY start without a valid existing SAMMA session. Ordinary
+Sign in omits it. A signed-in Person can explicitly choose Company and continue
+through the provider without registering another account. An existing account
+holder on the registration page can use its sign-in link while retaining the
+protected onboarding flow. Standard existing-member login goes to `/company`;
+other existing users go to `/person`. A lost/expired setup can be restarted.
+
+New subject creation checks email collisions case-insensitively under an email
+advisory lock, independently of the subject lock. A collision rejects creation
+with a fixed safe message; it never selects the existing Account for linking.
+New Account email is normalized to lowercase; existing Account IDs/emails/links
+are not rewritten. Suspended, unverified, missing-choice and invalid-state
+failures use fixed application-owned messages, never provider payloads.
+
 The company POST requires the canonical Origin, valid setup cookie and a live
 verified session for that same identity. Only one company-name field is accepted.
 The transaction locks the Account, verifies the active approved OWNER definition,
@@ -63,8 +79,33 @@ Company ID, so a retry can recover an existing result after a lost response;
 concurrent/repeated logins cannot duplicate an initial workspace. Revoked access
 is never restored by replay. No new table, field or migration is needed.
 
-Keycloak DEV self-registration remains disabled with SMTP unconfigured; this
-experiment does not enable provider registration or change verification settings.
+Keycloak registration and forgot-password are enabled. A verified provider email
+is required before SAMMA creates any Account/Identity/Person. The existing owner
+bootstrap exception is historical and is never applied to public users.
+
+## Provider mail and password policy
+
+Dedicated sender: `SAMMA <no-reply@samma.co.za>`. SMTP uses the existing hosting
+service `wp13.host-ww.net:465`, implicit TLS and certificate verification. The
+operator's source settings/password are in `/etc/samma-dev/smtp.env`, mode 0600;
+Keycloak stores its provider SMTP configuration internally. No SMTP secret is
+mounted into the SAMMA web app. No third-party mail provider was introduced.
+
+`mail.samma.co.za` currently aliases the web address, and the domain MX points at
+the web apex. That endpoint refuses port 465. The existing hosting SMTP endpoint
+authenticates the dedicated SAMMA mailbox and its certificate also validates for
+the mail domain. Normal inbound mail DNS still needs correction through the
+hosting DNS configuration; tagged local mailbox delivery is not proof of delivery
+to every external mail service.
+
+Keycloak enforces minimum length 12, not-email/not-username, and a small
+case-insensitive common-password denylist. No composition checklist, password
+expiry schedule or password handler is added to SAMMA. The denylist is a baseline,
+not a complete breached-password corpus. User action/verification/reset tokens
+expire after 15 minutes. Existing passwords/owner required actions are not reset.
+Default Keycloak email templates identify SAMMA and contain the clear action;
+no employment/legal content is added. Native provider pages handle invalid,
+expired and already-used links; SAMMA errors explain how to restart safely.
 
 ## Server authorisation
 
@@ -99,10 +140,10 @@ sensitive-record access. Controlled bootstrap resolves their provider subjects
 before public onboarding and preserves existing approved Account IDs.
 
 The owner explicitly approved administrative verified-email bootstrap for these
-two DEV identities because SMTP is not configured. Keycloak records provider
+two DEV identities because SMTP was not configured at bootstrap. Keycloak records provider
 administration; SAMMA records `AUTH_BOOTSTRAP_GOVERNANCE`. This does not claim
-that a verification email was sent. Email recovery remains unavailable until
-SMTP is configured; passwords are changed/recovered through Keycloak's intended
+that a verification email was sent for them. Public SMTP verification and email
+recovery are now enabled; passwords are changed/recovered through Keycloak's intended
 mechanisms, never SAMMA application code.
 
 **MFA IS TEMPORARILY DISABLED FOR DEV/INITIAL SETUP.**
@@ -153,7 +194,14 @@ logs omit provider payloads, tokens, hints and callback parameters.
 Keycloak brute-force protection is enabled. SAMMA login initiation permits 30
 requests per minute in a shared PostgreSQL window and returns 429 thereafter;
 it stores no emails or raw IPs. This conservative DEV limit is shared across
-users. Audit includes successful/denied login, logout, bootstrap, Governance
+users. In addition, Caddy gates provider login-action and recovery-entry requests
+through a small stock Nginx limiter: 30/minute per connection IP with burst 10,
+120/minute globally with burst 20, returning 429 and Retry-After. Caddy supplies
+the trusted client key; the limiter accepts requests only from that proxy. It
+receives no passwords/cookies/auth headers or original URI/query. Provider
+verification resend also retains its native cooldown. See
+[operator setup and rollback](../infrastructure/auth/REGISTRATION.md).
+Audit includes successful/denied login, logout, bootstrap, Governance
 access/denial, session revocation and authorised record metadata reads.
 
 Operator session revocation:

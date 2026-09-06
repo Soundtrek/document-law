@@ -1,5 +1,25 @@
 name: samma-auth
 services:
+  auth-limit:
+    image: nginx:stable-alpine@sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c
+    container_name: samma-auth-limit
+    entrypoint: ["nginx", "-g", "daemon off;"]
+    user: "101:101"
+    read_only: true
+    tmpfs: ["/tmp:size=8m,mode=1777"]
+    volumes:
+      - ../auth/auth-mail-limit.conf:/etc/nginx/nginx.conf:ro
+    networks: [proxy]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 32m
+    memswap_limit: 32m
+    cpus: 0.1
+    pids_limit: 32
+    restart: "no"
+    logging:
+      driver: json-file
+      options: { max-size: "1m", max-file: "2" }
   db:
     image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
     container_name: samma-keycloak-db
@@ -33,6 +53,8 @@ services:
     image: quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
     container_name: samma-keycloak
     command: ["start"]
+    volumes:
+      - ../auth/password-blacklists:/opt/keycloak/data/password-blacklists:ro
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak

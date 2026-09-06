@@ -4,8 +4,9 @@ import { randomUUID } from "node:crypto";
 import { createPrismaClient } from "@samma/database";
 import { resolveOnboardingIdentity, completeCompanyOnboarding } from "../../apps/web/lib/onboarding-service";
 import type { CompanySetupState } from "../../apps/web/lib/onboarding-state";
+import { AuthEntryError } from "../../apps/web/lib/auth-errors";
 
-if (!new URL(process.env.DATABASE_URL!).pathname.endsWith("/samma_onboarding_experiment")) throw new Error("Disposable onboarding database required");
+if (!["/samma_onboarding_experiment", "/samma_auth_registration_experiment"].includes(new URL(process.env.DATABASE_URL!).pathname)) throw new Error("Disposable onboarding database required");
 const db = createPrismaClient(), issuer = "https://synthetic.example.test/realms/onboarding";
 const tag = randomUUID(), accounts: string[] = [];
 const approved = ["company.members.manage", "company.settings.manage"];
@@ -25,8 +26,17 @@ try {
   assert.equal(await db.personCompanyRelationship.count({ where: { personId: person.person.id } }), 0);
   assert.equal(await db.company.count(), companyCount);
   assert.equal((await resolveOnboardingIdentity(db, issuer, { ...profile("person"), email: "changed@example.test" }, false)).account.id, person.account.id);
-  await assert.rejects(() => resolveOnboardingIdentity(db, issuer, { ...profile("collision"), email: person.account.primaryEmail }, true));
+  for (const email of [person.account.primaryEmail, person.account.primaryEmail.toUpperCase()]) {
+    await assert.rejects(() => resolveOnboardingIdentity(db, issuer, { ...profile("collision"), email }, true),
+      (error: unknown) => error instanceof AuthEntryError && error.code === "EmailCollision");
+  }
   assert.equal(await db.accountIdentity.count({ where: { providerSubject: profile("collision").sub } }), 0);
+  const races = await Promise.allSettled(["race-a", "race-b"].map(subject => resolveOnboardingIdentity(db, issuer,
+    { ...profile(subject), email: profile("race").email }, true)));
+  const winner = races.find(r => r.status === "fulfilled");
+  assert.ok(winner?.status === "fulfilled"); accounts.push(winner.value.account.id);
+  assert.equal(races.filter(r => r.status === "fulfilled").length, 1);
+  assert.ok(races.some(r => r.status === "rejected" && r.reason instanceof AuthEntryError && r.reason.code === "EmailCollision"));
   const operator = await resolveOnboardingIdentity(db, issuer, profile("company"), true); accounts.push(operator.account.id);
   assert.equal(await db.company.count(), companyCount, "abandoned setup creates no company");
   const sessionToken = randomUUID();

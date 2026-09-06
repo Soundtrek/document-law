@@ -570,3 +570,30 @@ actions are complete; Juanita still requires UPDATE_PASSWORD. Preserve both
 identities and the bootstrap worksheet. No application/provider/runtime changes
 were made. See the [request](../prompts/2026-09-06-auth-registration-v1.md) and
 [preflight evidence](AUTH-REGISTRATION-V1-PREFLIGHT.md).
+
+### ADR-043 continuation — owner supplied dedicated SMTP
+
+The owner supplied `no-reply@samma.co.za` mailbox settings and entered the password
+directly into a 0600 operator file. Mail DNS currently points to the web host, so
+use the existing hosting endpoint `wp13.host-ww.net:465`, whose TLS certificate
+also validates the SAMMA mail domain and which accepts the supplied mailbox
+credentials. Preserve normal certificate checks. No other product's credentials
+or runtime are reused. Dedicated provider verification/reset messages were
+retrieved only from an exact disposable tagged mailbox folder and their links
+tested; no existing mailbox content was fetched.
+
+Enable provider registration/recovery, retain verified-email/MFA boundaries, and
+apply a 12-character provider password policy plus a baseline common-password
+denylist. Native recovery lacks request throttling, and the existing Caddy has
+no rate-limit module. A bounded stock Nginx forward-auth gate (32 MB, 0.1 CPU)
+therefore protects provider login-action/recovery endpoints without handling
+passwords or changing the SAMMA architecture. Only the auth proxy route changed;
+disk/loaded proxy configuration and unrelated routes were verified.
+
+The application experiment adds `prompt=create`, preserves existing-session
+Company setup, rejects case-insensitive email collisions without linking, and
+maps safe auth errors. Existing owner identities/checklist remain untouched.
+No schema or records/storage functionality changed. Build/targeted validation
+and the [report](AUTH-REGISTRATION-V1-REPORT.md) precede Phil's merge gate; actual
+Person/Company browser acceptance on DEV remains after approved integration.
+No experiment callback/hostname, port-2022 auth exception or dev/main merge was added.

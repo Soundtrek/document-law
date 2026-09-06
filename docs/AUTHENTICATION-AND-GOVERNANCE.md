@@ -1,9 +1,10 @@
 # Authentication and Governance Access
 
-2026-09-06: completing public registration/recovery is **blocked on suitable
-SAMMA SMTP credentials and sender authorisation**. Email verification remains
-required; public registration/recovery have not been enabled. See the
-[completion preflight](AUTH-REGISTRATION-V1-PREFLIGHT.md).
+2026-09-06: Keycloak public registration and password recovery are enabled with
+dedicated SAMMA SMTP and required verified email. Actual verification/reset
+delivery and provider password recovery pass. Application entry/error changes
+await experiment review and approved DEV integration. See the
+[completion report](AUTH-REGISTRATION-V1-REPORT.md).
 
 ## Person / Company account entry
 
@@ -16,8 +17,9 @@ functional or SAMMA Governance access. Existing members can use both Info Center
 
 The choice is a short-lived journey, never a permanent Account classification.
 Person/Company account entry is merged into `dev`; no migration, billing,
-approval queue, invitation or employment workflow is added. Provider registration
-remains disabled with SMTP unconfigured. See [authentication flow details](REAL-AUTHENTICATION-V1.md#onboarding-flow-state).
+approval queue, invitation or employment workflow is added. Public registration
+uses Keycloak; the experiment adds explicit registration entry and safe failure
+messages. See [authentication flow details](REAL-AUTHENTICATION-V1.md#onboarding-flow-state).
 
 
 ## Real Authentication V1 — 2026-09-05
@@ -28,13 +30,13 @@ are documented in [Real Authentication V1](REAL-AUTHENTICATION-V1.md). Deploymen
 validation and any pending owner password changes are recorded separately; the
 historical preflight is not current runtime status.
 
-Public synthetic login and self-registration are disabled. SMTP verification and
-email recovery are not operational. The approved initial Governance Owners are
+Public synthetic login remains disabled. Public registration, SMTP verification
+and email recovery are now operational at the provider. The approved initial Governance Owners are
 phil@samma.co.za and juanita@samma.co.za; their verified-email state is an audited
 DEV bootstrap exception. Keycloak supports MFA, but enforcement is temporarily
 disabled for DEV and must be enabled/tested before real sensitive records.
-The behaviour below includes future onboarding/invitation policy; it does not
-claim those email services are available in the current deployment.
+The behaviour below also includes future invitation policy; enabling provider
+authentication email does not implement company invitation email.
 
 ## Purpose
 

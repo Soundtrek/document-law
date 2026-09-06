@@ -21,6 +21,6 @@
     "db:validate": "npm run validate --workspace @samma/database",
     "test:uploads": "tsx --test infrastructure/storage/*.test.ts",
     "test:build-metadata": "node --test scripts/with-build-metadata.test.mjs",
-    "test:onboarding": "tsx --test apps/web/lib/onboarding-state.test.ts"
+    "test:onboarding": "tsx --test apps/web/lib/onboarding-state.test.ts apps/web/lib/auth-errors.test.ts"
   }
 }

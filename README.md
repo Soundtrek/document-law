@@ -2,9 +2,10 @@
 
 SAMMA is an employment records and document management system.
 
-Public auth/registration completion is **blocked on dedicated SAMMA SMTP**.
-Registration and email recovery remain disabled. See the
-[2026-09-06 preflight and missing requirement](docs/AUTH-REGISTRATION-V1-PREFLIGHT.md).
+Keycloak public registration, verified email and password recovery are enabled.
+Actual verification/reset mailbox checks pass. Application registration improvements
+await experiment review and approved DEV integration; see the
+[auth registration V1 report](docs/AUTH-REGISTRATION-V1-REPORT.md).
 
 **Employment Records & Document Management**
 
