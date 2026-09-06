@@ -6,7 +6,7 @@ import { db } from "./database";
 import { sammaAdapter, resolveDatabaseSession, type LoginContext } from "./auth-adapter";
 import { AuthEntryError, type AuthFailure } from "./auth-errors";
 import { resolveOnboardingIdentity } from "./onboarding-service";
-import { flowCookieName, setupCookieName, newFlow, onboardingChoice, onboardingCookie, readOnboarding, requestCookie, sealOnboarding, type OnboardingChoice } from "./onboarding-state";
+import { flowCookieName, setupCookieName, newFlow, newCompanySetup, companySetupMatches, onboardingChoice, onboardingCookie, readOnboarding, requestCookie, sealOnboarding, type OnboardingChoice } from "./onboarding-state";
 
 export const sessionCookieName = "__Host-samma.session-token";
 export function authSettings() {
@@ -109,7 +109,8 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       // Auth.js must first accept CSRF and produce its own provider authorization URL.
       const location = response.headers.get("location");
       const authorization = location ? new URL(location, settings.baseUrl) : null;
-      response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
+      // Keep pending setup until success, expiry or explicit sign-out. An
+      // ordinary sign-in must not silently discard the Company journey.
       if (choice && authorization?.origin === new URL(settings.issuer).origin && authorization.searchParams.get("state")) {
         response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, sealOnboarding(newFlow(choice, authorization.searchParams.get("state")!), settings.secret)));
       } else response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
@@ -118,19 +119,27 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
       const location = response.headers.get("location");
       if (login.accountId && login.identityId && location && !new URL(location, settings.baseUrl).searchParams.has("error")) {
+        const pending = readOnboarding(requestCookie(request, setupCookieName), settings.secret, "company");
+        const resume = companySetupMatches(pending, { accountId: login.accountId, identityId: login.identityId });
         let destination = "/person";
-        if (!verifiedFlow || verifiedFlow.choice === "COMPANY") {
+        if (resume || !verifiedFlow || verifiedFlow.choice === "COMPANY") {
           const membership = await db.companyMember.findFirst({ where: { accountId: login.accountId, status: "ACTIVE", company: { status: "ACTIVE" } } });
-          destination = membership ? "/company" : verifiedFlow ? "/onboarding/company" : "/person";
-          if (!membership && verifiedFlow) response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, sealOnboarding({ purpose: "company", accountId: login.accountId, identityId: login.identityId, nonce: verifiedFlow.nonce, expires: verifiedFlow.expires }, settings.secret)));
+          destination = membership ? "/company" : resume || verifiedFlow ? "/onboarding/company" : "/person";
+          if (!membership && !resume && verifiedFlow) response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, sealOnboarding(newCompanySetup(login.accountId, login.identityId, verifiedFlow.nonce), settings.secret)));
+          else if (membership || !resume) response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
+        } else if (!resume) {
+          response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
         }
         response.headers.set("Location", new URL(destination, settings.baseUrl).href);
       }
     }
     if (action === "callback/keycloak" && response.headers.get("location")?.includes("error=")) {
-      response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
       if (failure) response.headers.set("Location", new URL(`/sign-in?error=${failure}`, settings.baseUrl).href);
       await db.activityEvent.create({ data: { type: "AUTH_LOGIN_DENIED", summary: "OIDC login denied" } });
+    }
+    if (action === "signout" && request.method === "POST" && response.headers.getSetCookie().some(cookie => cookie.startsWith(sessionCookieName + "=") && cookie.includes("Max-Age=0"))) {
+      response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
+      response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
     }
     return response;
   } catch (error) { console.error("Authentication boundary failed", error instanceof Error ? error.name : "unknown"); return new Response("Authentication unavailable. Please try again later.", { status: 503, headers: { "Cache-Control": "no-store" } }); }

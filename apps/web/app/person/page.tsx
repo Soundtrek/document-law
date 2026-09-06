@@ -1,12 +1,13 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PageHero } from "../../components/page-hero";
 import { RecordList } from "../../components/record-list";
-import { requireSession } from "../../lib/access";
+import { requireSession, pendingCompanySetup } from "../../lib/access";
 import { db } from "../../lib/database";
 import { domainDefinition, domainRecord } from "../../lib/record-access";
 import { buildPersonRecordProjection } from "@samma/domain";
 export default async function PersonInfoCenterPage() {
   const session = await requireSession();
+  if (await pendingCompanySetup(session)) redirect("/onboarding/company");
   const person = await db.person.findUnique({ where: { accountId: session.accountId }, include: { relationships: { include: { company: true } } } });
   if (!person) notFound();
   const stored = await db.record.findMany({ where: { personId: person.id, status: { not: "DELETED" }, definitionVersion: { personVisible: true } }, include: { definitionVersion: true }, orderBy: { createdAt: "desc" } });

@@ -59,8 +59,12 @@ The `/onboarding` choice is limited to PERSON or COMPANY. After Auth.js accepts
 sign-in CSRF, SAMMA encrypts a 15-minute, HttpOnly/Secure/SameSite=Lax host cookie,
 bound to Auth.js's generated OAuth state. The verified callback consumes it and
 clears it. Company setup receives a separately purpose-bound encrypted cookie
-containing the resolved Account/identity and an opaque random nonce; it retains
-the original expiry and is cleared after submission. New sign-in clears old setup.
+containing the resolved Account/identity and an opaque random nonce. It gets a
+separate 15-minute authenticated setup window and is cleared after success or
+explicit sign-out. Ordinary sign-in preserves unexpired setup only for the same
+Account/Identity. Incomplete Company intent redirects Person navigation back to
+company setup; expiration offers a Company-only restart. See the
+[focused correction](COMPANY-ONBOARDING-COMPLETION-FIX.md).
 No choice, Account classification, token or sensitive information is added to URLs.
 
 The application sends Keycloak's standard `prompt=create` only for
