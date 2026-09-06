@@ -8,22 +8,27 @@ The locked map is `experiment/*` → `http://192.168.1.152:2022` (preview),
 `127.0.0.1:2023:3000`. It joins existing `juanity-dev` and `caddy-net` networks,
 sharing PostgreSQL, Garage and Keycloak without managing their lifecycle.
 Limits: 1 GiB RAM, no additional swap, 0.75 CPU, bounded logs, manual startup.
-The existing archive mount checks must pass. No schema migrations are needed.
+The existing archive mount checks must pass. The logout release requires the
+additive `0004_session_logout_hint` migration before deploying its web build.
 
 ## Accepted release — 2026-09-06
 
-DEV runs the focused Company onboarding completion merge
-`d54f7631518d7f51e92478d443f05f8afa071fe3`, with overlay `DEV / dev / d54f763`.
-Real provider login → company setup → `Soundtrek` → Company Info Center passed,
-including no skip-to-Person path, intent preservation, clear failure/restart
-messages and completed retries. See the
-[diagnosis and acceptance](COMPANY-ONBOARDING-COMPLETION-FIX.md).
-The later acceptance documentation commit does not change the deployed build.
-Database and S3 readiness are healthy. Main/RC remains
-`0bc1660f03b8380aedcf24a44881f4196e5eb4de`; no provider configuration changed in
-this fix. The existing shared Keycloak realm policies still affect both hosts.
-The [earlier registration acceptance](AUTH-REGISTRATION-V1-REPORT.md) remains
-historical evidence. Stop for Phil; no main promotion is included.
+DEV runs the focused logout/account-switching fix
+`00afd5ae741eeebc801e26532b7fa5ed409d8720`, with overlay `DEV / dev / 00afd5a`.
+Real HTTPS company owner → person → company owner switching passed in one
+retained Chromium browser context, with automatic Keycloak logout, old-cookie
+replay denial and CSRF checks. See [logout acceptance](LOGOUT-ACCOUNT-SWITCHING-REPORT.md).
+Phil's named-account Chrome confirmation is pending. Older sessions may require
+Keycloak confirmation once because they predate ID-token retention.
+
+The nullable session logout-hint migration is applied; Keycloak client/realm
+settings did not change. DEV health/readiness are healthy. Main/RC remains
+`0bc1660f03b8380aedcf24a44881f4196e5eb4de`, with RC and experiment container IDs
+and start times unchanged. Later acceptance/test/documentation commits do not
+change the deployed build. No main promotion is included.
+
+Earlier [Company onboarding acceptance](COMPANY-ONBOARDING-COMPLETION-FIX.md)
+and [registration acceptance](AUTH-REGISTRATION-V1-REPORT.md) remain historical evidence.
 
 ## Build and start
 

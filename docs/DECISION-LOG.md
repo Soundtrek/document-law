@@ -752,3 +752,10 @@ Merge the validated experiment to dev; no main promotion. See
 - Live client inspection confirmed the exact DEV/RC callback, origin and post-logout allow-lists already exist. No Keycloak client/realm settings change. Cookies remain host-only.
 - Validation is limited to logout/session negative checks, affected typecheck/lint, production build, and real DEV browser switching. No full suite, storage, Legal Access, registration or unrelated Governance checks.
 - Provider basis: https://www.keycloak.org/docs/latest/upgrading/ (RP logout confirmation and ID-token hint), https://www.keycloak.org/securing-apps/oidc-layers (logout endpoint).
+
+- Acceptance: application `00afd5ae741eeebc801e26532b7fa5ed409d8720` built, promoted
+  and deployed to DEV. Live disposable company/person switching, back button,
+  SAMMA/Keycloak old-cookie replay, CSRF and cookie isolation passed. Provider
+  and local session counts were zero before cleanup. See
+  [the focused report](LOGOUT-ACCOUNT-SWITCHING-REPORT.md). Phil's own named-account
+  Chrome confirmation remains pending; main and RC runtime were unchanged.

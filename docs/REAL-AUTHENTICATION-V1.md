@@ -47,9 +47,16 @@ Governance permissions.
   Account IDs or auto-merge accounts.
 - Keycloak manages its SSO session separately. Application logout uses Auth.js
   CSRF-protected POST, deletes the SAMMA session, then initiates Keycloak logout.
-  Keycloak asks for confirmation because SAMMA does not retain ID tokens.
-  Old SAMMA cookies cannot reopen protected pages after local logout.
-- No refresh/access/ID tokens or passwords are stored in SAMMA PostgreSQL.
+  The validated login ID token is retained server-side per session, deleted with
+  local revocation, and sent only to the configured Keycloak logout endpoint as
+  `id_token_hint`, avoiding a second confirmation for new sessions. Older
+  sessions without a hint retain Keycloak confirmation once. GET `/auth/logout`
+  only returns home; it cannot initiate provider logout. Local deletion failures
+  return 503 without clearing the browser cookie. Old SAMMA cookies cannot reopen
+  protected pages after successful local logout.
+- No refresh/access tokens or passwords are stored in SAMMA PostgreSQL. The nullable
+  `AuthSession.idToken` is used only for provider logout and is excluded from the
+  public session response, activity events and application logs.
   Keycloak-side session revocation alone does not instantly delete SAMMA sessions;
   operators must revoke SAMMA sessions as well. Back-channel logout is not V1.
 

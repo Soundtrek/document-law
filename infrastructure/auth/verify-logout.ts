@@ -111,6 +111,8 @@ try {
       headers: { origin: "https://samma.test", cookie: sessionCookieName + "=" + token }, body: "csrfToken=forged" }));
     assert.equal(crossOrigin.status, 403);
     assert.ok(await db.authSession.findUnique({ where: { sessionToken: token } }));
+    browser.cookies.set(setupCookieName, "synthetic-stale-company-state");
+    browser.cookies.set(flowCookieName, "synthetic-stale-flow-state");
     const csrf = await (await browser.request("/api/auth/csrf")).json();
     // Auth.js catches deletion errors internally: wrapper must preserve cookie and report failure.
     const transaction = authDb.$transaction;
@@ -139,6 +141,20 @@ try {
     assert.equal(await (await replay.request("/api/auth/session")).json(), null);
     assert.equal(await db.activityEvent.count({ where: { actorAccountId: accountIds[index], type: "AUTH_LOGOUT" } }), await db.activityEvent.count({ where: { actorAccountId: accountIds[index], type: "AUTH_LOGIN" } }));
   }
+  // Two browser sessions for one account must retain distinct provider hints.
+  const first = new Browser(), second = new Browser();
+  await first.finish(await first.begin(), profiles[0]!);
+  await second.finish(await second.begin(), profiles[0]!);
+  const firstToken = first.cookies.get(sessionCookieName)!, secondToken = second.cookies.get(sessionCookieName)!;
+  const firstRow = await db.authSession.findUniqueOrThrow({ where: { sessionToken: firstToken } });
+  const secondRow = await db.authSession.findUniqueOrThrow({ where: { sessionToken: secondToken } });
+  assert.notEqual(firstRow.idToken, secondRow.idToken);
+  const firstCsrf = await (await first.request("/api/auth/csrf")).json();
+  const firstLogout = await first.request("/api/auth/signout", new URLSearchParams({ csrfToken: firstCsrf.csrfToken }));
+  assert.equal(new URL(firstLogout.headers.get("location")!).searchParams.get("id_token_hint"), firstRow.idToken);
+  assert.ok(await db.authSession.findUnique({ where: { sessionToken: secondToken } }));
+  const secondCsrf = await (await second.request("/api/auth/csrf")).json();
+  await second.request("/api/auth/signout", new URLSearchParams({ csrfToken: secondCsrf.csrfToken }));
   // Pre-deployment sessions have no hint: revoke locally, keep provider confirmation.
   await browser.finish(await browser.begin(), profiles[0]!);
   const oldToken = browser.cookies.get(sessionCookieName)!;
