@@ -722,3 +722,22 @@ Merge the validated experiment to dev; no main promotion. See
   confirmed anonymous/person/OWNER denial and existing detail isolation. Browser
   filter/search/clear/fallback checks passed at 1440/768/390/320 pixels with no page
   overflow; synthetic screenshots inspected. No DEV/RC database fixtures changed.
+
+### Governance filters DEV acceptance
+
+- Application merge `e2ca7058a58cce1277c7df635853ec8d75c9b0de` built successfully
+  in its isolated DEV release directory and was deployed only to `samma-dev-web`.
+  Loopback/public liveness and readiness passed; the public browser overlay is
+  `DEV / dev / e2ca705`. Anonymous requests for every view still require sign-in.
+- The exact production bundle passed directory HTTP security checks and synthetic
+  browser checks against the disposable test DB. The browser harness now waits
+  for selection (two different views can have equal counts) and tolerates canceled
+  prefetch interception during navigation/teardown. This follow-up changes only
+  validation/documentation; the deployed application code is unchanged.
+- Full suite rerun: NO. No real-account login/session was manufactured for these
+  checks. Existing authorisation, schema, company membership and Governance grants
+  were untouched. Governance grants have no expiry column in the current model.
+- Local/remote main stays `0bc1660f03b8380aedcf24a44881f4196e5eb4de`; RC and preview
+  container IDs, start times and health responses match their captured baselines.
+  Private evidence and rollback configuration are retained under
+  `/srv/nuc-archive/juanity/validation/governance-user-filters/e2ca7058a58cce1277c7df635853ec8d75c9b0de`.
