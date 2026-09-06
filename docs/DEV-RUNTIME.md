@@ -11,7 +11,20 @@ Limits: 1 GiB RAM, no additional swap, 0.75 CPU, bounded logs, manual startup.
 The existing archive mount checks must pass. The logout release requires the
 additive `0004_session_logout_hint` migration before deploying its web build.
 
-## Accepted release — 2026-09-06
+## Accepted Company registration resume release — 2026-09-06
+
+DEV runs `8a96e2f524016ad4a92e0dfeefcef66de3f1113b`, with compiled overlay
+`DEV / dev / 8a96e2f`. The explicit Company recovery login passed actual HTTPS
+acceptance from an existing verified provider identity with no SAMMA account
+through Account/Person creation, deferred workspace creation and OWNER-only
+membership. Ordinary existing-owner login also passed. See the
+[focused report](COMPANY-REGISTRATION-RESUME-REPORT.md).
+
+Only DEV web was recreated. No provider configuration or live schema change;
+main/RC and the experiment runtime were unchanged. Later acceptance documentation
+and browser-test wait corrections do not change this deployed application build.
+
+## Previous logout release — 2026-09-06
 
 DEV runs the focused logout/account-switching fix
 `00afd5ae741eeebc801e26532b7fa5ed409d8720`, with overlay `DEV / dev / 00afd5a`.

@@ -27,6 +27,7 @@ let stage = 'launch';
     await login();
     await page.waitForURL(base + '/sign-in?error=OnboardingRequired');
     await page.getByRole('link', { name: 'Already registered? Continue company setup' }).click();
+    await page.waitForURL(base + '/onboarding/company/resume');
     assert.equal(new URL(page.url()).pathname, '/onboarding/company/resume');
     // Start Company recovery from the onboarding entry, in a fresh browser with no provider SSO.
     await context.close();
