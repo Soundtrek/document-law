@@ -776,3 +776,11 @@ Merge the validated experiment to dev; no main promotion. See
 - Governance keeps the existing unrevoked capability-grant predicate and may overlap with either view. All, search, pagination, membership counts, permissions and the underlying identity model are unchanged. No schema or onboarding changes.
 - Focused validation covers mixed active/historical memberships, all inactive statuses, Governance overlap/revocation, All and combined name/email searches. Full suite rerun: NO.
 - Pre-merge validation: 8/8 targeted directory database tests passed against a new disposable PostgreSQL instance; affected web typecheck, file-scoped ESLint and browser-harness syntax check passed. The browser harness Person expectation is updated from four fixture Accounts to two. No application database fixtures were changed.
+
+### Person / Company filter correction DEV acceptance
+
+- Application commit `d9068af7896cdc24501599379d283af2012ad007` was fast-forwarded/pushed to dev, built successfully in an isolated exact-dev release and deployed only to `samma-dev-web`.
+- Compiled-bundle directory HTTP checks and filter/search/clear/browser checks at 1440/768/390/320 pixels passed against the disposable test database. The browser harness now waits for Company selection before submitting search, preventing a navigation race; this follow-up changes validation/documentation only.
+- DEV public and loopback health/readiness passed, with exact build SHA and dev identity. Every public directory view still redirects anonymous visitors to sign-in. Read-only DEV database checks confirm company1/company4 match Company but not Person, while person1 matches Person but not Company.
+- Authenticated live Governance table acceptance remains pending an authorised Governance login/session. Database classifications and disposable-fixture browser checks do not substitute for that live check; no real account session was manufactured and no existing grants or memberships were changed.
+- Full suite rerun: NO. Local/remote main remains `0bc1660f03b8380aedcf24a44881f4196e5eb4de`; RC and preview container IDs/start times are unchanged and their health checks pass. Evidence and rollback config: `/srv/nuc-archive/juanity/validation/fix-governance-user-filter-semantics`.

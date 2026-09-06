@@ -41,6 +41,7 @@ if (!base || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base)) throw new Error('Loopbac
     }
     const filters = page.getByRole('navigation', { name: 'User filters', exact: true });
     await filters.getByRole('link', { name: 'Company user', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[aria-label="User filters"] [aria-current="page"]')?.textContent === 'Company user');
     for (const [query, count] of [['owner', 1], ['Alex', 0]]) {
       await page.getByLabel('Search users').fill(query);
       await page.getByRole('button', { name: 'Search', exact: true }).click();
