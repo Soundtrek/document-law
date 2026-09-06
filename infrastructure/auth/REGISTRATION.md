@@ -4,6 +4,18 @@ Provider configuration is operator-only. No script here is a web route and no
 SMTP/admin/test credentials may be mounted into SAMMA web. Source credentials
 and private snapshots stay under `/etc/samma-dev/`, operator-owned mode 0600.
 
+## Current NUC mail — 2026-09-06
+
+Shared realm `samma` sends verification/recovery mail for both NUC DEV and the
+current NUC RC-style surface to `samma-mailpit:1025`. Inbox:
+<http://192.168.1.152:8025>. Required verification and recovery remain enabled.
+Use [Mailpit operations](../../docs/DEV-MAILPIT.md) and the NUC-only
+`keycloak-mailpit.py apply` script. The real SMTP instructions below are
+historical setup/future reference; rerunning their SMTP step switches both NUC
+surfaces back to real delivery. Preserve `/etc/samma-dev/smtp.env`; no Rackzar
+configuration is included. This transport change requires only focused smoke,
+not the original feature's build/full validation procedure below.
+
 ## Install / reproduce
 
 1. Read the [report](../../docs/AUTH-REGISTRATION-V1-REPORT.md), inspect current

@@ -654,3 +654,33 @@ no Governance or implicit roles, and stable Account/Identity/Person. Phil remain
 unchanged. Disposable fixtures were cleaned up; evidence was retained privately.
 Main/RC and port 2022 remained unchanged. Acceptance documentation alone advances
 DEV after deployment. Stop for Phil; no main promotion.
+
+## ADR-046 — NUC DEV Mailpit preparation; shared realm switch blocked
+
+2026-09-06: Phil requested DEV-only Mailpit, LAN inbox on 192.168.1.152:8025,
+private SMTP, preserved verification/recovery, no RC/Rackzar/Caddy changes and
+smoke-only validation. Prepare a standalone bounded Mailpit service on the
+existing internal auth network in `experiment/dev-mailpit`. Live inspection
+confirms DEV and RC share the same issuer, realm `samma` and client `samma-web`.
+Changing realm SMTP would change RC mail delivery. Leave realm configuration
+and real SMTP credentials untouched pending an explicit scope decision; do not
+redesign auth or merge before the required auth smoke succeeds. The password-free
+future real SMTP reference is retained in [operations/status](DEV-MAILPIT.md).
+See [captured request](../prompts/2026-09-06-dev-mailpit.md).
+
+### ADR-046 scope resolution and acceptance
+
+Phil explicitly approved Mailpit for both `dev.samma.co.za` and `samma.co.za` as
+current NUC surfaces sharing realm `samma`. All NUC verification/recovery mail now
+uses `samma-mailpit:1025`; no provider separation or auth redesign. A NUC-only
+operator script backs up privately, changes only SMTP and confirms all other
+realm fields unchanged. Registration, verification and recovery stay enabled.
+Real browser registration verification and reset links delivered through Mailpit
+passed, including replacement of a known password, rejection of the old password
+and acceptance of the new one with stable provider identity. The exact disposable
+identity was removed; no SAMMA callback/database fixture was created. DEV health,
+LAN-only inbox and unpublished SMTP checks passed. Main/RC application deployment,
+Rackzar, Caddy and existing database/storage networking are unchanged. NUC RC mail
+behavior changes intentionally. Smoke only; no full suite or application build.
+Merge the validated experiment to dev; no main promotion. See
+[final operations and acceptance](DEV-MAILPIT.md).

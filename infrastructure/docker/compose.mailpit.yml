@@ -1,0 +1,42 @@
+# NUC DEV only. Start independently; never include in an RC deployment.
+name: samma-dev-mailpit
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27.4@sha256:df6c2541907e1be6fac21f509927cf6ed771617a1f4b361ef66d97bd05593d2d
+    container_name: samma-mailpit
+    user: "1000:1000"
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    environment:
+      MP_DATABASE: /tmp/mailpit.db
+      MP_MAX_MESSAGES: "100"
+      MP_DISABLE_VERSION_CHECK: "true"
+      MP_SMTP_DISABLE_RDNS: "true"
+      MP_LABEL: SAMMA NUC DEV
+      MP_QUIET: "true"
+    # SMTP has no published host port. Never attach to caddy-net.
+    ports: ["192.168.1.152:8025:8025"]
+    networks:
+      auth: { aliases: [samma-mailpit, mailpit] }
+      inbox: {}
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    restart: "no"
+    logging:
+      driver: json-file
+      options: { max-size: "1m", max-file: "2" }
+networks:
+  # Docker cannot publish the LAN inbox from an internal-only attachment.
+  # This bridge contains Mailpit alone; only the UI port is published.
+  inbox:
+    name: samma-mailpit-inbox
+    # NUC automatic pools are exhausted; checked against Docker and host routes.
+    ipam:
+      config: [{ subnet: 10.254.152.0/28 }]
+  auth:
+    name: samma-auth-private
+    external: true

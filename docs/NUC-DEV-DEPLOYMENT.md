@@ -1,5 +1,15 @@
 # Temporary NUC DEV deployment
 
+## Shared NUC auth mail — 2026-09-06
+
+Both DEV (`dev.samma.co.za`) and the current NUC RC-style surface (`samma.co.za`)
+use Mailpit through shared Keycloak realm `samma`, as explicitly approved by Phil.
+Inbox: <http://192.168.1.152:8025>; private SMTP: `samma-mailpit:1025`.
+Registration, required verification and recovery remain enabled. Verification
+and reset browser smoke passed. Future main/RC on Rackzar uses real SMTP;
+Rackzar and the current RC application deployment are untouched. See
+[Mailpit operations and acceptance](DEV-MAILPIT.md).
+
 ## Locked runtime map — 2026-09-06
 
 | Branch | Runtime | Purpose |
