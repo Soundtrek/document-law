@@ -10,8 +10,13 @@ if (!base || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base)) throw new Error('Loopbac
     await context.addCookies([{ name: '__Host-samma.session-token', value: 'reviewer-session', domain: 'directory.example.test', path: '/', secure: true, httpOnly: true, sameSite: 'Lax' }]);
     await context.route('https://directory.example.test/**', async route => {
       const url = new URL(route.request().url());
-      const response = await route.fetch({ url: base + url.pathname + url.search, headers: await route.request().allHeaders(), maxRedirects: 0 });
-      await route.fulfill({ response });
+      try {
+        const response = await route.fetch({ url: base + url.pathname + url.search, headers: await route.request().allHeaders(), maxRedirects: 0 });
+        await route.fulfill({ response });
+      } catch (error) {
+        // Next may cancel a prefetched request during navigation/teardown.
+        if (!/Route is already handled|Request context disposed/.test(error.message)) throw error;
+      }
     });
     const page = await context.newPage();
     const errors = [];
@@ -23,6 +28,7 @@ if (!base || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base)) throw new Error('Loopbac
       await filters.waitFor();
       for (const [label, count] of [['All', 5], ['Person', 4], ['Company user', 2], ['Governance', 2]]) {
         await filters.getByRole('link', { name: label, exact: true }).click();
+        await page.waitForFunction(expected => document.querySelector('[aria-label="User filters"] [aria-current="page"]')?.textContent === expected, label);
         await page.waitForFunction(expected => document.querySelectorAll('.directory-table tbody tr').length === expected, count);
         assert.equal(await filters.locator('[aria-current="page"]').innerText(), label);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
@@ -54,6 +60,10 @@ if (!base || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base)) throw new Error('Loopbac
     }
     assert.deepEqual(errors, []);
     console.log('PASS filters, search/clear, invalid/repeated URLs; 1440/768/390/320 layout; no overflow or browser errors');
+    await context.unrouteAll({ behavior: 'wait' });
     await context.close();
-  } finally { await browser.close(); }
+  } finally {
+    for (const context of browser.contexts()) await context.unrouteAll({ behavior: 'wait' });
+    await browser.close();
+  }
 })().catch(error => { console.error(error); process.exitCode = 1; });
