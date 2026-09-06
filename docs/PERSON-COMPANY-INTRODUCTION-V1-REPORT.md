@@ -13,7 +13,7 @@
 | Auth | Application authentication/onboarding and Keycloak configuration changed: NO. Synthetic test people used normal registration, Mailpit verification and sign-in. |
 | Validation | 17/17 focused PostgreSQL tests; Prisma generate/validate; affected typecheck/lint; exact-SHA production build PASS. Dependency audit gate PASS with the existing documented DEV-only Prisma exception; no new findings. Full suite rerun: NO. |
 | DEV | Application commits `1d8958e` and `4e138dd`; deployed SHA `4e138dd5509e5f0631e2f157ac70933f9c6b67fb`. Public/loopback health and public readiness PASS; compiled overlay DEV / dev / 4e138dd. |
-| Main | Local/remote main remains `6619d19cddfd0767f280204b541c2f5823f23dce`. RC and experiment container IDs/start times unchanged; their health/readiness PASS. |
+| Main | Local/remote main remains `6619d19cddfd0767f280204b541c2f5823f23dce`. RC and experiment container IDs/start times unchanged. RC health/readiness PASS. Preview liveness is 200; its unconfigured runtime reports readiness 503. |
 
 Actual HTTPS Chromium acceptance completed using only manifest-bound synthetic
 people. The existing Person accepted first; the unknown address was confirmed to
@@ -41,6 +41,11 @@ Private evidence:
   log, original runtime config/container identities and post-deploy health.
 - `/etc/samma-dev/employment-introductions/`: protected synthetic manifest,
   acceptance result, browser screenshots and staged acceptance diagnostics.
+
+The untouched port-2022 preview reports storage `unconfigured` and database/storage
+readiness false (503), while its liveness is 200. This is outside the DEV invitation
+acceptance; no attempt was made to reconfigure or restart the preview. DEV and RC
+both report database/storage readiness true (200).
 
 The NUC database is shared: it received one additive metadata table. RC/preview
 source and runtimes were unchanged. The on-host dump is a focused DEV checkpoint,
