@@ -477,3 +477,18 @@ artifact unchanged. No database, authentication or storage changes. Work and
 push only on `experiment/dev-version-overlay`; no merge or deployment is
 approved by this request. See the [captured prompt](../prompts/history/2026-09-06-dev-version-overlay.md)
 and [build procedure](BUILD-VERSION-OVERLAY.md).
+
+## ADR-039 — Dedicated public DEV runtime
+
+2026-09-06: Explicitly approved `dev.samma.co.za` for exact `dev` builds,
+`samma.co.za` for `main` RC, and LAN port 2022 for experiment previews only.
+Use a separate `samma-dev-web` container on loopback 2023 with isolated source,
+dependencies and build output. Share the existing synthetic DEV PostgreSQL,
+Garage and Keycloak; add exact DEV callback/logout URLs without wildcards.
+Keep host-only secure cookies, a separate DEV auth secret and canonical origin.
+Caddy uses the existing proxy network; validate and back up before reload.
+Commit this requested documentation/runtime scaffold directly on `dev` only
+as explicitly instructed; no main promotion or RC/experiment restart.
+See [request](../prompts/history/2026-09-06-dedicated-dev-runtime.md) and
+[operations](DEV-RUNTIME.md). Validation is limited to build and focused
+runtime/auth smoke checks, with no full regression suite.

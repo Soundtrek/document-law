@@ -1,0 +1,78 @@
+# Dedicated public DEV web only. Existing shared DEV services are external.
+name: samma-dev
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  web:
+    image: ${SAMMA_NODE_IMAGE:?Set pinned SAMMA_NODE_IMAGE in .env.nuc}
+    container_name: samma-dev-web
+    labels:
+      org.opencontainers.image.revision: ${SAMMA_DEPLOYED_SHA:?Set the validated application SHA}
+    user: "1000:1000"
+    working_dir: /app
+    init: true
+    command: ["npm", "run", "start", "--workspace", "@samma/web", "--", "-H", "0.0.0.0"]
+    env_file:
+      - /etc/samma-dev/dev-web.env
+      - /etc/samma-dev/storage.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://juanity:${SAMMA_DB_PASSWORD}@db:5432/juanity_law
+      SAMMA_ENV: development
+      SAMMA_BASE_URL: https://dev.samma.co.za
+      SAMMA_DEV_IDENTITY_ENABLED: "false"
+      SAMMA_STORAGE_DRIVER: s3
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_OPTIONS: --max-old-space-size=640
+      npm_config_cache: /tmp/npm-cache
+      SAMMA_SHOW_BUILD_OVERLAY: "true"
+      SAMMA_BUILD_CHANNEL: dev
+      SAMMA_BUILD_BRANCH: dev
+      SAMMA_BUILD_SHA: ${SAMMA_DEPLOYED_SHA}
+    ports:
+      - "127.0.0.1:2023:3000"
+    volumes:
+      - type: bind
+        source: ${SAMMA_DEV_RELEASE_DIR:?Set the isolated exact-dev release directory}
+        target: /app
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /srv/nuc-archive/juanity/object-storage/staging
+        target: /upload-staging
+        bind:
+          create_host_path: false
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks:
+      private: {}
+      proxy:
+        aliases: [samma-dev-web]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    mem_limit: ${SAMMA_WEB_MEMORY:-1g}
+    mem_reservation: 256m
+    memswap_limit: ${SAMMA_WEB_MEMORY:-1g}
+    cpus: ${SAMMA_WEB_CPUS:-0.75}
+    pids_limit: 256
+    restart: "no"
+    stop_grace_period: 30s
+    logging: *logging
+
+networks:
+  private:
+    external: true
+    name: juanity-dev
+  proxy:
+    external: true
+    name: caddy-net

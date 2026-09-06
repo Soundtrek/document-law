@@ -1,0 +1,3 @@
+dev.samma.co.za {
+	reverse_proxy samma-dev-web:3000
+}

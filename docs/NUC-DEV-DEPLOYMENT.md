@@ -1,5 +1,17 @@
 # Temporary NUC DEV deployment
 
+## Locked runtime map — 2026-09-06
+
+| Branch | Runtime | Purpose |
+| --- | --- | --- |
+| `experiment/*` | `http://192.168.1.152:2022` | Preview only |
+| `dev` | `https://dev.samma.co.za` | Full real DEV integration |
+| `main` | `https://samma.co.za` | RC |
+
+Do not deploy experiments to the DEV hostname or mix these runtimes.
+See [dedicated DEV operations](DEV-RUNTIME.md). Earlier runtime descriptions
+below are historical where they conflict with this map.
+
 ## Build identity for the next DEV / candidate deployment
 
 Use the [build overlay procedure](BUILD-VERSION-OVERLAY.md) for new builds.
