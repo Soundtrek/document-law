@@ -1,5 +1,9 @@
 # Real Authentication V1
 
+2026-09-06 registration completion preflight: **BLOCKED on dedicated SAMMA SMTP**.
+Public registration and email recovery remain disabled; no delivery is claimed.
+See [live findings and exact missing requirement](AUTH-REGISTRATION-V1-PREFLIGHT.md).
+
 Current deployment and remaining owner onboarding steps:
 [handoff report](REAL-AUTHENTICATION-V1-REPORT.md).
 
@@ -13,8 +17,10 @@ Governance permissions.
 - Public provider: `https://auth.samma.co.za`.
 - Fixed issuer: `https://auth.samma.co.za/realms/samma`.
 - Confidential client: `samma-web`.
-- Exact callback: `https://samma.co.za/api/auth/callback/keycloak`.
-- Exact post-logout destination: `https://samma.co.za/`.
+- Exact callbacks: `https://samma.co.za/api/auth/callback/keycloak` and
+  `https://dev.samma.co.za/api/auth/callback/keycloak`.
+- Exact post-logout destinations: `https://samma.co.za/` and
+  `https://dev.samma.co.za/`.
 - Auth.js Core 0.41.3 performs Authorization Code, S256 PKCE, state, nonce,
   token processing, CSRF and session-token generation. SAMMA implements its
   database adapter, not password hashing/recovery or session cryptography.

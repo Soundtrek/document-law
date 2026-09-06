@@ -549,3 +549,24 @@ The merge conflict was confined to appended decision-log entries; preserve both
 sets of decisions, numbering the dedicated runtime entry ADR-041 to avoid the
 independent ADR-039 collision. No onboarding/auth semantics changed.
 See the [captured request](../prompts/history/2026-09-06-onboarding-dev-promotion.md).
+
+## ADR-043 — Public auth completion gated by real SAMMA mail
+
+2026-09-06: Phil requested complete provider-owned registration, verification,
+password recovery and Person/Company onboarding on
+`experiment/auth-registration-v1` from current DEV. Preserve stable issuer/subject
+identity, fail closed on email collisions, require verified public email, grant
+only explicit initial company OWNER, and retain optional DEV MFA. Keep exact
+DEV/RC callbacks and host-only cookies; port 2022 is preview-only. Merge requires
+Phil's later approval.
+
+The explicit RED SMTP gate was reached in read-only preflight: Keycloak has no
+SMTP configuration and existing NUC authenticated mail is configured for another
+domain, with no identified SAMMA sender authorisation. Do not copy those
+credentials, invent a mail provider, fake verification or enable public flows.
+Resume once a dedicated SAMMA sender and suitable secure SMTP credentials are
+available outside Git under `/etc/samma-dev/`, mode 0600. Phil's provider required
+actions are complete; Juanita still requires UPDATE_PASSWORD. Preserve both
+identities and the bootstrap worksheet. No application/provider/runtime changes
+were made. See the [request](../prompts/2026-09-06-auth-registration-v1.md) and
+[preflight evidence](AUTH-REGISTRATION-V1-PREFLIGHT.md).

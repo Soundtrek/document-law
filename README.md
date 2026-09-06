@@ -2,6 +2,10 @@
 
 SAMMA is an employment records and document management system.
 
+Public auth/registration completion is **blocked on dedicated SAMMA SMTP**.
+Registration and email recovery remain disabled. See the
+[2026-09-06 preflight and missing requirement](docs/AUTH-REGISTRATION-V1-PREFLIGHT.md).
+
 **Employment Records & Document Management**
 
 The product is built around:
