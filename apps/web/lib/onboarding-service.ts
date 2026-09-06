@@ -1,6 +1,7 @@
 import type { createPrismaClient } from "@samma/database";
 import { verifiedOidcClaims } from "@samma/identity";
 import type { CompanySetupState } from "./onboarding-state";
+import { AuthEntryError } from "./auth-errors";
 
 type Database = ReturnType<typeof createPrismaClient>;
 
@@ -12,14 +13,20 @@ export async function resolveOnboardingIdentity(db: Database, issuer: string, pr
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify([issuer, claims.subject])}, 0))::text`;
     let identity = await tx.accountIdentity.findUnique({ where: { provider_providerSubject: { provider: issuer, providerSubject: claims.subject } }, include: { account: true } });
     if (!identity) {
-      if (!allowCreate) throw new Error("Choose an onboarding path first");
-      // The unique email constraint rejects a collision. Never attach a new subject by matching email.
-      const account = await tx.account.create({ data: { primaryEmail: claims.email, emailVerified: true } });
+      if (!allowCreate) throw new AuthEntryError("OnboardingRequired");
+      // Serialize different subjects presenting the same email, including case variants.
+      // This check rejects collisions; it never selects an Account for linking.
+      const email = claims.email.toLowerCase();
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"samma-registration-email:" + email}, 0))::text`;
+      if (await tx.account.findFirst({ where: { primaryEmail: { equals: email, mode: "insensitive" } }, select: { id: true } })) {
+        throw new AuthEntryError("EmailCollision");
+      }
+      const account = await tx.account.create({ data: { primaryEmail: email, emailVerified: true } });
       identity = await tx.accountIdentity.create({ data: { accountId: account.id, provider: issuer, providerSubject: claims.subject, emailAtProvider: claims.email }, include: { account: true } });
     }
     await tx.$queryRaw`SELECT "id" FROM "Account" WHERE "id" = ${identity.accountId} FOR UPDATE`;
     const account = await tx.account.findUniqueOrThrow({ where: { id: identity.accountId } });
-    if (account.status !== "ACTIVE" || !account.emailVerified) throw new Error("Verified active account required");
+    if (account.status !== "ACTIVE" || !account.emailVerified) throw new AuthEntryError("AccountUnavailable");
     let person = await tx.person.findUnique({ where: { accountId: account.id } });
     if (!person) {
       person = await tx.person.create({ data: { accountId: account.id, displayName: "Your personal account" } });

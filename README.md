@@ -2,6 +2,11 @@
 
 SAMMA is an employment records and document management system.
 
+Keycloak public registration, verified email and password recovery are enabled.
+Actual verification/reset mailbox checks pass. Application registration improvements
+await experiment review and approved DEV integration; see the
+[auth registration V1 report](docs/AUTH-REGISTRATION-V1-REPORT.md).
+
 **Employment Records & Document Management**
 
 The product is built around:

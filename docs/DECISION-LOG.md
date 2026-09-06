@@ -549,3 +549,65 @@ The merge conflict was confined to appended decision-log entries; preserve both
 sets of decisions, numbering the dedicated runtime entry ADR-041 to avoid the
 independent ADR-039 collision. No onboarding/auth semantics changed.
 See the [captured request](../prompts/history/2026-09-06-onboarding-dev-promotion.md).
+
+## ADR-043 — Public auth completion gated by real SAMMA mail
+
+2026-09-06: Phil requested complete provider-owned registration, verification,
+password recovery and Person/Company onboarding on
+`experiment/auth-registration-v1` from current DEV. Preserve stable issuer/subject
+identity, fail closed on email collisions, require verified public email, grant
+only explicit initial company OWNER, and retain optional DEV MFA. Keep exact
+DEV/RC callbacks and host-only cookies; port 2022 is preview-only. Merge requires
+Phil's later approval.
+
+The explicit RED SMTP gate was reached in read-only preflight: Keycloak has no
+SMTP configuration and existing NUC authenticated mail is configured for another
+domain, with no identified SAMMA sender authorisation. Do not copy those
+credentials, invent a mail provider, fake verification or enable public flows.
+Resume once a dedicated SAMMA sender and suitable secure SMTP credentials are
+available outside Git under `/etc/samma-dev/`, mode 0600. Phil's provider required
+actions are complete; Juanita still requires UPDATE_PASSWORD. Preserve both
+identities and the bootstrap worksheet. No application/provider/runtime changes
+were made. See the [request](../prompts/2026-09-06-auth-registration-v1.md) and
+[preflight evidence](AUTH-REGISTRATION-V1-PREFLIGHT.md).
+
+### ADR-043 continuation — owner supplied dedicated SMTP
+
+The owner supplied `no-reply@samma.co.za` mailbox settings and entered the password
+directly into a 0600 operator file. Mail DNS currently points to the web host, so
+use the existing hosting endpoint `wp13.host-ww.net:465`, whose TLS certificate
+also validates the SAMMA mail domain and which accepts the supplied mailbox
+credentials. Preserve normal certificate checks. No other product's credentials
+or runtime are reused. Dedicated provider verification/reset messages were
+retrieved only from an exact disposable tagged mailbox folder and their links
+tested; no existing mailbox content was fetched.
+
+Enable provider registration/recovery, retain verified-email/MFA boundaries, and
+apply a 12-character provider password policy plus a baseline common-password
+denylist. Native recovery lacks request throttling, and the existing Caddy has
+no rate-limit module. A bounded stock Nginx forward-auth gate (32 MB, 0.1 CPU)
+therefore protects provider login-action/recovery endpoints without handling
+passwords or changing the SAMMA architecture. Only the auth proxy route changed;
+disk/loaded proxy configuration and unrelated routes were verified.
+
+The application experiment adds `prompt=create`, preserves existing-session
+Company setup, rejects case-insensitive email collisions without linking, and
+maps safe auth errors. Existing owner identities/checklist remain untouched.
+No schema or records/storage functionality changed. Build/targeted validation
+and the [report](AUTH-REGISTRATION-V1-REPORT.md) precede Phil's merge gate; actual
+Person/Company browser acceptance on DEV remains after approved integration.
+No experiment callback/hostname, port-2022 auth exception or dev/main merge was added.
+
+## ADR-044 — Approved auth registration DEV promotion and acceptance
+
+2026-09-06: Phil approved normal merge of experiment/auth-registration-v1 at
+44fd91a into DEV, an exact DEV build/deployment, and real public browser
+Person/Company registration, verification, password recovery, session isolation
+and logout acceptance. Preserve main/RC application deployment and port 2022.
+Use proportional promotion checks; do not rerun validated suites when merged
+auth code is unchanged. Preserve Phil/Juanita and scope cleanup only to fresh
+disposable test accounts and SAMMA Auth Test Company. The existing shared
+Keycloak realm/client means its registration/SMTP/recovery policies affect both
+DEV and RC sign-in; report that independently of unchanged RC application code.
+Stop for Phil after DEV acceptance; no main promotion is authorised. See the
+[captured request](../prompts/2026-09-06-auth-registration-dev-promotion.md).

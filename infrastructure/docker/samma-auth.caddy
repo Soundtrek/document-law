@@ -1,4 +1,13 @@
 auth.samma.co.za {
+	@mailActions path /realms/samma/login-actions/* /realms/samma/protocol/openid-connect/forgot-credentials*
+	forward_auth @mailActions samma-auth-limit:8080 {
+		uri /check
+		header_up X-Samma-Client {remote_host}
+		# No callback parameters, credentials or cookies enter the rate-limit gate.
+		header_up -Cookie
+		header_up -Authorization
+		header_up X-Forwarded-Uri /check
+	}
 	@oidc path /realms/samma/* /resources/* /robots.txt
 	handle @oidc {
 		reverse_proxy samma-keycloak:8080
