@@ -504,3 +504,18 @@ synthetic database and loopback candidate. Push the experiment for Phil's review
 **do not merge to dev or touch main without approval**. See the
 [captured request](../prompts/2026-09-05-onboarding-person-company.md) and
 [validation report](ONBOARDING-PERSON-COMPANY-REPORT.md).
+
+## ADR-040 — Approved overlay promotion and one LAN experiment slot
+
+2026-09-06: Phil visually approved the overlay at `deed84b` for fast-forward
+promotion into dev. Rebase the existing onboarding experiment onto that dev,
+with only straightforward conflict resolution and proportional build checks.
+Preserve both features; do not merge onboarding into dev before Phil approves.
+
+Reserve `192.168.1.152:2022` exclusively for a single experiment build. Phil uses
+`http://192.168.1.152:2022`; never run dev/main there or allocate additional
+experiment ports. Replace only the previous experiment runtime after the exact
+new experiment SHA is built with an enabled, immutable experiment overlay.
+Keep samma.co.za, main and shared services unchanged. Smoke-check the entry UI,
+health and badge, then stop for Phil. This supersedes the earlier loopback-only
+experiment inspection instructions. See the [captured request](../prompts/history/2026-09-06-overlay-promotion-onboarding-lan.md).
