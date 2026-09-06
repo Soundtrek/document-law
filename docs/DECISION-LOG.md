@@ -767,3 +767,12 @@ Merge the validated experiment to dev; no main promotion. See
 - The POST carries `onboardingChoice=COMPANY` and the strictly validated `onboardingAction=resume-company`. It reuses Auth.js CSRF/origin checks and existing encrypted 15-minute OAuth-state-bound onboarding cookies, while omitting registration prompt. Raw query fields remain ignored.
 - Verified issuer/subject account resolution, Person branching, ordinary sign-in, setup expiry and explicit Company/member/OWNER creation remain unchanged. No Keycloak configuration or schema change.
 - User authorised focused validation, normal experiment → dev merge and DEV deployment; main is excluded. Live acceptance uses a fresh synthetic incomplete identity, preserving company3.
+
+
+## 2026-09-06 — Governance Person / Company filter semantics correction
+
+- User authorised experiment/fix-governance-user-filter-semantics from current dev, focused validation, merge to dev and DEV deployment; main is excluded. Request: `prompts/2026-09-06-fix-governance-user-filter-semantics.txt`.
+- Supersedes the earlier directory Person predicate: Person now requires a Person row and no ACTIVE company membership. Inactive/historical memberships do not exclude the Account. Company user continues to require at least one ACTIVE membership. These two directory views are mutually exclusive.
+- Governance keeps the existing unrevoked capability-grant predicate and may overlap with either view. All, search, pagination, membership counts, permissions and the underlying identity model are unchanged. No schema or onboarding changes.
+- Focused validation covers mixed active/historical memberships, all inactive statuses, Governance overlap/revocation, All and combined name/email searches. Full suite rerun: NO.
+- Pre-merge validation: 8/8 targeted directory database tests passed against a new disposable PostgreSQL instance; affected web typecheck, file-scoped ESLint and browser-harness syntax check passed. The browser harness Person expectation is updated from four fixture Accounts to two. No application database fixtures were changed.

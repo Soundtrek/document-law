@@ -26,7 +26,7 @@ if (!base || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base)) throw new Error('Loopbac
       await page.goto('https://directory.example.test/governance/users');
       const filters = page.getByRole('navigation', { name: 'User filters', exact: true });
       await filters.waitFor();
-      for (const [label, count] of [['All', 5], ['Person', 4], ['Company user', 2], ['Governance', 2]]) {
+      for (const [label, count] of [['All', 5], ['Person', 2], ['Company user', 2], ['Governance', 2]]) {
         await filters.getByRole('link', { name: label, exact: true }).click();
         await page.waitForFunction(expected => document.querySelector('[aria-label="User filters"] [aria-current="page"]')?.textContent === expected, label);
         await page.waitForFunction(expected => document.querySelectorAll('.directory-table tbody tr').length === expected, count);
@@ -52,7 +52,7 @@ if (!base || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base)) throw new Error('Loopbac
     await page.getByRole('link', { name: 'Alex Example', exact: true }).waitFor();
     await page.getByRole('link', { name: 'Clear', exact: true }).click();
     await page.waitForURL('**/governance/users?view=person');
-    assert.equal(await page.locator('tbody tr').count(), 4);
+    assert.equal(await page.locator('tbody tr').count(), 2);
     for (const query of ['view=invalid', 'view=company&view=person']) {
       await page.goto('https://directory.example.test/governance/users?' + query);
       assert.equal(await page.locator('tbody tr').count(), 5);

@@ -20,7 +20,9 @@ export function governanceUserDirectory(db: Database, authorise: Authorise) {
       const query = search.trim().slice(0, 200);
       const currentPage = Number.isSafeInteger(page) && page > 0 && page <= 10000 ? page : 1;
       const view = normaliseView(requestedView);
-      const filter: Prisma.AccountWhereInput = view === "person" ? { person: { isNot: null } }
+      const filter: Prisma.AccountWhereInput = view === "person" ? {
+        person: { isNot: null }, companyMemberships: { none: { status: "ACTIVE" } },
+      }
         : view === "company" ? { companyMemberships: { some: { status: "ACTIVE" } } }
         : view === "governance" ? { governanceGrants: { some: { revokedAt: null } } }
         : {};

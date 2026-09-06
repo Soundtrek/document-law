@@ -1,0 +1,16 @@
+SAMMA — FIX GOVERNANCE PERSON / COMPANY FILTER SEMANTICS
+
+Correct only Governance directory query/filter semantics:
+- All: all Governance-visible Accounts.
+- Person: Person exists AND no ACTIVE CompanyMembership. Historical/inactive memberships do not exclude a Person.
+- Company user: at least one ACTIVE CompanyMembership.
+- Governance: existing active/non-revoked capability grant logic; may overlap with either classification.
+Person and Company user must be mutually exclusive. company1 and company4 must not appear under Person while active Company members.
+
+Preserve the underlying Account/Person identity model, current membership counts, authorisation and grants. No account type, migration, onboarding or CompanyMember changes.
+
+Validate only targeted Governance directory tests and affected typecheck/lint; production build for deployment. Cover no memberships, active memberships, historical memberships, Governance overlap, All and search + filters. Full suite rerun: NO.
+
+Create experiment/fix-governance-user-filter-semantics from current dev. After focused validation merge to dev and deploy dev.samma.co.za. Do not touch main. Check https://dev.samma.co.za/governance/users and confirm company1 is excluded from Person.
+
+Final report: STATUS PASS/BLOCKED; filter semantics; targeted validation and full suite NO; commit and deployed SHA; main unchanged.

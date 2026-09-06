@@ -41,6 +41,7 @@ before(async () => {
   ] });
   await db.company.createMany({ data: [{ id: "company-a", name: "Directory Company A" }, { id: "company-b", name: "Unrelated Company B" }] });
   await db.companyMember.create({ data: { id: "owner-member", companyId: "company-a", accountId: "owner", status: "ACTIVE", roleGrants: { create: { functionalRoleId: "owner-role" } } } });
+  await db.companyMember.create({ data: { companyId: "company-b", accountId: "owner", status: "REMOVED" } });
   await db.companyMember.create({ data: { id: "person-member", companyId: "company-a", accountId: "person", status: "DISABLED", roleGrants: { create: [
     { functionalRoleId: "hr-role" }, { functionalRoleId: "owner-role", revokedAt: expired }, { functionalRoleId: "disabled-role" },
   ] } } });
@@ -74,22 +75,33 @@ test("normal person, company OWNER, missing/revoked sessions and unverified/susp
   }
   await db.account.update({ where: { id: "reviewer" }, data: { emailVerified: true, status: "ACTIVE" } });
 });
-test("directory views overlap and use Person linkage, active memberships and unrevoked grants", async () => {
+test("Person and Company views are exclusive while Governance overlaps with either", async () => {
   const ids = async (view: string, query = "") => (await directory.list(query, 1, view)).users.map(user => user.id).sort();
   assert.deepEqual(await ids("all"), ["empty", "owner", "person", "reviewer", "unrelated"]);
-  assert.deepEqual(await ids("person"), ["owner", "person", "reviewer", "unrelated"]);
+  // Reviewer has no memberships; person has only a disabled membership.
+  // Owner has both an active and a historical membership and must not be Person.
+  assert.deepEqual(await ids("person"), ["person", "reviewer"]);
   assert.deepEqual(await ids("company"), ["owner", "unrelated"]);
   assert.deepEqual(await ids("governance"), ["owner", "reviewer"]);
   for (const membershipStatus of ["INVITED", "DISABLED", "REMOVED"] as const) {
     await db.companyMember.update({ where: { id: "owner-member" }, data: { status: membershipStatus } });
+    assert.deepEqual(await ids("person"), ["owner", "person", "reviewer"]);
     assert.deepEqual(await ids("company"), ["unrelated"]);
+    assert.deepEqual(await ids("governance"), ["owner", "reviewer"]);
   }
   await db.companyMember.update({ where: { id: "owner-member" }, data: { status: "ACTIVE" } });
+  assert.deepEqual(await ids("person"), ["person", "reviewer"]);
+  assert.deepEqual(await ids("company"), ["owner", "unrelated"]);
   await db.governanceCapabilityGrant.updateMany({ where: { accountId: "owner" }, data: { revokedAt: new Date() } });
   assert.deepEqual(await ids("governance"), ["reviewer"]);
   await db.governanceCapabilityGrant.updateMany({ where: { accountId: "owner" }, data: { revokedAt: null } });
   assert.deepEqual(await ids("company", "Company OWNER"), ["owner"]);
   assert.deepEqual(await ids("company", "Alex"), []);
+  assert.deepEqual(await ids("person", "aLeX"), ["person"]);
+  assert.deepEqual(await ids("person", "OWNER@directory.example.test"), []);
+  assert.deepEqual(await ids("person", "REVIEWER@directory.example.test"), ["reviewer"]);
+  assert.deepEqual(await ids("governance", "REVIEWER@directory.example.test"), ["reviewer"]);
+  assert.deepEqual(await ids("governance", "Company OWNER"), ["owner"]);
   assert.deepEqual(await ids("person", "EMPTY@directory.example.test"), []);
   assert.deepEqual(await ids("governance", "person@directory.example.test"), []);
   for (const view of ["", "invalid", "COMPANY", "__proto__"]) {
