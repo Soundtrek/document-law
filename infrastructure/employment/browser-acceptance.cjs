@@ -106,11 +106,13 @@ async function screenshot(page, label) {
       await owner.page.getByRole('link', { name: 'Add person', exact: true }).click();
       results.companyId = new URL(owner.page.url()).searchParams.get('companyId');
       await owner.page.getByLabel('Email address').fill(email);
+      const sentResponse = owner.page.waitForResponse(response => response.url() === base + '/api/employment-invitations' && response.request().method() === 'POST');
       await owner.page.getByRole('button', { name: 'Send invite', exact: true }).click();
       await owner.page.getByRole('heading', { name: 'Invitation sent', exact: true }).waitFor();
       const message = await mailFor(email, true);
       assert.equal(message.Subject, 'SAMMA — Employment records invitation from ' + companyName);
       assert.ok(message.Text.includes(base + '/person')); assert.ok(!message.Text.includes('token='));
+      return (await sentResponse).json();
     }
     stage = 'existing Person invitation';
     await send(users.existing.email); await screenshot(owner.page, 'company-pending');
@@ -125,7 +127,8 @@ async function screenshot(page, label) {
     assert.equal(await existing.page.getByRole('link', { name: 'Company Info Center', exact: true }).count(), 0);
     await screenshot(existing.page, 'person-active');
     stage = 'new Person invitation before registration';
-    await send(users.new.email);
+    const newInvitation = await send(users.new.email);
+    for (const action of ['accept', 'decline']) assert.equal((await existing.context.request.post(base + '/api/employment-invitations', { headers: { Origin: base, 'X-SAMMA-CSRF': personCsrf }, data: { action, invitationId: newInvitation.invitationId } })).status(), 403);
     databaseCheck('before-new');
     const newcomer = await register(browser, 'new', 'Person');
     // Normal verified login also finds the inbox, independent of registration continuation.
@@ -136,6 +139,7 @@ async function screenshot(page, label) {
     await fresh.page.locator('#companies').getByText(companyName + ' · ACTIVE', { exact: true }).waitFor();
     await owner.page.goto(base + '/company');
     assert.equal(await owner.page.getByRole('link', { name: 'Add record', exact: true }).count(), 2);
+    for (const label of ['existing', 'new']) assert.ok((await owner.page.locator('body').innerText()).includes(users[label].email));
     await screenshot(owner.page, 'company-people');
     stage = 'CSRF and company authorization';
     const requestData = { action: 'send', companyId: results.companyId, email: users.existing.email };

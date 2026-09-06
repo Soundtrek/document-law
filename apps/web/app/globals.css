@@ -313,3 +313,5 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .employment-invitation { padding: 1rem 0; border-bottom: 1px solid var(--line, #ddd); overflow-wrap: anywhere; }
 .employment-invitation:last-child { border-bottom: 0; }
 .employment-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+.employment-person { overflow-wrap: anywhere; }
