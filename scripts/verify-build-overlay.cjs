@@ -20,11 +20,12 @@ const base = process.env.SAMMA_CANDIDATE_URL || 'http://127.0.0.1:2031';
         assert.ok((await badge.innerText()).includes(health.build.branch.replace(/^experiment\//, '')));
         const placement = await badge.evaluate(node => {
           const box = node.getBoundingClientRect();
-          return { left: box.left, right: box.right, height: box.height, display: getComputedStyle(node).display };
+          return { left: box.left, right: box.right, height: box.height, display: getComputedStyle(node).display, position: getComputedStyle(node).position };
         });
         if (width === 390) {
           assert.equal(placement.left, 12, 'mobile badge uses the safe left edge');
           assert.equal(placement.display, 'flex', 'mobile badge keeps its metadata on one line');
+          assert.equal(placement.position, 'static', 'mobile badge has its own space after the page content');
           assert.ok(placement.height < 30, 'mobile badge stays compact');
         } else {
           assert.equal(placement.right, width - 12, 'desktop/tablet badge retains its right edge');
@@ -43,7 +44,8 @@ const base = process.env.SAMMA_CANDIDATE_URL || 'http://127.0.0.1:2031';
           });
           assert.equal(geometry.overflow, false, `${width} ${path} overflow`);
           assert.deepEqual(geometry.overlaps, [], `${width} ${path} control overlap`);
-          assert.ok(geometry.left >= 0 && geometry.right <= width - 10 && geometry.bottom <= geometry.height - 10);
+          assert.ok(geometry.left >= 0 && geometry.right <= width - 10);
+          if (width !== 390) assert.ok(geometry.bottom <= geometry.height - 10);
           assert.equal(geometry.pointerEvents, 'none');
         }
         await badge.locator('.build-overlay-branch').evaluate(node => { node.textContent = 'long-branch-'.repeat(18); });

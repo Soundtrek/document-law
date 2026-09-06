@@ -267,7 +267,8 @@ body[data-build-overlay="true"] { padding-bottom: calc(64px + env(safe-area-inse
 .build-overlay-version { display: flex; white-space: nowrap; }
 .build-overlay-branch { overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 600px) {
-  .build-overlay { left: max(12px, env(safe-area-inset-left, 0px)); right: auto; display: flex; align-items: center; gap: 6px; font-size: 0.625rem; padding: 5px 8px; max-width: min(230px, calc(100vw - 24px)); }
+  body[data-build-overlay="true"] { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .build-overlay { position: static; display: flex; align-items: center; gap: 6px; width: fit-content; margin: 12px max(12px, env(safe-area-inset-left, 0px)); font-size: 0.625rem; padding: 5px 8px; max-width: min(230px, calc(100vw - 24px)); }
   .build-overlay strong { flex-shrink: 0; font-size: 0.6rem; }
   .build-overlay-version { min-width: 0; }
 }

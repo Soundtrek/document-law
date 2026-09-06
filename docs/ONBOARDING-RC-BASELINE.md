@@ -91,6 +91,8 @@ This was an operator NUC DEV schema repair, not an application migration. The hi
 
 ### Mobile-only overlay correction
 
-At widths up to 600px, retain the existing badge colours, typography, metadata and pointer-event behaviour, but place it at the lower-left safe edge in a compact single line. Keep channel, branch and short SHA; allow long branches to truncate while preserving the SHA. Desktop/tablet styling stays unchanged. The focused harness additionally checks the Company resume page, 390px left-edge/compact placement, and unchanged desktop/tablet right-edge/stacked placement. Initial browser CSS probes pass on onboarding, sign-in and Company resume at top/middle/bottom scroll positions.
+At widths up to 600px, retain the existing badge colours, typography, metadata and pointer-event behaviour, but place it in its own compact single line after the page content, aligned to the lower-left safe edge. Keep channel, branch and short SHA; allow long branches to truncate while preserving the SHA. Desktop/tablet styling stays unchanged. The focused harness additionally checks the Company resume page, 390px left-edge/compact placement, and unchanged desktop/tablet right-edge/stacked placement. Initial browser CSS probes pass on onboarding, sign-in and Company resume at top/middle/bottom scroll positions.
 
 Focused final validation and exact release SHAs will be recorded after candidate checks and deployment. Main is unchanged until the schema, overlay and build gates pass. NUC shared data and Mailpit remain; Rackzar is untouched.
+
+- Visual refinement: the first floating compact placement passed control checks but covered ordinary hint text. Mobile positioning now participates in document flow, after content, so it cannot cover either text or controls. It appears at the foot of the page when scrolling; desktop remains fixed. The browser harness verifies this positioning explicitly.
