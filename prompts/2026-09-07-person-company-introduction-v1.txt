@@ -1,0 +1,755 @@
+SAMMA — PERSON ↔ COMPANY INTRODUCTION V1
+BUILD DIRECTLY ON DEV
+
+GOAL
+
+Build the simple employer/employee introduction flow on current DEV.
+
+Current runtime:
+
+dev
+→ https://dev.samma.co.za
+
+main
+→ https://samma.co.za
+
+experiment/*
+→ http://192.168.1.152:2022
+
+Work directly on:
+
+dev
+
+Do NOT touch main.
+
+Do NOT change Keycloak/auth flows.
+
+Do NOT reintroduce the archived broad invitation/workflow system.
+
+==================================================
+TARGET PRODUCT FLOW
+==================================================
+
+COMPANY
+
+Company Info Center
+→ People
+→ Add person
+→ enter email
+→ Send invite
+
+PERSON
+
+If existing SAMMA user:
+→ sign in normally
+→ Personal Info Center
+→ Pending invitations
+→ Accept
+→ PersonCompanyRelationship becomes ACTIVE
+
+If new SAMMA user:
+→ register as Person normally
+→ verify in Mailpit
+→ sign in
+→ Personal Info Center
+→ Pending invitations
+→ Accept
+→ PersonCompanyRelationship becomes ACTIVE
+
+Important:
+
+Company does NOT create the Person account.
+
+Person does NOT become CompanyMember.
+
+CompanyMember
+= someone operating SAMMA for the company
+
+PersonCompanyRelationship
+= employer/employee relationship
+
+==================================================
+1. MIGRATION
+==================================================
+
+Add one small table:
+
+EmploymentInvitation
+
+Suggested fields:
+
+id
+companyId
+invitedEmail
+invitedAccountId nullable
+invitedByAccountId
+tokenHash unique
+createdAt
+expiresAt
+acceptedAt nullable
+declinedAt nullable
+revokedAt nullable
+relationshipId nullable
+
+Employment purpose is implicit.
+
+Do NOT add an invitation-kind enum.
+
+Use normalized email.
+
+Add suitable indexes/constraints for:
+
+- tokenHash uniqueness
+- company/email lookup
+- open invitation lookup
+
+Preserve completed invitation history.
+
+Do not alter PersonCompanyRelationship fields.
+
+==================================================
+2. INVITATION RULES
+==================================================
+
+Company-side caller must have:
+
+company.members.manage
+
+Current expected role:
+OWNER
+
+Server must verify:
+
+- authenticated Account
+- active CompanyMember
+- current unrevoked capability
+- target company matches membership
+
+Sending creates only EmploymentInvitation.
+
+It must NOT create:
+
+- Account
+- Person
+- CompanyMember
+- relationship
+- functional roles
+
+==================================================
+3. EXISTING ACCOUNT BINDING
+==================================================
+
+When sending:
+
+If invited email belongs to an existing verified SAMMA Account:
+
+store:
+
+invitedAccountId
+
+as an additional recipient binding.
+
+If no SAMMA Account exists:
+
+leave invitedAccountId null.
+
+Do NOT create fake Account/Person.
+
+Do NOT merge identities by email.
+
+==================================================
+4. DUPLICATE INVITES
+==================================================
+
+For same:
+
+company + normalized email
+
+allow only one open invitation at a time.
+
+If an open valid invitation already exists:
+
+return the existing pending state rather than creating duplicates.
+
+Completed:
+
+accepted
+declined
+revoked
+expired
+
+remain historical.
+
+A future re-invite may create a new invitation when there is no open invitation.
+
+Keep this simple.
+
+==================================================
+5. TOKEN SECURITY
+==================================================
+
+Generate:
+
+32 random bytes
+
+Store only:
+
+SHA-256(token)
+
+Raw token must never be stored in DB, logs or audit.
+
+Expiry:
+
+24 hours for DEV unless current policy specifies another sensible value.
+
+Email link may carry raw token in URL fragment so it is not sent in the initial HTTP request.
+
+Example conceptual link:
+
+https://dev.samma.co.za/person/invitations#token=<raw-token>
+
+Client should:
+
+- read fragment
+- clear it from browser history
+- submit token only through same-origin POST
+
+But:
+
+the authenticated invitation inbox must NOT require the raw token.
+
+Once SAMMA has authenticated the intended verified recipient, acceptance from the inbox can use:
+
+invitation ID
++
+CSRF
++
+server-side recipient authorization
+
+This is the preferred normal flow.
+
+==================================================
+6. APP MAIL ABSTRACTION
+==================================================
+
+Add a very small provider-neutral mail boundary.
+
+Example concept:
+
+MailProvider
+
+with DEV implementation:
+
+SMTPMailProvider
+
+Do NOT tie domain services directly to Mailpit.
+
+DEV config should point the app SMTP client to Mailpit.
+
+==================================================
+7. MAILPIT NETWORKING
+==================================================
+
+Current issue:
+
+SAMMA app cannot resolve Mailpit because they do not share the needed Docker network.
+
+Fix DEV networking narrowly so the SAMMA web container can reach:
+
+samma-mailpit:1025
+
+Mailpit SMTP remains private.
+
+Do NOT expose SMTP publicly.
+
+Do NOT change Keycloak Mailpit configuration.
+
+Keycloak continues using Mailpit for auth mail.
+
+SAMMA app now also uses Mailpit for employment invitation mail.
+
+==================================================
+8. DEV MAIL CONFIG
+==================================================
+
+Use config such as:
+
+SAMMA_MAIL_DRIVER=smtp
+SAMMA_SMTP_HOST=samma-mailpit
+SAMMA_SMTP_PORT=1025
+SAMMA_SMTP_SECURE=false
+SAMMA_MAIL_FROM=no-reply@samma.co.za
+
+Keep provider-neutral naming.
+
+No credentials required for current Mailpit DEV SMTP.
+
+Future RC can switch implementation/config without changing invitation domain logic.
+
+==================================================
+9. INVITATION EMAIL
+==================================================
+
+Keep email simple.
+
+Subject:
+
+SAMMA — Employment records invitation from <Company>
+
+Body concept:
+
+<Company> has invited you to connect on SAMMA for employment records.
+
+If you already have a SAMMA account:
+Sign in and open Pending invitations.
+
+If you're new to SAMMA:
+Create a Person account using this email address, verify it, then open Pending invitations.
+
+[Open SAMMA]
+
+Optionally include the secure token link as a convenience.
+
+Do not include:
+
+- documents
+- legal details
+- employment-sensitive data
+- passwords
+
+==================================================
+10. COMPANY UI
+==================================================
+
+On Company Info Center:
+
+add a People section if not already present.
+
+Add:
+
+[ Add person ]
+
+Route can be:
+
+/company/people/add?companyId=<id>
+
+or existing equivalent.
+
+Form:
+
+Email address
+
+[ Send invite ]
+
+Keep it minimal.
+
+After send:
+
+show:
+
+Invitation sent
+Pending acceptance
+
+Do not add onboarding questionnaires or HR forms.
+
+==================================================
+11. PERSON INFO CENTER
+==================================================
+
+Add:
+
+Pending invitations
+
+Only when invitations exist.
+
+Show:
+
+Company name
+Invited email
+Expires
+[ Accept ]
+[ Decline ]
+
+If none:
+
+omit the section or use a small empty state.
+
+Do not add a notification center.
+
+==================================================
+12. ACCEPTANCE AUTHORIZATION
+==================================================
+
+On Accept:
+
+server verifies:
+
+- authenticated Account
+- Account active
+- email verified
+- invitation pending
+- not expired
+- not revoked
+- not declined
+- not already accepted
+- normalized Account email matches invitedEmail
+- if invitedAccountId exists, it equals current Account ID
+- inviter still had valid company invitation capability when required by current policy
+- company still valid
+
+Wrong account:
+DENIED
+
+==================================================
+13. RELATIONSHIP ACCEPTANCE
+==================================================
+
+Accept in one safe transaction.
+
+Rules:
+
+If an ACTIVE relationship already exists:
+- do not create duplicate
+- mark invitation resolved appropriately/idempotently
+
+If matching PENDING relationship exists:
+- activate it
+
+If no current relationship exists:
+- create ACTIVE EMPLOYMENT relationship
+
+If only FORMER/ENDED historical relationship exists:
+- preserve history
+- create a new ACTIVE relationship
+
+Do not rewrite historical rows.
+
+==================================================
+14. CONCURRENCY
+==================================================
+
+Protect against double acceptance.
+
+Use transaction/locking/serialization suitable for current PostgreSQL patterns.
+
+Two concurrent accepts must not create duplicate active relationships.
+
+Same-account retry after success should return the existing relationship/result.
+
+==================================================
+15. DECLINE
+==================================================
+
+Person may click:
+
+Decline
+
+Set:
+
+declinedAt
+
+Do not create relationship.
+
+Keep historical invitation row.
+
+No extra workflow.
+
+==================================================
+16. REVOKE
+==================================================
+
+Company user with company.members.manage can revoke a pending invitation.
+
+Set:
+
+revokedAt
+
+Do not delete it.
+
+Do not affect already accepted relationship.
+
+==================================================
+17. AUDIT
+==================================================
+
+Use current ActivityEvent system.
+
+Record equivalents of:
+
+EMPLOYMENT_INVITATION_CREATED
+EMPLOYMENT_INVITATION_REVOKED
+EMPLOYMENT_INVITATION_ACCEPTED
+EMPLOYMENT_INVITATION_DECLINED
+EMPLOYMENT_RELATIONSHIP_ACTIVATED
+
+Do not log:
+
+- raw token
+- full email in summary if avoidable
+- Mailpit payload
+- session details
+
+Use stable IDs where practical.
+
+==================================================
+18. AUTH
+==================================================
+
+NO KEYCLOAK CHANGES.
+
+Do not change:
+
+- registration
+- email verification
+- recovery
+- sessions
+- logout
+- onboarding intent
+
+The invitation inbox approach exists specifically so this feature does not depend on auth continuation state.
+
+==================================================
+19. COMPANY MEMBERSHIP SEPARATION
+==================================================
+
+Acceptance must NOT create CompanyMember.
+
+This is critical.
+
+After acceptance:
+
+Person
+↔ PersonCompanyRelationship
+↔ Company
+
+NOT:
+
+Person
+→ CompanyMember
+
+CompanyMember remains for company operators only.
+
+==================================================
+20. TARGETED TESTS
+==================================================
+
+Use focused tests only.
+
+Existing verified user:
+
+- invite
+- appears in Person inbox
+- accept
+- ACTIVE relationship
+- no CompanyMember
+
+New user:
+
+- invite unknown email
+- no fake Account
+- later registered verified Person sees invite
+- accepts successfully
+
+Security:
+
+- wrong email/account denied
+- pinned wrong Account denied
+- expired denied
+- revoked denied
+- declined denied
+- token hash only
+- raw token absent from DB/audit
+- unauthorised company role cannot invite
+- Company OWNER/capability path works
+
+Relationships:
+
+- existing ACTIVE no duplicate
+- matching PENDING activates
+- FORMER/ENDED preserved
+- rehire creates new ACTIVE
+- concurrent accept produces one active result
+
+Mail:
+
+- Mailpit receives employment invitation
+
+==================================================
+21. DATABASE SAFETY
+==================================================
+
+Before migration:
+
+- take focused DEV PostgreSQL backup
+- review generated SQL
+
+Apply migration to DEV.
+
+After migration:
+
+- migration status PASS
+- schema zero-diff PASS
+
+No destructive conversion.
+
+==================================================
+22. PROPORTIONAL VALIDATION
+==================================================
+
+Run:
+
+- targeted invitation/relationship tests
+- Prisma generate/validate
+- migration status/zero-diff
+- affected typecheck/lint
+- production build
+- audit gate if dependency graph changed
+
+Do NOT rerun unrelated full auth/storage/legal suites unless touched.
+
+==================================================
+23. DEV DEPLOYMENT
+==================================================
+
+Commit directly on dev in focused commits.
+
+Suggested:
+
+feat: add employment invitations
+
+feat: add company person introduction flow
+
+or one coherent commit if tightly coupled.
+
+Push dev normally.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+24. LIVE ACCEPTANCE
+==================================================
+
+Test manually on DEV.
+
+EXISTING PERSON CASE
+
+Company user:
+→ Add person
+→ invite existing Person email
+
+Person:
+→ sign in
+→ Pending invitations
+→ Accept
+
+Confirm:
+
+- relationship ACTIVE
+- no CompanyMember created
+- Company sees person under People
+- Person sees company relationship in Personal Info Center
+
+NEW PERSON CASE
+
+Company:
+→ invite new email
+
+Mailpit:
+→ invitation received
+
+New user:
+→ register as Person
+→ verify
+→ sign in
+→ Pending invitations
+→ Accept
+
+Confirm same result.
+
+==================================================
+25. UI ACCEPTANCE
+==================================================
+
+Keep UI simple.
+
+Company:
+
+People
+[ Add person ]
+
+Person:
+
+Pending invitations
+[ Accept ] [ Decline ]
+
+No dashboards.
+No workflow engine.
+No extra tabs unless already present.
+
+==================================================
+STOP FOR PHIL
+==================================================
+
+After DEV live acceptance:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+MIGRATION
+- table
+- backup
+- status
+- zero-diff
+
+COMPANY
+- capability
+- Add person
+- revoke
+
+PERSON
+- invitation inbox
+- Accept
+- Decline
+
+MAIL
+- app MailProvider
+- Mailpit delivery
+
+RELATIONSHIP
+- PENDING/ACTIVE/history behavior
+- no CompanyMember creation
+
+SECURITY
+- recipient binding
+- expiry
+- token hashing
+- concurrency
+- wrong-user denial
+
+AUTH
+- changed: NO
+
+VALIDATION
+- focused tests
+- full suite rerun: NO
+
+DEV
+- commit(s)
+- deployed SHA
+- health
+
+MAIN
+- unchanged
+
+STOPPED FOR PHIL APPROVAL

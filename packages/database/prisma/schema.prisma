@@ -103,6 +103,8 @@ model Account {
   status              AccountStatus                  @default(ACTIVE)
   createdAt           DateTime                       @default(now())
   updatedAt           DateTime                       @updatedAt
+  employmentInvitationsReceived EmploymentInvitation[] @relation("EmploymentRecipient")
+  employmentInvitationsSent EmploymentInvitation[] @relation("EmploymentInviter")
   authSessions        AuthSession[]
   identities          AccountIdentity[]
   person              Person?
@@ -146,6 +148,7 @@ model Company {
   status        CompanyStatus               @default(ACTIVE)
   createdAt     DateTime                    @default(now())
   updatedAt     DateTime                    @updatedAt
+  employmentInvitations EmploymentInvitation[]
   members       CompanyMember[]
   relationships PersonCompanyRelationship[]
   records       Record[]                    @relation("CompanyRecords")
@@ -209,6 +212,7 @@ model PersonCompanyRelationship {
   records           Record[]           @relation("RelationshipRecords")
   legalAccessGrants LegalAccessGrant[]
   actions           ActionRequest[]
+  employmentInvitations EmploymentInvitation[]
 
   @@index([personId, status])
   @@index([companyId, status])
@@ -445,4 +449,28 @@ model AuthRateLimit {
   count Int
   expires DateTime
   @@index([expires])
+}
+
+// Employment only. Expired rows remain history; open sends serialize by company/email.
+model EmploymentInvitation {
+  id                 String   @id @default(cuid())
+  companyId          String
+  invitedEmail       String
+  invitedAccountId   String?
+  invitedByAccountId String
+  tokenHash          String   @unique
+  createdAt          DateTime @default(now())
+  expiresAt          DateTime
+  acceptedAt         DateTime?
+  declinedAt         DateTime?
+  revokedAt          DateTime?
+  relationshipId     String?
+  company            Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  invitedAccount     Account? @relation("EmploymentRecipient", fields: [invitedAccountId], references: [id], onDelete: Restrict)
+  invitedByAccount   Account @relation("EmploymentInviter", fields: [invitedByAccountId], references: [id], onDelete: Restrict)
+  relationship       PersonCompanyRelationship? @relation(fields: [relationshipId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, invitedEmail])
+  @@index([invitedEmail, expiresAt])
+  @@index([companyId, acceptedAt, declinedAt, revokedAt, expiresAt], map: "EmploymentInvitation_open_idx")
 }

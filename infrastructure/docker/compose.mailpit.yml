@@ -31,7 +31,7 @@ services:
       options: { max-size: "1m", max-file: "2" }
 networks:
   # Docker cannot publish the LAN inbox from an internal-only attachment.
-  # This bridge contains Mailpit alone; only the UI port is published.
+  # DEV web also joins this bridge for app mail; only the UI port is published.
   inbox:
     name: samma-mailpit-inbox
     # NUC automatic pools are exhausted; checked against Docker and host routes.

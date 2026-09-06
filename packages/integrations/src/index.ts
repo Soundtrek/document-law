@@ -34,3 +34,5 @@ export class UnconfiguredLearningProvider implements LearningProvider {
     throw new Error("Learning provider is not configured in Document Knowledge Engine V1");
   }
 }
+
+export { SMTPMailProvider, configuredMailProvider, type MailProvider, type MailMessage } from "./mail";

@@ -20,7 +20,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "@samma/database": "*",
-    "@samma/application": "*"
+    "@samma/application": "*",
+    "@samma/integrations": "*"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",

@@ -27,6 +27,12 @@ services:
       SAMMA_BASE_URL: https://dev.samma.co.za
       SAMMA_DEV_IDENTITY_ENABLED: "false"
       SAMMA_STORAGE_DRIVER: s3
+      SAMMA_MAIL_DRIVER: smtp
+      SAMMA_SMTP_HOST: samma-mailpit
+      SAMMA_SMTP_PORT: "1025"
+      SAMMA_SMTP_SECURE: "false"
+      SAMMA_MAIL_FROM: no-reply@samma.co.za
+      SAMMA_EMPLOYMENT_INVITATION_TTL_HOURS: "24"
       NEXT_TELEMETRY_DISABLED: "1"
       NODE_OPTIONS: --max-old-space-size=640
       npm_config_cache: /tmp/npm-cache
@@ -52,6 +58,7 @@ services:
     security_opt: [no-new-privileges:true]
     networks:
       private: {}
+      mail: {}
       proxy:
         aliases: [samma-dev-web]
     healthcheck:
@@ -76,3 +83,6 @@ networks:
   proxy:
     external: true
     name: caddy-net
+  mail:
+    external: true
+    name: samma-mailpit-inbox

@@ -309,3 +309,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .directory-details dd { margin: 0; overflow-wrap: anywhere; font-size: 0.9rem; }
 .directory-capabilities { margin: 0; padding-left: 20px; overflow-wrap: anywhere; line-height: 1.8; }
 .directory-note { font-size: 0.78rem; }
+
+.employment-invitation { padding: 1rem 0; border-bottom: 1px solid var(--line, #ddd); overflow-wrap: anywhere; }
+.employment-invitation:last-child { border-bottom: 0; }
+.employment-actions { display: flex; gap: .75rem; flex-wrap: wrap; }

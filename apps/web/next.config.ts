@@ -8,7 +8,7 @@ const nextConfig = (phase: string): NextConfig => ({
     ? { SAMMA_COMPILED_BUILD: JSON.stringify(buildSnapshot(process.env)) } : {},
   devIndicators: false,
   allowedDevOrigins: ["samma.co.za", "127.0.0.1"],
-  transpilePackages: ["@samma/domain", "@samma/identity", "@samma/storage", "@samma/database", "@samma/application"],
+  transpilePackages: ["@samma/domain", "@samma/identity", "@samma/storage", "@samma/database", "@samma/application", "@samma/integrations"],
 });
 
 export default nextConfig;
