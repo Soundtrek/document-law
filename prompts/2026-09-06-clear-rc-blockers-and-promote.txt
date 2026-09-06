@@ -1,0 +1,318 @@
+SAMMA — CLEAR RC PROMOTION BLOCKERS + PROMOTE
+
+GOAL
+
+Clear only the two blockers found during the already-completed RC promotion gate:
+
+1. Shared NUC database drift:
+   CompanyInvitation table
+   InvitationKind enum
+   3 existing rows
+
+2. Build overlay overlaps "Sign in" at 390px.
+
+Then promote the accepted DEV state to main.
+
+Do NOT repeat the entire 79-test/full validation suite unless one of these fixes changes unrelated code.
+
+==================================================
+CURRENT STATE
+==================================================
+
+DEV:
+40befbd4687da6af9517d20c2ee8161bfa6c89a0
+
+MAIN / RC:
+0bc1660f03b8380aedcf24a44881f4196e5eb4de
+
+Promotion experiment:
+
+experiment/onboarding-rc-baseline
+b0be52e
+
+Already passed:
+
+- npm ci
+- Prisma generate/validate
+- migration status
+- 79/79 tests
+- typecheck
+- lint
+- production build
+- audit gate
+- onboarding checks
+- Governance filters
+- auth/logout checks
+
+Do not rerun these unchanged checks unnecessarily.
+
+==================================================
+FIX 1 — DATABASE DRIFT
+==================================================
+
+Inspect the three CompanyInvitation rows read-only first.
+
+Confirm:
+
+- created by rejected/archived workflow work
+- synthetic DEV data only
+- no accepted current code references CompanyInvitation
+- no current Company/Person/Account state depends on them
+- no production/sensitive data involved
+
+Also search accepted DEV code and migrations for:
+
+CompanyInvitation
+InvitationKind
+
+Expected:
+no accepted runtime dependency.
+
+If all three rows are confirmed disposable synthetic residue:
+
+1. take a fresh database backup;
+2. export/report the three rows for forensic reference without secrets;
+3. remove the three rows;
+4. drop CompanyInvitation;
+5. drop InvitationKind if no longer referenced;
+6. do this as an explicit NUC DEV schema repair, NOT as a new application migration.
+
+Reason:
+
+The accepted migration history intentionally removed the rejected workflow migration. We want the shared NUC schema to match accepted code/migration history again.
+
+Do NOT reintroduce CompanyInvitation into Prisma just to satisfy drift.
+
+Do NOT touch unrelated tables/data.
+
+After repair:
+
+Prisma schema zero-diff must PASS.
+
+If any row is tied to accepted current user/company state:
+STOP before deleting.
+
+==================================================
+FIX 2 — MOBILE BUILD OVERLAY
+==================================================
+
+Fix only the mobile positioning of the build overlay.
+
+At 390px it must not overlap:
+
+- Sign in
+- Sign out
+- buttons
+- navigation
+- form controls
+
+Preferred simple solution:
+
+on narrow screens, move overlay to a safer edge/location or reduce its footprint.
+
+Examples:
+
+- bottom-right with sufficient safe inset
+- compact single-line version
+- bottom-left if that avoids controls
+
+Keep:
+
+channel
+branch
+short SHA
+
+Do not redesign the overlay.
+
+Test:
+
+390px
+→ no overlap
+
+1440px
+→ unchanged
+
+==================================================
+BRANCH
+==================================================
+
+Use the existing:
+
+experiment/onboarding-rc-baseline
+
+unless branch policy requires a tiny child experiment.
+
+Keep the two validated stale logout-test corrections already present.
+
+After fixes:
+
+merge accepted corrections to dev first if needed.
+
+Do not touch main until checks pass.
+
+==================================================
+PROPORTIONAL REVALIDATION
+==================================================
+
+Run only the checks affected by these blockers:
+
+DATABASE
+
+- Prisma validate
+- migration status
+- schema zero-diff
+
+OVERLAY
+
+- focused overlay test
+- 390px visual
+- one desktop sanity
+- typecheck/lint affected files
+- production build
+
+Also run any directly affected targeted test.
+
+Do NOT automatically rerun all 79 tests.
+
+The prior full promotion suite remains valid because these fixes do not touch auth, records, storage, permissions or onboarding logic.
+
+==================================================
+DEV ALIGNMENT
+==================================================
+
+If overlay code changes:
+
+merge it into dev
+push dev
+deploy dev.samma.co.za
+
+Confirm overlay:
+
+DEV / dev / <new SHA>
+
+Confirm:
+
+dev.samma.co.za
+→ 200
+
+No need for full onboarding replay.
+
+==================================================
+PROMOTION
+==================================================
+
+Once:
+
+- schema zero-diff = PASS
+- mobile overlay = PASS
+- build = PASS
+
+promote current accepted dev:
+
+dev
+→ main
+
+Normal merge/fast-forward only.
+
+No force push.
+
+Push main.
+
+Build exact main SHA with:
+
+SAMMA_BUILD_CHANNEL=rc
+SAMMA_BUILD_BRANCH=main
+SAMMA_BUILD_SHA=<main SHA>
+SAMMA_SHOW_BUILD_OVERLAY=true
+
+Deploy to:
+
+https://samma.co.za
+
+==================================================
+RC SMOKE ONLY
+==================================================
+
+Verify:
+
+samma.co.za
+→ 200
+
+/api/health
+→ 200
+
+/api/ready
+→ 200
+
+Overlay:
+
+RC / main / <short SHA>
+
+Check one sign-in page and one protected-route redirect.
+
+Do not create another set of test users.
+
+==================================================
+DATA RULE
+==================================================
+
+Promotion still copies NO users/data.
+
+Current NUC dev/main surfaces continue sharing the same NUC Keycloak/PostgreSQL/Garage until Rackzar exists.
+
+Do not:
+
+- clone users
+- reset Keycloak
+- delete ordinary test accounts
+- touch Garage objects
+- change Mailpit
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+DATABASE REPAIR
+- 3 invitation rows classified
+- backup
+- rows removed
+- table removed
+- enum removed
+- unrelated data changed: NO
+- zero-diff result
+
+OVERLAY
+- 390px result
+- desktop result
+
+VALIDATION
+- affected checks only
+- full 79-test rerun: NO
+
+DEV
+- final SHA
+- deployed SHA
+- healthy
+
+MAIN
+- previous SHA
+- promoted SHA
+- origin/main
+
+RC
+- deployed SHA
+- overlay
+- health
+- readiness
+
+DATA
+- users copied: NO
+- shared NUC data preserved: YES
+
+MAIL
+- Mailpit unchanged
+
+RACKZAR
+- untouched

@@ -11,13 +11,25 @@ const base = process.env.SAMMA_CANDIDATE_URL || 'http://127.0.0.1:2031';
     if (process.env.SAMMA_EXPECT_BUILD_SHA) assert.equal(health.build.sha, process.env.SAMMA_EXPECT_BUILD_SHA);
     for (const width of [1440, 768, 390]) {
       const page = await browser.newPage({ viewport: { width, height: width === 390 ? 844 : 1000 } });
-      for (const path of ['/', '/sign-in']) {
+      for (const path of ['/', '/sign-in', '/onboarding/company/resume']) {
         await page.goto(base + path);
         const badge = page.getByRole('complementary', { name: 'Application build' });
         assert.ok(await badge.isVisible());
         assert.equal(await badge.locator('strong').innerText(), health.build.channel.toUpperCase());
         assert.ok((await badge.innerText()).includes(health.build.sha.slice(0, 7)));
         assert.ok((await badge.innerText()).includes(health.build.branch.replace(/^experiment\//, '')));
+        const placement = await badge.evaluate(node => {
+          const box = node.getBoundingClientRect();
+          return { left: box.left, right: box.right, height: box.height, display: getComputedStyle(node).display };
+        });
+        if (width === 390) {
+          assert.equal(placement.left, 12, 'mobile badge uses the safe left edge');
+          assert.equal(placement.display, 'flex', 'mobile badge keeps its metadata on one line');
+          assert.ok(placement.height < 30, 'mobile badge stays compact');
+        } else {
+          assert.equal(placement.right, width - 12, 'desktop/tablet badge retains its right edge');
+          assert.equal(placement.display, 'block', 'desktop/tablet badge retains its stacked layout');
+        }
         for (const position of [0, 0.5, 1]) {
           await page.evaluate(p => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * p), position);
           const geometry = await page.evaluate(() => {

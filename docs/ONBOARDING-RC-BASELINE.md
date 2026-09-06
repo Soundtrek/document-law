@@ -1,6 +1,8 @@
 # SAMMA ONBOARDING RC BASELINE
 
-Status: BLOCKED — shared-database schema zero-diff and mobile overlay validation fail.
+Status: blocker repair in progress — the explicitly authorised NUC schema repair is complete; the mobile-only overlay correction is ready for focused build validation. Main has not yet been promoted.
+
+The original blocked preflight below is historical. See the repair continuation at the end for current work.
 
 ## Requested baseline
 
@@ -72,3 +74,23 @@ To unblock, obtain an explicit NUC-only decision covering the retained schema dr
 ## Final safety checks
 
 RC and DEV landing, health and database/storage readiness return 200. DEV still shows `DEV / dev / d9068af`; RC remains on the earlier revision without an overlay. All ten captured RC/DEV/experiment/shared-infrastructure container IDs, start times, configuration and mounts match preflight; private runtime environment files are byte-for-byte unchanged. Port 2022 still belongs exclusively to the experiment. No main promotion/deployment smoke is claimed. No user/account data was copied, reset or deleted; existing NUC shared infrastructure and Mailpit are retained. Rackzar is untouched.
+
+## Authorised blocker repair continuation
+
+The owner explicitly authorised only archived synthetic invitation cleanup, a small mobile overlay correction, proportional revalidation, DEV alignment and then main/RC promotion. See `prompts/2026-09-06-clear-rc-blockers-and-promote.txt`. The prior 79-test full promotion suite remains valid; it will not be repeated. The two validated stale logout-test corrections are retained.
+
+### NUC-only database repair
+
+Read-only classification matched all three invitation rows and both linked companies exactly to the rejected workflow's private `users.json` and `result.json` manifests. All connected members, people and records also match those archived synthetic fixtures; no nonfixture connections were found. Two invitations were EMPLOYMENT and one MEMBERSHIP. Their existing linked fixture entities are preserved. Accepted runtime code and migrations contain no CompanyInvitation/InvitationKind dependency, and no table has an incoming foreign key to CompanyInvitation. The enum was used only by that table and its index. No production or sensitive data was involved.
+
+A fresh mode-0600 custom-format PostgreSQL backup was created and its TOC verified before deletion. A separate forensic JSON export excludes token hashes/credentials and uses archived fixture labels for people. Private evidence: `/srv/nuc-archive/juanity/validation/onboarding-rc-repair-20260906/`. Backup: `before-invitation-repair.dump`, SHA-256 `641a999aa32c4b9bf828c04e0d13858f7134724f0466f46c9cb9f766924223fe`.
+
+The explicit transaction locked the invitation table, required exactly the classified three IDs and no incoming references, deleted three rows, dropped CompanyInvitation with RESTRICT and dropped InvitationKind with RESTRICT. It compared complete content fingerprints of all 23 unrelated public tables before/after and rolled back on any mismatch. The transaction committed successfully. No other rows, fixtures, accounts, companies, memberships, relationships, records or Garage objects were removed.
+
+This was an operator NUC DEV schema repair, not an application migration. The historical applied-migration row remains as evidence that the rejected migration once ran. No accepted migration files or Prisma models changed. Prisma validate, migration status and schema zero-diff all PASS after repair: `No difference detected.`
+
+### Mobile-only overlay correction
+
+At widths up to 600px, retain the existing badge colours, typography, metadata and pointer-event behaviour, but place it at the lower-left safe edge in a compact single line. Keep channel, branch and short SHA; allow long branches to truncate while preserving the SHA. Desktop/tablet styling stays unchanged. The focused harness additionally checks the Company resume page, 390px left-edge/compact placement, and unchanged desktop/tablet right-edge/stacked placement. Initial browser CSS probes pass on onboarding, sign-in and Company resume at top/middle/bottom scroll positions.
+
+Focused final validation and exact release SHAs will be recorded after candidate checks and deployment. Main is unchanged until the schema, overlay and build gates pass. NUC shared data and Mailpit remain; Rackzar is untouched.
