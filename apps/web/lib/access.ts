@@ -4,6 +4,12 @@ import { notFound, redirect } from "next/navigation";
 import { db } from "./database";
 import { authSettings, sessionCookieName } from "./auth";
 import { resolveDatabaseSession } from "./auth-adapter";
+import { companySetupMatches, readOnboarding, setupCookieName } from "./onboarding-state";
+
+export async function pendingCompanySetup(session: { accountId: string; identityId: string }) {
+  const state = readOnboarding((await cookies()).get(setupCookieName)?.value, authSettings().secret, "company");
+  return companySetupMatches(state, session) && !await db.companyMember.findFirst({ where: { accountId: session.accountId, status: "ACTIVE", company: { status: "ACTIVE" } } });
+}
 
 export async function requireSession() {
   const settings = authSettings();
@@ -34,11 +40,11 @@ export async function navigationAccess() {
   const token = (await cookies()).get(sessionCookieName)?.value;
   const resolved = token ? await resolveDatabaseSession(db, token) : null;
   const session = resolved && resolved.identity.provider === authSettings().issuer ? resolved : null;
-  if (!session) return { signedIn: false, company: false, governance: false, legal: false };
+  if (!session) return { signedIn: false, company: false, governance: false, legal: false, companySetup: false };
   const [company, governance, legal] = await Promise.all([
     db.companyMember.findFirst({ where: { accountId: session.accountId, status: "ACTIVE", company: { status: "ACTIVE" } } }),
     db.governanceCapabilityGrant.findFirst({ where: { accountId: session.accountId, revokedAt: null } }),
     db.legalAccessGrant.findFirst({ where: { grantedToAccountId: session.accountId, status: "ACTIVE", revokedAt: null, startsAt: { lte: new Date() }, expiresAt: { gt: new Date() } } }),
   ]);
-  return { signedIn: true, company: Boolean(company), governance: Boolean(governance), legal: Boolean(legal) };
+  return { signedIn: true, company: Boolean(company), governance: Boolean(governance), legal: Boolean(legal), companySetup: !company && await pendingCompanySetup(session) };
 }

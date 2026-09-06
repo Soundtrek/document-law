@@ -43,6 +43,14 @@ export function readOnboarding<P extends State["purpose"]>(value: string | undef
 export function newFlow(choice: OnboardingChoice, oauthState: string): FlowState {
   return { purpose: "authentication", choice: onboardingChoice(choice), oauthState, nonce: randomUUID(), expires: Date.now() + onboardingLifetime * 1000 };
 }
+export function newCompanySetup(accountId: string, identityId: string, nonce: string, now = Date.now()): CompanySetupState {
+  // Registration has its own deadline. Give authenticated workspace setup its
+  // full short-lived window instead of consuming it while waiting for email.
+  return { purpose: "company", accountId, identityId, nonce, expires: now + onboardingLifetime * 1000 };
+}
+export function companySetupMatches(state: CompanySetupState | null, session: { accountId: string; identityId: string }): state is CompanySetupState {
+  return Boolean(state && state.accountId === session.accountId && state.identityId === session.identityId);
+}
 export function onboardingCookie(name: string, value: string, maxAge = onboardingLifetime): string {
   return `${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 }

@@ -3,17 +3,17 @@ import Link from "next/link";
 import { useState } from "react";
 import { submitAuth } from "./auth-controls";
 
-export function OnboardingChoices() {
+export function OnboardingChoices({ companyOnly = false }: { companyOnly?: boolean }) {
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   return <section className="onboarding-entry" aria-labelledby="onboarding-title">
-    <h2 id="onboarding-title">Create your account</h2>
-    <p className="eyebrow">I&apos;m joining as</p>
+    <h2 id="onboarding-title">{companyOnly ? "Continue company setup" : "Create your account"}</h2>
+    {!companyOnly ? <p className="eyebrow">I&apos;m joining as</p> : null}
     <div className="onboarding-choices">
       {[
         { value: "PERSON", label: "Person", description: "For individuals who want to receive and manage their employment records." },
         { value: "COMPANY", label: "Company", description: "For organisations that want to manage employment records for their people." },
-      ].map(choice => <form key={choice.value} onSubmit={event => {
+      ].filter(choice => !companyOnly || choice.value === "COMPANY").map(choice => <form key={choice.value} onSubmit={event => {
         event.preventDefault(); setBusy(true); setError(false);
         void submitAuth(event.currentTarget, "signin/keycloak").catch(() => { setBusy(false); setError(true); });
       }}>
@@ -25,6 +25,6 @@ export function OnboardingChoices() {
       </form>)}
     </div>
     {error ? <p className="landing-error" role="alert">Sign in is unavailable. Please try again.</p> : null}
-    <p className="muted">Already have an account? <Link href="/sign-in">Sign in</Link></p>
+    {!companyOnly ? <p className="muted">Already have an account? <Link href="/sign-in">Sign in</Link></p> : null}
   </section>;
 }

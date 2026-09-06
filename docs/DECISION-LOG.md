@@ -626,3 +626,18 @@ preserved. Main/RC and port-2022 runtime identities stayed unchanged; shared rea
 policy effects are explicit in the [final report](AUTH-REGISTRATION-V1-REPORT.md).
 Acceptance documentation alone advances DEV after the deployed merge. Stop for
 Phil; no main promotion or RC deployment.
+
+## ADR-045 — Company onboarding must complete its selected journey
+
+2026-09-06: Phil authorised a focused experiment → DEV correction and public DEV
+acceptance for Company creation errors and the `Set up later` escape. Preserve
+independent Account/Person identity; no permanent Company account classification,
+automatic company creation, auth redesign or main promotion. Keep the existing
+short-lived state boundary, give authenticated setup its own bounded window,
+preserve same-identity pending intent across login, and direct incomplete Company
+journeys back to setup. Completed retries recover the existing authorised company;
+all creation/OWNER/audit writes remain atomic. Distinguish safe error categories.
+The deployed valid-name baseline succeeded; missing setup state reproduced the
+empty 403 before the transaction. The original unlogged request is not claimed as
+a proven database failure. See the [diagnosis and acceptance](COMPANY-ONBOARDING-COMPLETION-FIX.md)
+and [captured request](../prompts/2026-09-06-company-onboarding-completion.md).

@@ -109,9 +109,9 @@ try {
   assert.equal(setup?.accountId, account.id);
   assert.equal(await db.companyMember.count({ where: { accountId: account.id } }), 0, "abandoned setup creates no company");
   url = await person.begin(); assert.equal(url.searchParams.get("prompt"), null);
-  assert.ok(!person.cookies.has(setupCookieName));
+  assert.ok(person.cookies.has(setupCookieName));
   response = await person.finish(url, personProfile);
-  assert.equal(response.headers.get("location"), base + "/person");
+  assert.equal(response.headers.get("location"), base + "/onboarding/company");
   assert.equal((await db.accountIdentity.findUniqueOrThrow({ where: { provider_providerSubject: { provider: issuer, providerSubject: personProfile.sub } } })).accountId, account.id);
 
   const company = new Browser(); url = await company.begin("COMPANY");
