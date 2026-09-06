@@ -1,0 +1,24 @@
+SAMMA — GOVERNANCE USERS FILTERS
+
+Add only a lightweight All / Person / Company user / Governance pill filter row
+between search and results in the existing DB-backed Governance Users directory.
+Views overlap; do not add a permanent account-type field. Person requires a real
+Person linkage. Company user requires at least one ACTIVE CompanyMember, excluding
+invited/inactive/historical memberships. Governance requires a current capability
+grant, excluding revoked/expired grants. Preserve Governance authorisation and
+all existing read-only scope; no records, memberships or grants are changed.
+
+Combine with existing search and simple URL query state (view=person/company/
+governance); invalid values safely fall back to All. Reuse SAMMA pill/tab styling,
+show selection, keep responsive layout simple. Counts are optional if easy.
+
+Focused validation only: all four views, search + filter, invalid fallback,
+normal-user denial and mobile/tablet layout. Targeted directory tests, affected
+typecheck/lint, build only for DEV deployment. Full suite rerun: NO.
+
+Use experiment/governance-user-filters from current dev, validate, merge to dev
+and deploy dev.samma.co.za. This small enhancement is explicitly approved for
+merge/deployment without a separate approval cycle. Do not touch main.
+
+Final report: STATUS PASS/BLOCKED; filters; search result; security unchanged;
+targeted validation/full suite NO; DEV commit/deployed SHA/overlay; main unchanged.

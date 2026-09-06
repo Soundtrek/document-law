@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { PageHero } from "./page-hero";
-import type { UserDirectoryDetail, UserDirectoryList } from "../lib/governance-users";
+import type { UserDirectoryDetail, UserDirectoryList, UserDirectoryView } from "../lib/governance-users";
 
 export const governanceNavigation = [
   { href: "/governance", label: "Definitions" },
@@ -13,17 +13,31 @@ const usersNavigation = governanceNavigation.map(item => ({ ...item, active: ite
 const date = (value: Date) => new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium", timeZone: "Africa/Johannesburg" }).format(value);
 const status = (value: string) => value.charAt(0) + value.slice(1).toLowerCase();
 const name = (person: { displayName: string } | null) => person?.displayName.trim() || "Name not provided";
-const pageLink = (query: string, page: number) => `/governance/users?${new URLSearchParams({ q: query, page: String(page) })}`;
+const directoryLink = (query: string, view: UserDirectoryView, page = 1) => {
+  const params = new URLSearchParams();
+  if (view !== "all") params.set("view", view);
+  if (query) params.set("q", query);
+  if (page > 1) params.set("page", String(page));
+  return `/governance/users${params.size ? `?${params}` : ""}`;
+};
+const directoryViews = [
+  { value: "all", label: "All" }, { value: "person", label: "Person" },
+  { value: "company", label: "Company user" }, { value: "governance", label: "Governance" },
+] as const;
 
 export function GovernanceUsers({ result }: { result: UserDirectoryList }) {
   return <main className="page-shell">
     <PageHero eyebrow="SAMMA GOVERNANCE" title="Users" description="Find an account and review its contact and company connections." nav={usersNavigation} />
     <section className="card">
       <form action="/governance/users" method="get" className="directory-search">
+        {result.view !== "all" ? <input type="hidden" name="view" value={result.view} /> : null}
         <div className="landing-field"><label htmlFor="user-search">Search users</label><input id="user-search" type="search" name="q" maxLength={200} defaultValue={result.query} placeholder="Name or email address" /></div>
         <button className="button" type="submit">Search</button>
-        {result.query ? <Link className="button secondary" href="/governance/users">Clear</Link> : null}
+        {result.query ? <Link className="button secondary" href={directoryLink("", result.view)}>Clear</Link> : null}
       </form>
+      <nav className="context-nav directory-filters" aria-label="User filters">
+        {directoryViews.map(view => <Link key={view.value} href={directoryLink(result.query, view.value)} data-active={result.view === view.value ? "true" : "false"} aria-current={result.view === view.value ? "page" : undefined}>{view.label}</Link>)}
+      </nav>
       <div className="directory-table-scroll" role="region" aria-label="User directory" tabIndex={0}>
         <table className="directory-table"><caption className="muted">{result.users.length} users on this page · Page {result.page}</caption><thead><tr>
           {['Name', 'Email', 'Status', 'Email verified', 'Created', 'Relationships', 'Memberships', 'Governance'].map(label => <th key={label} scope="col">{label}</th>)}
@@ -35,8 +49,8 @@ export function GovernanceUsers({ result }: { result: UserDirectoryList }) {
       </div>
       {!result.users.length ? <p className="muted">{result.query ? "No users match your search." : "No users to display."}</p> : null}
       <div className="row"><p className="muted directory-note">Counts include current and historical connections.</p><nav className="actions" aria-label="User directory pages">
-        {result.page > 1 ? <Link className="button secondary" href={pageLink(result.query, result.page - 1)}>Previous</Link> : null}
-        {result.hasNext ? <Link className="button secondary" href={pageLink(result.query, result.page + 1)}>Next</Link> : null}
+        {result.page > 1 ? <Link className="button secondary" href={directoryLink(result.query, result.view, result.page - 1)}>Previous</Link> : null}
+        {result.hasNext ? <Link className="button secondary" href={directoryLink(result.query, result.view, result.page + 1)}>Next</Link> : null}
       </nav></div>
     </section>
   </main>;

@@ -699,3 +699,26 @@ Merge the validated experiment to dev; no main promotion. See
 - The merge preserves the validated experiment application code. Validation is proportional: merge sanity and exact DEV production build, then DEV health/overlay and focused live directory/security checks. No historical-suite rerun or schema migration.
 - Deploy only `samma-dev-web` using the existing DEV release procedure. Preserve RC/main, experiment preview, provider/mail/storage/database/proxy configuration and existing account capabilities. No dev-to-main promotion is authorised.
 - Phil's existing-account browser acceptance must be reported accurately; an unavailable operator browser/login is not replaced by a manufactured session or a password reset.
+
+## 2026-09-06 — Governance user directory filters
+
+- Phil approved `experiment/governance-user-filters` → dev → DEV deployment after
+  focused validation; main/RC remains unchanged. See the captured request in
+  `prompts/2026-09-06-governance-user-filters.txt`.
+- Add overlapping URL views: All (no predicate), Person (real Person linkage),
+  Company user (at least one ACTIVE CompanyMember), Governance (at least one
+  unrevoked GovernanceCapabilityGrant). No permanent account type or schema change.
+  The current grant model has no expiry field; use the existing revocation-based
+  current-grant semantics without changing authorisation or inventing expiry.
+- Search and view predicates combine before pagination. Switching views preserves
+  search and resets the page; search/clear preserve the view; pagination preserves
+  both. Invalid/repeated view parameters fall back to All.
+- Reuse SAMMA context pills with wrapping. Omit optional counts to keep the existing
+  bounded single list query. Keep projections, audit and authorisation unchanged.
+- Validation is limited to directory database/HTTP/browser checks, affected web
+  typecheck/lint and the exact DEV deployment build. Full suite rerun: NO.
+- Focused pre-merge results: 8/8 directory tests passed against a fresh disposable
+  PostgreSQL instance; web typecheck and affected-file ESLint passed. HTTP checks
+  confirmed anonymous/person/OWNER denial and existing detail isolation. Browser
+  filter/search/clear/fallback checks passed at 1440/768/390/320 pixels with no page
+  overflow; synthetic screenshots inspected. No DEV/RC database fixtures changed.

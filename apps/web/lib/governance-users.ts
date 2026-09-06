@@ -4,6 +4,9 @@ type Database = ReturnType<typeof createPrismaClient>;
 type Authorise = (capabilities: readonly string[]) => Promise<{ accountId: string }>;
 export const userDirectoryCapability = "platform.security.review";
 const pageSize = 50;
+export type UserDirectoryView = "all" | "person" | "company" | "governance";
+const normaliseView = (view: string): UserDirectoryView =>
+  view === "person" || view === "company" || view === "governance" ? view : "all";
 const accountFields = {
   id: true, primaryEmail: true, emailVerified: true, status: true, createdAt: true,
   governanceGrants: { where: { revokedAt: null }, select: { capability: true }, orderBy: { capability: "asc" } },
@@ -12,19 +15,24 @@ const accountFields = {
 // These explicit projections never read records, files, identities, tokens or event payloads.
 export function governanceUserDirectory(db: Database, authorise: Authorise) {
   return {
-    async list(search = "", page = 1) {
+    async list(search = "", page = 1, requestedView = "all") {
       await authorise([userDirectoryCapability]);
       const query = search.trim().slice(0, 200);
       const currentPage = Number.isSafeInteger(page) && page > 0 && page <= 10000 ? page : 1;
+      const view = normaliseView(requestedView);
+      const filter: Prisma.AccountWhereInput = view === "person" ? { person: { isNot: null } }
+        : view === "company" ? { companyMemberships: { some: { status: "ACTIVE" } } }
+        : view === "governance" ? { governanceGrants: { some: { revokedAt: null } } }
+        : {};
       const rows = await db.account.findMany({
-        where: query ? { OR: [
+        where: { ...filter, ...(query ? { OR: [
           { primaryEmail: { contains: query, mode: "insensitive" } },
           { person: { is: { displayName: { contains: query, mode: "insensitive" } } } },
-        ] } : {},
+        ] } : {}) },
         orderBy: [{ createdAt: "desc" }, { id: "asc" }], skip: (currentPage - 1) * pageSize, take: pageSize + 1,
         select: { ...accountFields, person: { select: { displayName: true, _count: { select: { relationships: true } } } }, _count: { select: { companyMemberships: true } } },
       });
-      return { users: rows.slice(0, pageSize), hasNext: rows.length > pageSize, page: currentPage, query };
+      return { users: rows.slice(0, pageSize), hasNext: rows.length > pageSize, page: currentPage, query, view };
     },
     async detail(accountId: string) {
       const viewer = await authorise([userDirectoryCapability]);
