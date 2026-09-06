@@ -12,15 +12,18 @@ The existing archive mount checks must pass. No schema migrations are needed.
 
 ## Accepted release — 2026-09-06
 
-DEV runs normal auth-registration merge
-`7d3485686f9c5567bca773ccadd34eee0cf4228d`, with overlay `DEV / dev / 7d34856`.
-Real public Person/Company registration, verification mail, recovery, session
-isolation and logout acceptance passed. Database and S3 readiness are healthy.
+DEV runs the focused Company onboarding completion merge
+`d54f7631518d7f51e92478d443f05f8afa071fe3`, with overlay `DEV / dev / d54f763`.
+Real provider login → company setup → `Soundtrek` → Company Info Center passed,
+including no skip-to-Person path, intent preservation, clear failure/restart
+messages and completed retries. See the
+[diagnosis and acceptance](COMPANY-ONBOARDING-COMPLETION-FIX.md).
 The later acceptance documentation commit does not change the deployed build.
-Main/RC remains `0bc1660f03b8380aedcf24a44881f4196e5eb4de`; the shared Keycloak
-realm policies affect authentication through both hosts. See the
-[complete acceptance and scope](AUTH-REGISTRATION-V1-REPORT.md). Stop for Phil;
-no main promotion is included.
+Database and S3 readiness are healthy. Main/RC remains
+`0bc1660f03b8380aedcf24a44881f4196e5eb4de`; no provider configuration changed in
+this fix. The existing shared Keycloak realm policies still affect both hosts.
+The [earlier registration acceptance](AUTH-REGISTRATION-V1-REPORT.md) remains
+historical evidence. Stop for Phil; no main promotion is included.
 
 ## Build and start
 

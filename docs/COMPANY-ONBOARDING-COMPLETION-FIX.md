@@ -1,5 +1,7 @@
 # Company onboarding completion — 2026-09-06
 
+**STATUS: PASS — deployed and accepted on DEV. Stopped for Phil.**
+
 ## Diagnosis
 
 The pre-fix deployed revision was `7d3485686f9c5567bca773ccadd34eee0cf4228d`.
@@ -57,8 +59,49 @@ setup expiry, API error categories and explicit logout. Affected web typecheck
 and changed-file lint are required. No historical auth/storage/legal suite runs.
 
 Focused state tests (4), both company-only PostgreSQL/Auth.js/API regression
-entrypoints, affected web typecheck and changed-file lint passed. DEV build,
-browser acceptance and scoped cleanup are recorded after deployment.
+entrypoints, affected web typecheck and changed-file lint passed. The exact
+merged DEV production build passed. Full historical suite rerun: **NO**.
+
+## DEV acceptance
+
+- Implementation: `f74a6b2` on `experiment/fix-company-onboarding-completion`.
+- Normal DEV merge and deployed SHA:
+  `d54f7631518d7f51e92478d443f05f8afa071fe3`.
+- Public runtime: `https://dev.samma.co.za`; overlay `DEV / dev / d54f763`.
+- A subsequent documentation-only commit records this acceptance and advances
+  `dev`/`origin/dev`; the deployed application remains the accepted merge.
+- Existing independent Person login with no pending Company intent still reached
+  `/person`. Company selection through the real provider reached setup.
+- No `Set up later` link. Active pending intent replaced Person navigation with
+  `Complete company setup`; direct `/person` returned to `/onboarding/company`.
+- Real provider re-login preserved the identical pending setup cookie.
+- A controlled browser-only 500 response retained the setup page, typed Soundtrek
+  and pending intent. That interception was removed before successful creation.
+  Real database rollback after entity writes was separately proven by forcing
+  the audit write to fail in the disposable PostgreSQL regression.
+- Real API validation returned the specific name message; removing only the
+  disposable browser's setup cookie reproduced the state error with its new
+  explicit restart message. Both failures stayed on `/onboarding/company`.
+  Scoped database inspection confirmed no membership or grants after these failures.
+- Company-only restart → real provider callback → enter `Soundtrek` → Create
+  company workspace → Company Info Center passed. Setup state cleared on success.
+- A real repeat POST after cookie clearance returned 200 and `/company`.
+  Database evidence showed exactly one Company, one ACTIVE member, one active
+  OWNER grant and one COMPANY_CREATED event for the accepted workspace. No
+  Governance, HR, PAYROLL, LEGAL, CLERK, BILLING or other implicit functional role.
+- Account, linked Identity and Person stayed identical across the journey.
+  Phil's complete before/after identity, Person, membership and Governance
+  snapshots remained identical. Phil's password and company state were untouched.
+- Real logout completed and cleared local session/setup. Cleanup removed only the
+  disposable test identity/Account/Person, synthetic Soundtrek workspace and its
+  member/OWNER/sessions. The earlier baseline's disposable company was removed
+  separately before final acceptance. Audit evidence remains; test passwords,
+  consumed verification URL and saved browser tokens were removed.
+- DEV root, health and readiness returned 200; database and S3 storage are ready.
+  RC and port-2022 container IDs/start times/revisions remain unchanged. Main and
+  origin/main remain `0bc1660f03b8380aedcf24a44881f4196e5eb4de`; RC is still on that
+  revision and returned 200. No provider/SMTP configuration changed in this fix.
+
 Private evidence resides in `/etc/samma-dev/company-onboarding-fix/`; no passwords,
 mail credentials or session tokens are committed. Main/RC and port 2022 remain
 outside this deployment. Stop for Phil after DEV acceptance.

@@ -641,3 +641,16 @@ The deployed valid-name baseline succeeded; missing setup state reproduced the
 empty 403 before the transaction. The original unlogged request is not claimed as
 a proven database failure. See the [diagnosis and acceptance](COMPANY-ONBOARDING-COMPLETION-FIX.md)
 and [captured request](../prompts/2026-09-06-company-onboarding-completion.md).
+
+### ADR-045 DEV acceptance
+
+Focused company state, real PostgreSQL transaction and Auth.js/API tests passed,
+as did affected web typecheck/lint and the exact merged production build.
+DEV now runs `d54f7631518d7f51e92478d443f05f8afa071fe3`. Real browser checks passed
+for Company intent across login, Person redirect, removal of Set up later,
+validation/expired-state restart, forced-error UI retention, actual Soundtrek
+creation and completed repeat. Database confirmed one ACTIVE member/OWNER only,
+no Governance or implicit roles, and stable Account/Identity/Person. Phil remained
+unchanged. Disposable fixtures were cleaned up; evidence was retained privately.
+Main/RC and port 2022 remained unchanged. Acceptance documentation alone advances
+DEV after deployment. Stop for Phil; no main promotion.
