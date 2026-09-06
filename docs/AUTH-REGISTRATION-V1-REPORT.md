@@ -1,7 +1,7 @@
 # Auth + registration V1 — 2026-09-06
 
-**STATUS: PARTIAL — provider setup and targeted checks pass; experiment awaits
-build completion and approved DEV integration.**
+**STATUS: PARTIAL — provider setup, experiment implementation and validation
+pass; full application acceptance awaits approved DEV integration.**
 
 ## Registration and SAMMA
 
@@ -82,21 +82,27 @@ corrected harness inspects provider redirect responses before following them.
 | Provider ingress abuse tests | PASS; forged headers ineffective |
 | Typecheck | PASS |
 | Affected web lint | PASS |
-| Production build | Pending committed candidate build |
+| Production build | PASS: bounded production build of implementation commit `393e2ca6c6b11ed50f8cc490be88afc1558de072` |
 | Audit gate | PASS with existing documented DEV-only Prisma exception; no new exception |
 | Schema/migrations | Unchanged; existing migrations applied only to new isolated test database |
 | Full new Person + Company public browser journeys | Pending approved DEV merge/deployment |
 
 No unrelated record/storage suites ran. Test/SMTP secrets and delivery links
-remain private outside Git. [Operations and reproducible test entrypoints](../infrastructure/auth/REGISTRATION.md)
+remain private outside Git. The disposable provider account and isolated test
+database were removed after validation; temporary test passwords and database
+connection environment were removed. SMTP credentials, the owner worksheet and
+private delivery evidence remain intact. [Operations and reproducible test entrypoints](../infrastructure/auth/REGISTRATION.md)
 include rollback and the provider blacklist/config mount requirement.
 
 ## Git and follow-up
 
 Branch: `experiment/auth-registration-v1`, isolated at
 `/home/philip/samma-auth-registration-v1`, from DEV `d826339`. The initial SMTP
-blocker handoff is `9cade03`; subsequent implementation/evidence commits remain
-on the experiment. DEV and main refs and their application deployments are unchanged.
+blocker handoff is `9cade03`; implementation is `393e2ca`. This later report-only
+update records the successful build without changing the tested application or
+infrastructure files. All commits are pushed only to the experiment. DEV remains
+`d82633989c4ba93849512a6947761a57a01dd293`, main remains
+`0bc1660f03b8380aedcf24a44881f4196e5eb4de`, and their application deployments are unchanged.
 Provider SMTP/realm/proxy changes described above are live as explicitly requested.
 
 Next gate: Phil reviews the completed experiment, then explicitly approves merge
