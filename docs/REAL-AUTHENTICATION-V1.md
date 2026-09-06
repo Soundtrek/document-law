@@ -1,5 +1,12 @@
 # Real Authentication V1
 
+Public DEV registration, verified email, Person/Company onboarding and password
+recovery passed real browser acceptance on 2026-09-06 at deployed merge
+`7d3485686f9c5567bca773ccadd34eee0cf4228d`. See the
+[acceptance report](AUTH-REGISTRATION-V1-REPORT.md). DEV MFA remains unenforced.
+DEV and RC share the realm/client, so the enabled provider policies affect both
+hosts; RC application deployment remains unchanged.
+
 2026-09-06: dedicated SMTP, public registration, verified email and recovery are
 enabled at Keycloak. Actual verification/reset delivery and password recovery
 pass. Application changes remain on the experiment, pending approved DEV merge
@@ -56,7 +63,7 @@ containing the resolved Account/identity and an opaque random nonce; it retains
 the original expiry and is cleared after submission. New sign-in clears old setup.
 No choice, Account classification, token or sensitive information is added to URLs.
 
-The registration experiment sends Keycloak's standard `prompt=create` only for
+The application sends Keycloak's standard `prompt=create` only for
 an explicit PERSON/COMPANY start without a valid existing SAMMA session. Ordinary
 Sign in omits it. A signed-in Person can explicitly choose Company and continue
 through the provider without registering another account. An existing account

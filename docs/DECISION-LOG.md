@@ -611,3 +611,18 @@ Keycloak realm/client means its registration/SMTP/recovery policies affect both
 DEV and RC sign-in; report that independently of unchanged RC application code.
 Stop for Phil after DEV acceptance; no main promotion is authorised. See the
 [captured request](../prompts/2026-09-06-auth-registration-dev-promotion.md).
+
+### ADR-044 acceptance outcome
+
+Normal merge `7d3485686f9c5567bca773ccadd34eee0cf4228d` was pushed, built in an
+isolated release clone and deployed only to DEV. Auth code matched the approved
+experiment, so no historical suites were rerun. Real public Person/Company
+registration, mail verification, transient choice routing, OWNER-only setup,
+password reset with stable identity, old/new password checks and logout passed.
+DEV-to-RC isolation used a real DEV session; reverse isolation used actual browser
+transport with an inert RC host-only cookie to avoid modifying RC sessions. Phil
+remained unchanged. Scoped disposable users/company were cleaned up with evidence
+preserved. Main/RC and port-2022 runtime identities stayed unchanged; shared realm
+policy effects are explicit in the [final report](AUTH-REGISTRATION-V1-REPORT.md).
+Acceptance documentation alone advances DEV after the deployed merge. Stop for
+Phil; no main promotion or RC deployment.

@@ -10,6 +10,18 @@ sharing PostgreSQL, Garage and Keycloak without managing their lifecycle.
 Limits: 1 GiB RAM, no additional swap, 0.75 CPU, bounded logs, manual startup.
 The existing archive mount checks must pass. No schema migrations are needed.
 
+## Accepted release — 2026-09-06
+
+DEV runs normal auth-registration merge
+`7d3485686f9c5567bca773ccadd34eee0cf4228d`, with overlay `DEV / dev / 7d34856`.
+Real public Person/Company registration, verification mail, recovery, session
+isolation and logout acceptance passed. Database and S3 readiness are healthy.
+The later acceptance documentation commit does not change the deployed build.
+Main/RC remains `0bc1660f03b8380aedcf24a44881f4196e5eb4de`; the shared Keycloak
+realm policies affect authentication through both hosts. See the
+[complete acceptance and scope](AUTH-REGISTRATION-V1-REPORT.md). Stop for Phil;
+no main promotion is included.
+
 ## Build and start
 
 1. Verify a clean `dev` matching `origin/dev`, host resources and free port 2023.
