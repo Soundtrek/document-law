@@ -804,3 +804,12 @@ Merge the validated experiment to dev; no main promotion. See
 - Mobile badge moves into its own space after the page content, aligned to the safe lower-left edge with channel/branch/SHA on one compact line; desktop remains unchanged. No auth, onboarding, permission, record, storage or identity logic changes. Promote only after focused overlay and production-build validation, preserving experiment-only port 2022. See `docs/ONBOARDING-RC-BASELINE.md`.
 
 - Visual refinement: the first floating compact placement passed control checks but covered ordinary hint text. Mobile positioning now participates in document flow, after content, so it cannot cover either text or controls. It appears at the foot of the page when scrolling; desktop remains fixed. The browser harness verifies this positioning explicitly.
+
+
+## 2026-09-07 — SAMMA onboarding RC baseline accepted and deployed
+
+- Database repair, mobile overlay and builds passed their affected gates. Retain the prior 79/79 full promotion suite and existing exact Prisma DEV dependency exception; no full-suite rerun, dependency change or auth/onboarding/permission/record/storage logic change.
+- Fast-forwarded/pushed experiment → dev, deployed exact DEV, then fast-forwarded/pushed dev → main. Final dev/origin-dev/main/origin-main and both deployed surfaces are `6619d19cddfd0767f280204b541c2f5823f23dce`. Previous main/RC was `0bc1660f03b8380aedcf24a44881f4196e5eb4de`. No force-push or cherry-picking.
+- Exact-main RC build compiled RC/main/6619d19 and deployed only RC web. Landing, health, database/storage readiness and sign-in return 200; anonymous Governance redirects to sign-in. DEV remains healthy with DEV/dev/6619d19. Live mobile badge checks pass; desktop remains unchanged.
+- Only two web containers were replaced; eight captured experiment/shared-infrastructure containers and experiment-only port 2022 were preserved. No users/data were copied. The only authorised domain-data deletion was the three archived invitations; all unrelated table content fingerprints matched during repair. Mailpit/realm settings and Garage objects remain; Rackzar untouched.
+- RC now mounts its exact isolated release through operator-owned `/etc/samma-dev/rc-runtime.override.yml`; include that file in the existing NUC Compose command. Runtime configuration/ports/networks remain unchanged. Record final acceptance as documentation-only on the existing evidence experiment, preserving the exact promoted/deployed application revision. See [the final baseline](ONBOARDING-RC-BASELINE.md).
