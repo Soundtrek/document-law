@@ -654,3 +654,16 @@ no Governance or implicit roles, and stable Account/Identity/Person. Phil remain
 unchanged. Disposable fixtures were cleaned up; evidence was retained privately.
 Main/RC and port 2022 remained unchanged. Acceptance documentation alone advances
 DEV after deployment. Stop for Phil; no main promotion.
+
+## ADR-046 — NUC DEV Mailpit preparation; shared realm switch blocked
+
+2026-09-06: Phil requested DEV-only Mailpit, LAN inbox on 192.168.1.152:8025,
+private SMTP, preserved verification/recovery, no RC/Rackzar/Caddy changes and
+smoke-only validation. Prepare a standalone bounded Mailpit service on the
+existing internal auth network in `experiment/dev-mailpit`. Live inspection
+confirms DEV and RC share the same issuer, realm `samma` and client `samma-web`.
+Changing realm SMTP would change RC mail delivery. Leave realm configuration
+and real SMTP credentials untouched pending an explicit scope decision; do not
+redesign auth or merge before the required auth smoke succeeds. The password-free
+future real SMTP reference is retained in [operations/status](DEV-MAILPIT.md).
+See [captured request](../prompts/2026-09-06-dev-mailpit.md).
