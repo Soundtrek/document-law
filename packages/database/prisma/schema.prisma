@@ -424,6 +424,8 @@ model CompanySubscription {
 
 // Opaque session tokens are generated and handled by Auth.js, never SAMMA crypto.
 model AuthSession {
+  // Validated OIDC ID token, server-only and deleted with this session; used solely for RP logout.
+  idToken String?
   sessionToken String @id
   accountId String
   identityId String

@@ -2,7 +2,8 @@ import type { Adapter, AdapterUser } from "@auth/core/adapters";
 import type { createPrismaClient } from "@samma/database";
 
 type Database = ReturnType<typeof createPrismaClient>;
-export interface LoginContext { identityId?: string; accountId?: string; mfaSatisfied?: boolean }
+export interface LoginContext { identityId?: string; accountId?: string; mfaSatisfied?: boolean; idToken?: string | null }
+export interface LogoutContext { completed?: boolean; idToken?: string | null }
 const userProjection = (account: { id: string; primaryEmail: string; emailVerified: boolean }): AdapterUser => ({
   id: account.id, email: account.primaryEmail, emailVerified: account.emailVerified ? new Date(0) : null,
 });
@@ -14,7 +15,7 @@ export async function resolveDatabaseSession(db: Database, token: string) {
   return session;
 }
 
-export function sammaAdapter(db: Database, issuer: string, login: LoginContext): Adapter {
+export function sammaAdapter(db: Database, issuer: string, login: LoginContext, logout: LogoutContext = {}): Adapter {
   const closed = async (): Promise<never> => { throw new Error("Controlled onboarding required"); };
   return {
     createUser: closed, updateUser: closed, linkAccount: closed,
@@ -39,7 +40,7 @@ export function sammaAdapter(db: Database, issuer: string, login: LoginContext):
       await db.authSession.deleteMany({ where: { expires: { lte: new Date() } } });
       await db.authSession.create({ data: {
         sessionToken: input.sessionToken, accountId: input.userId, identityId: identity.id,
-        mfaSatisfied: login.mfaSatisfied === true, expires: input.expires,
+        mfaSatisfied: login.mfaSatisfied === true, expires: input.expires, idToken: login.idToken ?? null,
       } });
       return input;
     },
@@ -52,7 +53,17 @@ export function sammaAdapter(db: Database, issuer: string, login: LoginContext):
       const row = await resolveDatabaseSession(db, input.sessionToken);
       return row ? { sessionToken: row.sessionToken, userId: row.accountId, expires: row.expires } : null;
     },
-    async deleteSession(token) { await db.authSession.deleteMany({ where: { sessionToken: token } }); },
+    async deleteSession(token) {
+      // Keep the hint tied to this browser session, never to the account's latest login.
+      const row = await db.$transaction(async transaction => {
+        const session = await transaction.authSession.findUnique({ where: { sessionToken: token }, include: { identity: true } });
+        await transaction.authSession.deleteMany({ where: { sessionToken: token } });
+        return session;
+      });
+      logout.completed = true;
+      logout.idToken = row?.identity.provider === issuer ? row.idToken : null;
+      return row ? { sessionToken: row.sessionToken, userId: row.accountId, expires: row.expires } : null;
+    },
   };
 }
 

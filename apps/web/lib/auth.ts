@@ -3,7 +3,8 @@ import { Auth } from "@auth/core";
 import Keycloak from "@auth/core/providers/keycloak";
 import { safeAuthenticationRedirect, verifiedOidcClaims } from "@samma/identity";
 import { db } from "./database";
-import { sammaAdapter, resolveDatabaseSession, type LoginContext } from "./auth-adapter";
+import { sammaAdapter, resolveDatabaseSession, type LoginContext, type LogoutContext } from "./auth-adapter";
+import { providerLogoutUrl } from "./auth-logout";
 import { AuthEntryError, type AuthFailure } from "./auth-errors";
 import { resolveOnboardingIdentity } from "./onboarding-service";
 import { flowCookieName, setupCookieName, newFlow, newCompanySetup, companySetupMatches, onboardingChoice, onboardingCookie, readOnboarding, requestCookie, sealOnboarding, type OnboardingChoice } from "./onboarding-state";
@@ -61,17 +62,19 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       }
     }
     const login: LoginContext = {};
+    const logout: LogoutContext = {};
     const headers = new Headers(request.headers);
     headers.set("host", new URL(settings.baseUrl).host);
     headers.delete("x-forwarded-host");
     headers.delete("x-forwarded-proto");
+    if (action === "signout") headers.delete("x-auth-return-redirect");
     const normalized = new Request(canonical, { method: request.method, headers, ...(request.method === "POST" ? { body: await request.text() } : {}) });
     const authResponse = await Auth(normalized, {
       basePath: "/api/auth", trustHost: true, secret: settings.secret, useSecureCookies: true,
       providers: [Keycloak({ issuer: settings.issuer, clientId: settings.clientId, clientSecret: settings.clientSecret,
         checks: ["pkce", "state", "nonce"], authorization: { params: { scope: "openid email profile", ...(registration ? { prompt: "create" } : {}), ...(loginHint ? { login_hint: loginHint } : {}) } },
       })],
-      adapter: sammaAdapter(db, settings.issuer, login),
+      adapter: sammaAdapter(db, settings.issuer, login, logout),
       session: { strategy: "database", maxAge: 3600, updateAge: 3600 },
       cookies: { sessionToken: { name: sessionCookieName, options: { httpOnly: true, secure: true, sameSite: "lax", path: "/" } } },
       pages: { signIn: "/sign-in", error: "/sign-in" },
@@ -85,6 +88,7 @@ export async function handleAuthentication(request: Request): Promise<Response> 
             // A callback carrying expired/tampered onboarding state cannot become an ordinary login.
             if (requestCookie(request, flowCookieName) && !verifiedFlow) throw new AuthEntryError("OnboardingExpired");
             const resolved = await resolveOnboardingIdentity(db, settings.issuer, profile, Boolean(verifiedFlow));
+            login.idToken = account.id_token ?? null;
             login.accountId = resolved.account.id; login.identityId = resolved.identity.id; login.mfaSatisfied = resolved.mfaSatisfied;
             return true;
           } catch (error) {
@@ -92,12 +96,12 @@ export async function handleAuthentication(request: Request): Promise<Response> 
             return false;
           }
         },
-        redirect({ url }) { return safeAuthenticationRedirect(url, settings.baseUrl); },
+        redirect({ url }) { return action === "signout" ? new URL("/auth/logout", settings.baseUrl).href : safeAuthenticationRedirect(url, settings.baseUrl); },
         session({ session, user }) { return { expires: session.expires, user: { id: user.id, email: user.email } }; },
       },
       events: {
         async signIn({ user }) { await db.activityEvent.create({ data: { type: "AUTH_LOGIN", actorAccountId: user.id ?? null, summary: "Verified OIDC login" } }); },
-        async signOut(message) { if ("session" in message && message.session) await db.activityEvent.create({ data: { type: "AUTH_LOGOUT", actorAccountId: message.session.userId, summary: "Application session ended; provider logout requested" } }); },
+        async signOut(message) { if ("session" in message && message.session) await db.activityEvent.create({ data: { type: "AUTH_LOGOUT", actorAccountId: message.session.userId, summary: "Application session revoked; browser provider logout pending" } }); },
       },
       // Never log provider responses, tokens, email hints or callback parameters.
       logger: { error(error) { console.error("Authentication request failed", error.name); }, warn() {}, debug() {} },
@@ -137,7 +141,13 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       if (failure) response.headers.set("Location", new URL(`/sign-in?error=${failure}`, settings.baseUrl).href);
       await db.activityEvent.create({ data: { type: "AUTH_LOGIN_DENIED", summary: "OIDC login denied" } });
     }
-    if (action === "signout" && request.method === "POST" && response.headers.getSetCookie().some(cookie => cookie.startsWith(sessionCookieName + "=") && cookie.includes("Max-Age=0"))) {
+    // Only Auth.js's successful CSRF-validated POST reaches this fixed callback.
+    // Auth.js swallows adapter errors and clears cookies: do not report success if revocation failed.
+    if (action === "signout" && request.method === "POST" && response.headers.get("location") === new URL("/auth/logout", settings.baseUrl).href) {
+      if (requestCookie(request, sessionCookieName) && !logout.completed) {
+        return new Response("Sign out unavailable. Please try again.", { status: 503, headers: { "Cache-Control": "no-store" } });
+      }
+      response.headers.set("Location", providerLogoutUrl(settings, logout.idToken));
       response.headers.append("Set-Cookie", onboardingCookie(setupCookieName, "", 0));
       response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
     }

@@ -741,3 +741,14 @@ Merge the validated experiment to dev; no main promotion. See
   container IDs, start times and health responses match their captured baselines.
   Private evidence and rollback configuration are retained under
   `/srv/nuc-archive/juanity/validation/governance-user-filters/e2ca7058a58cce1277c7df635853ec8d75c9b0de`.
+
+## 2026-09-06 — Complete browser logout with Keycloak RP-initiated logout
+
+- Scope: logout/account switching only, experiment/fix-logout-account-switching → dev; no main promotion.
+- Root cause: Auth.js removed the local session, then `/auth/logout` sent `client_id` without `id_token_hint`; Keycloak required a second confirmation. The existing browser check submitted that confirmation, masking the incomplete one-button flow.
+- Keep the Auth.js-validated ID token in a nullable, server-only `AuthSession.idToken` field. It belongs to an individual session and is deleted in the same transaction as session revocation. No access/refresh tokens are retained, and the public session projection excludes it.
+- Only successful same-origin, CSRF-validated Auth.js POST initiates provider logout. Use the just-revoked session's hint, configured issuer/client, and exact canonical host root. GET `/auth/logout` becomes a harmless home redirect. Local deletion failure returns 503 without clearing the browser cookie.
+- Existing sessions without a hint retain Keycloak's safe confirmation fallback once. New sessions can end without confirmation. Keep ordinary SSO/login parameters unchanged.
+- Live client inspection confirmed the exact DEV/RC callback, origin and post-logout allow-lists already exist. No Keycloak client/realm settings change. Cookies remain host-only.
+- Validation is limited to logout/session negative checks, affected typecheck/lint, production build, and real DEV browser switching. No full suite, storage, Legal Access, registration or unrelated Governance checks.
+- Provider basis: https://www.keycloak.org/docs/latest/upgrading/ (RP logout confirmation and ID-token hint), https://www.keycloak.org/securing-apps/oidc-layers (logout endpoint).
