@@ -49,6 +49,7 @@ async function login(browser, label) {
       await card.getByRole('button', { name: 'Save', exact: true }).scrollIntoViewIfNeeded();
       const button = await card.getByRole('button', { name: 'Save', exact: true }).boundingBox(), overlay = await page.getByLabel('Application build').boundingBox();
       assert.ok(!overlay || button.y + button.height <= overlay.y || overlay.y + overlay.height <= button.y || button.x + button.width <= overlay.x);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       await page.screenshot({ path: root + '/manage-' + width + '.png', fullPage: true });
     }
     pending = page.waitForResponse(r => r.url() === base + '/api/company/team');
@@ -58,7 +59,7 @@ async function login(browser, label) {
     await page.reload();
     await card.locator('[aria-label="Functional roles"]').getByText('HR', { exact: true }).waitFor();
     await page.goto(base + relationshipHref);
-    await page.getByRole('link', { name: 'Add record', exact: true }).waitFor();
+    await page.getByRole('link', { name: 'Add record', exact: true }).first().waitFor();
     await page.screenshot({ path: root + '/hr-record-action-390.png', fullPage: true });
     // Protected POST rejects hostile origins, missing CSRF and foreign member IDs.
     const post = (data, headers) => context.request.post(base + '/api/company/team', { data, headers });
