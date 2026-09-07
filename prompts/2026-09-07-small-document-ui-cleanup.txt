@@ -1,0 +1,18 @@
+SAMMA — SMALL DOCUMENT UI CLEANUP
+
+Following successful Document Setup V1 manual acceptance, remove the company-wide
+Available records section from Company Info Center. Remove only queries/imports
+used exclusively by that section. Do not delete records or change permissions,
+storage, auth, roles or database schema. Keep Person cards and the canonical
+Company Info Center → View person → Records → View / Download / Add record path.
+Optional wording is Records / No records yet. / Add record; no redesign.
+
+Focused validation only: company section gone, cards and View person unchanged,
+relationship Records retained, authorised-only Add record, Phil's person-visible
+record remains visible and internal HR note stays hidden on Personal Info Center.
+Run affected focused tests, affected typecheck/lint, production build as needed.
+No full suite. Commit directly on dev, push and deploy exact dev SHA to
+https://dev.samma.co.za. Do not touch main.
+Suggested commit: chore: simplify company document navigation
+Final report: PASS/BLOCKED, cleanup, focused validation/full suite NO, commit and
+deployed SHA, main unchanged.

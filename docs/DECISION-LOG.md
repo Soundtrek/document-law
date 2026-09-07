@@ -933,3 +933,15 @@ Validation is restricted to focused team/invitation checks and the requested
 Prisma, affected typecheck/lint and production-build checks. DEV database backup
 and SQL review precede migration. Stop for Phil after DEV acceptance; no main
 promotion or production identity/storage/policy changes are authorised.
+
+
+## 2026-09-07 — Small company document navigation cleanup
+
+Phil confirms successful Document Setup V1 manual acceptance. Company-side
+records belong under the relevant Person/relationship, reached from View person.
+Remove Company Info Center's company-wide Available records section and only its
+now-unused query/imports. Preserve cards, relationship/Personal Info Center
+projections and all authorisation, role, identity, storage and schema behavior.
+Existing Records / No records yet. / Add record wording already meets the request.
+Explicitly authorised: direct-dev commit, push and exact-SHA DEV deployment;
+focused validation only, no full suite and no main promotion.
