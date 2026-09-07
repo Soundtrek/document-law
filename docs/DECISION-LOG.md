@@ -823,3 +823,24 @@ Merge the validated experiment to dev; no main promotion. See
 - Application commits `1d8958e` and `4e138dd` were pushed directly to dev as authorised. Exact application SHA `4e138dd5509e5f0631e2f157ac70933f9c6b67fb` built and deployed only to DEV web. Focused 17/17 tests, generate/validate, migration status/zero-diff, affected typecheck/lint, production build and the existing audit gate passed. No unrelated full suite rerun.
 - Actual HTTPS existing/new Person journeys, Mailpit delivery, no fake Account before new registration, ACTIVE relationships without CompanyMember creation, Company People, decline/revoke and recipient/CSRF/tenant denials passed. Desktop/mobile screenshots inspected. Correct the browser helper to wait for navigation before capturing companyId; this follow-up changes validation/documentation only, so application artifact identity remains 4e138dd.
 - Main local/remote remains `6619d19cddfd0767f280204b541c2f5823f23dce`; RC/preview container IDs/start times and Keycloak/Mailpit containers/networks are unchanged. DEV/RC health/readiness and preview liveness pass. The untouched preview reports readiness 503 with storage unconfigured; it was not reconfigured or restarted. No auth code/provider configuration changes; synthetic registration was exercised normally. See `docs/PERSON-COMPANY-INTRODUCTION-V1-REPORT.md` and its private evidence paths. STOPPED FOR PHIL APPROVAL.
+
+## 2026-09-07 — Company People relationship cards
+
+- Phil authorises direct `dev` implementation, commit/push and exact-SHA DEV
+  deployment for this UI change. Main/RC is excluded. Request:
+  `prompts/2026-09-07-company-people-cards.md`.
+- Keep Add person above a stack of individual relationship cards. Include all
+  existing relationship states. Display the Person name first and company-scoped
+  accepted invitation email underneath, falling back to the existing Account
+  primary email when no accepted invitation exists. Blank names use email.
+- The existing stable route family only contained an add-record page; add the
+  minimal `/company/relationships/{relationshipId}` detail view. Require current
+  membership in that relationship's active company, with no private records or
+  unrelated Person context in the projection. No schema/profile expansion.
+- Share the existing add-record definition selection and `uploadContext` check
+  between the cards, detail view and add-record page. Existing policy admits only
+  ACTIVE relationships with an active membership and a permitted functional role;
+  pending/historical relationships remain viewable without Add record.
+- Validation is limited to the new cards/detail and entry-point authorisation,
+  affected web typecheck/lint, responsive browser checks and exact-SHA production
+  build. Full suite rerun: NO.

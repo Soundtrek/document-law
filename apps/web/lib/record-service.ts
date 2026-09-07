@@ -5,6 +5,18 @@ import type { StorageProvider, UploadSource } from "@samma/storage";
 import { domainDefinition, domainRecord } from "./record-access";
 type Database = ReturnType<typeof createPrismaClient>;
 type Reader = Pick<Database, "companyMember" | "personCompanyRelationship" | "recordDefinitionVersion" | "record">;
+// Share the add-record page's version selection and authorisation with its entry points.
+export async function allowedRelationshipDefinitions(db: Reader, accountId: string, relationshipId: string) {
+  const definitions = await db.recordDefinitionVersion.findMany({ where: { active: true, context: "RELATIONSHIP", recordDefinition: { active: true } }, orderBy: { version: "desc" } });
+  const allowed = [];
+  const seen = new Set<string>();
+  for (const definition of definitions) {
+    if (seen.has(definition.recordDefinitionId)) continue;
+    seen.add(definition.recordDefinitionId);
+    try { await uploadContext(db, accountId, relationshipId, definition.id); allowed.push(domainDefinition(definition)); } catch { /* deny by default */ }
+  }
+  return allowed;
+}
 export async function uploadContext(db: Reader, accountId: string, relationshipId: string, definitionId: string, recordId?: string) {
   const relationship = await db.personCompanyRelationship.findFirst({ where: { id: relationshipId, status: "ACTIVE", company: { status: "ACTIVE" } } });
   if (!relationship) throw new Error("Upload not authorised");

@@ -314,4 +314,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .employment-invitation:last-child { border-bottom: 0; }
 .employment-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
 
-.employment-person { overflow-wrap: anywhere; }
+.company-people { align-content: start; }
+.company-people-list { gap: 14px; }
+.company-person-card { background: var(--samma-surface-soft); box-shadow: none; }
+.company-person-card h3, .company-person-meta .pill { overflow-wrap: anywhere; min-width: 0; }
