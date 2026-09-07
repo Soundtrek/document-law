@@ -1,0 +1,586 @@
+SAMMA — DOCUMENT SETUP V1
+BUILD DIRECTLY ON DEV
+
+GOAL
+
+Complete the relationship-scoped document UI and prove the core Company → Person document handoff using the existing record/storage engine.
+
+Current DEV:
+
+https://dev.samma.co.za
+
+Current deployed SHA:
+
+daeab8a3f2859b1a33dc2040be2db83c7fe100f4
+
+Work directly on:
+
+dev
+
+Do NOT touch main.
+
+Do NOT rebuild the existing Add Record/storage implementation.
+
+==================================================
+TARGET PRODUCT LOOP
+==================================================
+
+Company:
+
+Company Info Center
+→ Person card
+→ View person
+→ Add record
+→ choose active RecordDefinition
+→ upload file
+→ save
+
+Person:
+
+Personal Info Center
+→ My records
+→ sees person-visible record
+→ opens/downloads it
+
+Hidden/internal record:
+
+Company uploads
+→ remains company-visible according to policy
+→ does NOT appear in Person Info Center
+
+==================================================
+1. RELATIONSHIP DETAIL PAGE
+==================================================
+
+Current route:
+
+/company/relationships/[relationshipId]
+
+Already shows:
+
+- person name/email
+- company
+- relationship status/type
+- authorised Add record button
+
+Add a proper:
+
+Records
+
+section below the relationship details.
+
+If no authorised/visible company-side records exist:
+
+show:
+
+No records yet.
+
+[ Add record ]
+
+only if current role is authorised to create one.
+
+If records exist:
+
+render them using existing record projection/list components where possible.
+
+Do not invent a second record-list implementation.
+
+==================================================
+2. RELATIONSHIP RECORD CARDS / LIST
+==================================================
+
+Show concise company-side record information:
+
+- record title
+- record definition/type
+- category/classification if useful
+- status
+- created date
+- review date if present
+- person-visible: Yes/No if appropriate for company user
+- View
+- Download if authorised
+
+Keep UI simple.
+
+Do not add:
+
+- workflow timeline
+- document editor
+- signing
+- acknowledgement
+- notification center
+- bulk upload
+
+==================================================
+3. ADD RECORD
+==================================================
+
+Reuse the existing real flow exactly:
+
+/company/relationships/[relationshipId]/add-record
+→ AddRecordForm
+→ /api/records/upload
+→ persistRelationshipUpload
+→ RecordIntakeService
+→ PostgreSQL + Garage
+
+Do NOT create a new upload route.
+
+Do NOT create a new storage adapter.
+
+Do NOT change current 10 MiB limit.
+
+Do NOT change supported file types unless a real bug is found.
+
+==================================================
+4. RECORD DEFINITIONS
+==================================================
+
+Use current active Governance definitions.
+
+Current DEV definitions include:
+
+Synthetic employee document
+→ COMPANY_TO_PERSON
+→ personVisible=true
+→ HR-only
+
+Synthetic internal HR note
+→ INTERNAL_COMPANY
+→ personVisible=false
+→ HR-only
+
+Do not hardcode payslip/contract types in the Add Record form.
+
+Use allowedRelationshipDefinitions or the existing server-side selector.
+
+==================================================
+5. MY RECORDS — PERSON INFO CENTER
+==================================================
+
+Improve the existing My records presentation.
+
+Current Person Info Center already loads permitted person-visible records.
+
+For each record show:
+
+- title
+- company name
+- record definition/type name
+- category if useful
+- actual record status
+- created date
+- review indicator/date if present
+- View / Download action
+
+Replace generic labels such as:
+
+Current
+
+if they do not reflect the actual record status.
+
+Do not show internal/person-hidden records.
+
+==================================================
+6. COMPANY / PERSON VISIBILITY
+==================================================
+
+Keep existing policy exactly.
+
+personVisible=true
+→ Person may see/download
+
+personVisible=false
+→ Person must not see/download
+
+Company-side access still depends on:
+
+- active company
+- active CompanyMember
+- permitted functional role for the pinned definition
+- nondeleted record
+
+OWNER has NO bypass.
+
+Do not change this.
+
+==================================================
+7. HR ROLE FOR MANUAL TEST
+==================================================
+
+Current Company1 tester has OWNER only.
+
+The active DEV record definitions are HR-only.
+
+For the manual acceptance test:
+
+Phil must explicitly assign himself HR through the existing Team & Access workflow.
+
+Do NOT:
+
+- auto-grant HR
+- change OWNER privileges
+- seed HR directly in request code
+- bypass the role check
+
+This role assignment should use the existing approved company role workflow.
+
+==================================================
+8. RECORD ACCESS DENIAL AUDIT
+==================================================
+
+Preflight found one audit gap:
+
+Denied record access is not currently audited.
+
+Add focused audit coverage for denied record/file access where the current access service has a clean denial boundary.
+
+Use an event equivalent to:
+
+RECORD_ACCESS_DENIED
+
+or current naming convention.
+
+Record only safe identifiers/context.
+
+Do NOT log:
+
+- document content
+- tokens
+- storage credentials
+- sensitive payloads
+- raw request bodies
+
+Do not broaden this into a full audit redesign.
+
+==================================================
+9. STORAGE
+==================================================
+
+Reuse current persistent storage path.
+
+Expected:
+
+S3StorageProvider
+→ Garage
+→ private bucket
+→ opaque immutable keys
+→ SHA-256
+→ RecordFile
+→ NOT_SCANNED_DEV
+
+Do not change Garage config.
+
+Do not change scan semantics.
+
+Do not add malware scanning in this task.
+
+==================================================
+10. FILE VALIDATION
+==================================================
+
+Keep existing rules:
+
+- PDF
+- PNG
+- JPEG
+- maximum 10 MiB
+- MIME from signature
+- sanitized filename
+- SHA-256 verification
+
+Do not add deduplication/idempotency unless a current defect requires it.
+
+==================================================
+11. COMPANY-SIDE VIEW
+==================================================
+
+After successful upload:
+
+redirect back to the relationship page.
+
+The new record should immediately appear under:
+
+Records
+
+Show a clean success state/message if current patterns support it.
+
+Do not create a separate document center yet.
+
+==================================================
+12. PERSON-SIDE VIEW
+==================================================
+
+After upload of a person-visible record:
+
+reload/sign in as the recipient Person.
+
+Confirm the record appears in:
+
+Personal Info Center
+→ My records
+
+Show company + definition/type clearly so the Person understands who supplied it and what it is.
+
+==================================================
+13. HIDDEN RECORD CHECK
+==================================================
+
+Upload:
+
+Synthetic internal HR note
+
+for the same relationship.
+
+Confirm:
+
+Company authorised HR user:
+→ can see it according to policy
+
+Person:
+→ does NOT see it in My records
+→ cannot download it directly
+
+This is part of acceptance.
+
+==================================================
+14. DOWNLOAD
+==================================================
+
+Reuse:
+
+/api/files/[fileId]
+
+No new download route.
+
+Confirm:
+
+- authorised Person download passes for visible record
+- authorised company HR download passes
+- hidden record Person download denied
+- unrelated Person denied
+- cross-company access denied
+
+Use existing current checks.
+
+==================================================
+15. DATABASE
+==================================================
+
+No migration expected.
+
+If implementation requires schema changes:
+
+STOP and explain why before applying them.
+
+Current expected state:
+
+five migrations
+schema zero-diff
+
+==================================================
+16. FOCUSED TESTS
+==================================================
+
+Do NOT run the full suite.
+
+Add/run focused tests only for:
+
+RELATIONSHIP PAGE
+- empty state
+- records appear
+- Add record visible only when authorised
+
+PERSON INFO CENTER
+- company name shown
+- definition name shown
+- actual status shown
+- hidden record omitted
+
+ACCESS
+- visible Person access
+- hidden Person denial
+- company HR access
+- OWNER-without-HR denial
+- denied access audit event
+
+No broad auth tests.
+No Mailpit tests.
+No invitation tests.
+No storage suite rerun unless touched.
+
+==================================================
+17. MANUAL DEV ACCEPTANCE
+==================================================
+
+Use existing:
+
+Company1
+↔ Phil
+ACTIVE EMPLOYMENT relationship
+
+Step 1:
+
+Phil as Company1 Owner
+→ Team & Access
+→ explicitly assign HR
+
+Step 2:
+
+Open Phil relationship
+→ Add record
+
+Upload a small synthetic PDF using:
+
+Synthetic employee document
+
+Example title:
+
+September Test Payslip
+
+Confirm:
+
+- upload succeeds
+- relationship page shows record
+- Garage object exists through current path
+- Person-visible
+
+Step 3:
+
+Sign in as Phil Person account
+
+Confirm:
+
+Personal Info Center
+→ My records
+→ September Test Payslip visible
+→ company shown as Company1
+→ definition/type shown
+→ download succeeds
+
+Step 4:
+
+Company1 HR uploads:
+
+Synthetic internal HR note
+
+Confirm:
+
+- company-side record exists
+- Phil Person Info Center does NOT show it
+- direct Person download denied
+
+==================================================
+18. UI
+==================================================
+
+Keep current SAMMA / Crewfinder-style direction.
+
+Relationship page:
+
+Person summary
+Records
+Add record
+
+Person Info Center:
+
+My records cards/list
+
+Do not redesign Company Info Center again.
+
+Do not add dashboards/charts.
+
+==================================================
+19. VALIDATION
+==================================================
+
+Run:
+
+- targeted document/relationship tests
+- affected typecheck
+- affected lint
+- production build
+
+Prisma validate/status/zero-diff only if DB-layer files are touched.
+
+Full suite rerun:
+NO
+
+==================================================
+20. DEV DEPLOYMENT
+==================================================
+
+Commit directly on dev.
+
+Suggested commit:
+
+feat: complete relationship document views
+
+If denied-access audit is cleaner separately:
+
+feat: audit denied record access
+
+Push dev normally.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+21. STOP FOR PHIL
+==================================================
+
+After manual acceptance:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+RELATIONSHIP PAGE
+- records section
+- empty state
+- Add record
+
+PERSON INFO CENTER
+- company
+- definition
+- status
+- visible record
+
+HIDDEN RECORD
+- company-visible
+- person-hidden
+
+ROLE
+- HR assigned explicitly
+- OWNER bypass: NO
+
+AUDIT
+- denied record access event
+
+STORAGE
+- existing Garage path reused
+- NOT_SCANNED_DEV unchanged
+
+VALIDATION
+- focused tests
+- full suite rerun: NO
+
+DEV
+- commit(s)
+- deployed SHA
+- health
+
+MAIN
+- unchanged
+
+STOPPED FOR PHIL APPROVAL

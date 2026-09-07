@@ -20,7 +20,9 @@ export function AddRecordForm({ definitions, relationshipId, recordId, recordTit
         ...(recordId ? { "X-Samma-Record": encodeURIComponent(recordId) } : {}),
       }, body: file });
       if (!response.ok) throw new Error("Upload could not be completed. Check the record before retrying.");
-      const result = await response.json(); router.push(`/records/${result.recordId}`); router.refresh();
+      const result = await response.json();
+      router.push(recordId ? `/records/${result.recordId}` : `/company/relationships/${relationshipId}`);
+      router.refresh();
     } catch { setError("Upload could not be completed. Check your access, file and size limit; check the record before retrying."); }
     finally { setBusy(false); }
   }

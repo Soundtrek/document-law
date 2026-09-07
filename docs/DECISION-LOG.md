@@ -866,3 +866,34 @@ Merge the validated experiment to dev; no main promotion. See
   checks at 1440, 768 and 390 pixels. Full suite rerun: NO. Deployment evidence is
   retained privately under
   `/srv/nuc-archive/juanity/validation/company-info-center-rework`.
+
+## 2026-09-07 — Document Setup V1
+
+- Phil explicitly authorises implementation, commit/push directly on `dev`, and
+  exact-SHA deployment to DEV. Main/RC is excluded. Full request:
+  `prompts/2026-09-07-document-setup-v1.txt`.
+- Reuse the existing domain projections and shared RecordList for relationship
+  Records and Person My records. Join company display names and accepted current
+  file identifiers server-side. Company lists require active company/membership
+  and the pinned definition's functional roles; Person lists require visibility.
+- Show actual record status separately from review indicators. New uploads return
+  to the relationship page; replacement uploads keep the existing record page.
+  Preserve the existing upload route, intake, Garage adapter, validation, 10 MiB
+  limit and explicit NOT_SCANNED_DEV semantics.
+- Audit actual denied metadata/file requests with RECORD_ACCESS_DENIED and stored
+  identifiers plus a fixed operation summary. Do not audit normal list filtering
+  or capability checks. No new schema or migration is needed.
+- Preserve existing account-wide access policy: an account with an authorised HR
+  membership can read the company's internal records regardless of the page it
+  navigated from. Person My records still omits those records. Direct Person-only
+  denial must be tested using an account without that company capability. No
+  workspace-switch authorisation mechanism is introduced in this UI task.
+- Phil must assign his own HR role explicitly through Team & Access for Company1
+  manual acceptance. The agent must not grant it or claim that manual step passed.
+- Run only focused document/relationship/access tests, affected typecheck/lint,
+  schema validation/status/zero-diff for query changes, and a production build.
+  No full suite, broad authentication, Mailpit, invitation or storage suite rerun.
+- Implementation inspection found the prescribed Team & Access workflow is absent
+  from current dev: `/company/team/invite` is an unavailable demo route and no
+  company role assignment handler exists. Company1 manual acceptance is pending
+  that prerequisite; implementing role management is a separate scope decision.

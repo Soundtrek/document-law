@@ -3,6 +3,25 @@ import { canCompanyMemberViewRecord, canLegalProfessionalViewRecord, canPersonVi
 
 type Database = ReturnType<typeof createPrismaClient>;
 type StoredRecord = Prisma.RecordGetPayload<{ include: { definitionVersion: true } }>;
+export function isDownloadableFile(file: { acceptedAt: Date | null; scanStatus: string }): boolean {
+  return Boolean(file.acceptedAt) && (file.scanStatus === "ACCEPTED" ||
+    (file.scanStatus === "NOT_SCANNED_DEV" && process.env.SAMMA_ENV === "development" && process.env.SAMMA_SCAN_POLICY === "not-scanned-dev"));
+}
+
+// Audit attempted resource access, not ordinary list filtering or capability checks.
+// Context comes only from a stored row; untrusted route IDs and payloads are omitted.
+export async function auditRecordAccessDenied(db: Database, accountId: string, row: StoredRecord | null, operation: "view" | "download") {
+  await db.activityEvent.create({ data: { type: "RECORD_ACCESS_DENIED", actorAccountId: accountId,
+    ...(row ? { recordId: row.id, companyId: row.companyId, personId: row.personId, relationshipId: row.relationshipId } : {}),
+    summary: operation === "download" ? "Private record file download denied." : "Record metadata access denied." } });
+}
+
+export async function authoriseRecordAccess(db: Database, accountId: string, row: StoredRecord | null, operation: "view" | "download" = "view") {
+  if (row && await canReadStoredRecord(db, accountId, row, operation)) return true;
+  await auditRecordAccessDenied(db, accountId, row, operation);
+  return false;
+}
+
 export const strings = (value: unknown): string[] => Array.isArray(value) && value.every(item => typeof item === "string") ? value : [];
 export function domainRecord(row: StoredRecord): RecordEntry {
   return { id: row.id, definitionVersionId: row.definitionVersionId, context: row.context, title: row.title,

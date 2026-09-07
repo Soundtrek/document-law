@@ -3,8 +3,7 @@ import { PageHero } from "../../components/page-hero";
 import { RecordList } from "../../components/record-list";
 import { requireSession, pendingCompanySetup } from "../../lib/access";
 import { db } from "../../lib/database";
-import { domainDefinition, domainRecord } from "../../lib/record-access";
-import { buildPersonRecordProjection } from "@samma/domain";
+import { personRecords } from "../../lib/record-queries";
 import { EmploymentInvitationList } from "../../components/employment-invitations";
 import { personInvitations } from "../../lib/employment-service";
 import { employmentCsrf } from "../../lib/employment-security";
@@ -17,8 +16,7 @@ export default async function PersonInfoCenterPage() {
   const settings = authSettings();
   const invitations = await personInvitations(db, { sessionToken: session.sessionToken, issuer: settings.issuer });
   const csrf = employmentCsrf(settings.secret, session.sessionToken);
-  const stored = await db.record.findMany({ where: { personId: person.id, status: { not: "DELETED" }, definitionVersion: { personVisible: true } }, include: { definitionVersion: true }, orderBy: { createdAt: "desc" } });
-  const records = buildPersonRecordProjection(person.id, stored.map(domainRecord), stored.map(row => domainDefinition(row.definitionVersion)), new Date().toISOString());
+  const records = await personRecords(db, person.id);
   return <main className="page-shell">
     <PageHero eyebrow="PERSON INFO CENTER" title={person.displayName} description="Your account, employment relationships and available records." />
     <section className="grid">

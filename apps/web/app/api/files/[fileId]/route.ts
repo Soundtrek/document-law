@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 import { verifiedStream } from "@samma/storage";
 import { apiSession } from "../../../../lib/api-session";
 import { db } from "../../../../lib/database";
-import { canReadStoredRecord } from "../../../../lib/record-access";
+import { auditRecordAccessDenied, authoriseRecordAccess, isDownloadableFile } from "../../../../lib/record-access";
 import { getStorage } from "../../../../lib/storage";
 import { sanitiseFilename } from "../../../../lib/upload-staging";
 export const runtime = "nodejs";
@@ -11,9 +11,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
   if (!session) return new Response(null, { status: 401 });
   const { fileId } = await params;
   const file = await db.recordFile.findUnique({ where: { id: fileId }, include: { record: { include: { definitionVersion: true } } } });
-  if (!file || !file.acceptedAt || !["ACCEPTED", "NOT_SCANNED_DEV"].includes(file.scanStatus) ||
-    (file.scanStatus === "NOT_SCANNED_DEV" && (process.env.SAMMA_ENV !== "development" || process.env.SAMMA_SCAN_POLICY !== "not-scanned-dev")) ||
-    !await canReadStoredRecord(db, session.accountId, file.record, "download")) return new Response(null, { status: 404 });
+  if (!file || !isDownloadableFile(file)) {
+    await auditRecordAccessDenied(db, session.accountId, file?.record ?? null, "download");
+    return new Response(null, { status: 404 });
+  }
+  if (!await authoriseRecordAccess(db, session.accountId, file.record, "download")) return new Response(null, { status: 404 });
   try {
     const storage = getStorage(), metadata = await storage.metadata(file.storageKey);
     if (!metadata || metadata.state !== "ACCEPTED" || metadata.checksumSha256 !== file.checksumSha256 || metadata.sizeBytes !== file.sizeBytes || metadata.contentType !== file.contentType) throw new Error("Object mismatch");
