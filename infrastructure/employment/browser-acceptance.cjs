@@ -119,7 +119,7 @@ async function screenshot(page, label) {
     stage = 'existing Person invitation';
     await send(users.existing.email); await screenshot(owner.page, 'company-pending');
     const existing = await login(browser, 'existing');
-    await existing.page.getByRole('heading', { name: 'Pending invitations', exact: true }).waitFor();
+    await existing.page.getByRole('heading', { name: 'Employment invitations', exact: true }).waitFor();
     await existing.page.getByRole('heading', { name: companyName, exact: true }).waitFor();
     await screenshot(existing.page, 'person-pending');
     let personCsrf;
@@ -136,7 +136,7 @@ async function screenshot(page, label) {
     // Normal verified login also finds the inbox, independent of registration continuation.
     await newcomer.context.close();
     const fresh = await login(browser, 'new');
-    await fresh.page.getByRole('heading', { name: 'Pending invitations', exact: true }).waitFor();
+    await fresh.page.getByRole('heading', { name: 'Employment invitations', exact: true }).waitFor();
     await fresh.page.getByRole('button', { name: 'Accept', exact: true }).click();
     await fresh.page.locator('#companies').getByText(companyName + ' · ACTIVE', { exact: true }).waitFor();
     await owner.page.goto(base + '/company');

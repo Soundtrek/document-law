@@ -58,7 +58,9 @@ function databaseCheck(phase) {
 }
 async function screenshot(page, label) {
   for (const width of [1440, 390]) {
-    await page.setViewportSize({ width, height: 844 }); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await page.waitForFunction(() => window.scrollY === 0); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.screenshot({ path: root + '/' + label + '-' + width + '.png', fullPage: true });
   }
 }
@@ -67,12 +69,19 @@ async function screenshot(page, label) {
   try {
     const owner = await login(browser, 'owner');
     const teamHref = await owner.page.getByRole('link', { name: 'Team & Access', exact: true }).getAttribute('href');
-    companyId = teamHref.split('/')[2]; const companyName = await owner.page.locator('#company-' + companyId + ' h2').innerText();
+    companyId = teamHref.split('/')[2]; const companyName = await owner.page.locator('#company-' + companyId + ' .company-summary h2').innerText();
     assert.match(companyName, /^Synthetic Employment Introduction /);
     const relationshipHref = await owner.page.getByRole('link', { name: 'View person', exact: true }).first().getAttribute('href');
     owner.page.on('request', r => { if (r.url() === api) csrf = r.headers()['x-samma-csrf']; });
     async function send(email, capture = false) {
-      await owner.page.goto(base + teamHref); await owner.page.getByRole('button', { name: '+ Add team member', exact: true }).click();
+      await owner.page.goto(base + teamHref);
+      const pending = owner.page.locator('.employment-invitation').filter({ hasText: email });
+      if (await pending.count()) {
+        const revoked = owner.page.waitForResponse(r => r.url() === api);
+        await pending.getByRole('button', { name: 'Revoke', exact: true }).click(); assert.equal((await revoked).status(), 200);
+        await pending.waitFor({ state: 'detached' });
+      }
+      await owner.page.getByRole('button', { name: '+ Add team member', exact: true }).click();
       await owner.page.getByLabel('Email address', { exact: true }).fill(email); await owner.page.getByRole('checkbox', { name: /^HR/ }).check();
       if (capture) await screenshot(owner.page, 'invite-form');
       const response = owner.page.waitForResponse(r => r.url() === api && r.request().method() === 'POST');
@@ -80,7 +89,7 @@ async function screenshot(page, label) {
       assert.equal(sent.status(), 200); const result = await sent.json(); assert.ok(result.created && result.mailDelivered);
       await owner.page.getByRole('status').filter({ hasText: 'Invitation sent.' }).waitFor();
       const message = await mailFor(email); assert.equal(message.Subject, 'SAMMA — Company access invitation from ' + companyName);
-      assert.match(message.Text, /Assigned access:\nHR/); assert.ok(!message.Text.includes('token='));
+      assert.ok(/Assigned access:\r?\nHR/.test(message.Text)); assert.ok(!message.Text.includes('token='));
       return result;
     }
     const post = (context, data, token = csrf, origin = base) => context.request.post(api, { data, headers: { origin, 'x-samma-csrf': token || '' } });
@@ -111,7 +120,7 @@ async function screenshot(page, label) {
     await owner.page.goto(base + '/company'); assert.ok(!(await owner.page.locator('.company-people-list').innerText()).includes(users.new.email));
     await newcomer.page.goto(base + relationshipHref); await newcomer.page.getByRole('link', { name: 'Add record', exact: true }).first().waitFor();
     await newcomer.page.getByRole('link', { name: 'Add record', exact: true }).first().click(); await newcomer.page.waitForURL(base + relationshipHref + '/add-record');
-    await newcomer.page.getByLabel('Record type', { exact: true }).waitFor(); await screenshot(newcomer.page, 'hr-add-record');
+    await newcomer.page.getByRole('combobox', { name: /Record type/ }).waitFor(); await screenshot(newcomer.page, 'hr-add-record');
     stage = 'decline revoke and HTTP security';
     assert.equal((await post(owner.context, { action: 'revoke', invitationId: first.invitationId })).status(), 409);
     const third = await send(users.existing.email); await existing.page.goto(base + '/person');
