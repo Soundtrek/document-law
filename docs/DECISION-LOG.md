@@ -945,3 +945,29 @@ projections and all authorisation, role, identity, storage and schema behavior.
 Existing Records / No records yet. / Add record wording already meets the request.
 Explicitly authorised: direct-dev commit, push and exact-SHA DEV deployment;
 focused validation only, no full suite and no main promotion.
+
+## 2026-09-07 — Document Workflow V1 RC promotion preflight blocked
+
+The owner authorises promoting the complete accepted DEV
+`48b17d8e3cdfcede5a2e358ec37714634d5498b0` through a normal dev → main merge and
+exact-SHA deployment to the current NUC `https://samma.co.za` only after broader
+validation passes. DEV and experiment runtimes remain unchanged; no data/user
+copy, cleanup, Keycloak reset, real SMTP, scan-policy change or Rackzar work.
+Earlier feature-specific approval stops are superseded by this explicit request.
+
+The promotion preflight found an unhandled Prisma adapter serialization error in
+concurrent company role assignments. The existing team concurrency test failed;
+an isolated two-company reproducer confirmed `DriverAdapterError` with
+`cause.originalCode = 40001`, while the service retries only top-level `P2034`.
+Successful isolated reruns do not waive this reproduced failure. Main remains
+`6619d19cddfd0767f280204b541c2f5823f23dce`; no promotion or deployment occurred.
+Do not silently repair application code inside an exact accepted-state promotion.
+Capture the failure, reproducer and full check outcomes on the isolated
+`experiment/document-workflow-rc-baseline` evidence branch. A new repaired and
+accepted DEV candidate is required to clear the promotion gate.
+
+The older RC runtime lacks the new application's invitation-mail settings. Its
+prepared, unapplied deployment override carries the existing DEV Mailpit settings,
+invitation TTL configuration and private Mailpit network connection. Shared realm
+auth mail remains Mailpit. No configuration was applied while the gate is blocked.
+See [Document Workflow V1 RC baseline](DOCUMENT-WORKFLOW-V1-RC-BASELINE.md).

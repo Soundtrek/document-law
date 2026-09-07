@@ -1,0 +1,455 @@
+SAMMA — PROMOTE DOCUMENT WORKFLOW V1 FROM DEV TO MAIN / RC
+
+GOAL
+
+Promote the current accepted DEV state to main and deploy it to the current RC surface:
+
+https://samma.co.za
+
+Current DEV candidate:
+
+48b17d8e3cdfcede5a2e358ec37714634d5498b0
+
+Branch/runtime model:
+
+experiment/*
+→ http://192.168.1.152:2022
+
+dev
+→ https://dev.samma.co.za
+
+main
+→ https://samma.co.za
+
+Future Rackzar RC remains out of scope.
+
+==================================================
+1. PRE-PROMOTION CHECK
+==================================================
+
+Verify:
+
+- dev working tree clean
+- local dev == origin/dev
+- main working tree clean
+- local main == origin/main
+- no unexpected divergence
+- current DEV deployed SHA recorded
+- current RC/main deployed SHA recorded
+
+Fetch origin.
+
+Do not force-push.
+
+==================================================
+2. PROMOTION SCOPE
+==================================================
+
+Promote the complete accepted DEV state.
+
+This includes:
+
+- Person / Company onboarding
+- Company introduction / employment invitations
+- Company People cards
+- Team & Access
+- Add team member
+- functional-role assignment
+- employment document workflow
+- company-private HR record handling
+- Person-visible shared records
+- relationship-scoped Records UI
+- Governance Users filters
+- Mailpit DEV mail
+- account switching/logout fixes
+- document navigation cleanup
+
+Do not cherry-pick individual features.
+
+The integrated dev branch is the promotion source.
+
+==================================================
+3. FULL PROMOTION VALIDATION
+==================================================
+
+Because this is dev → main / RC, run the broader validation ONCE here.
+
+Run:
+
+- npm ci
+- Prisma generate
+- Prisma validate
+- migration status
+- schema zero-diff
+- full automated tests
+- typecheck
+- lint
+- production build
+- dependency audit gate
+
+The existing documented Prisma exception may remain only under its approved current policy.
+
+If any new high/critical dependency issue appears:
+STOP.
+
+==================================================
+4. CORE PRODUCT ACCEPTANCE
+==================================================
+
+Confirm accepted evidence for:
+
+ONBOARDING
+
+Person
+→ register
+→ verify
+→ Personal Info Center
+
+Company
+→ register
+→ verify
+→ create company
+→ Company Info Center
+
+COMPANY INTRODUCTION
+
+Company
+→ Add person
+→ invitation
+→ Person accepts
+→ ACTIVE PersonCompanyRelationship
+
+TEAM & ACCESS
+
+Owner
+→ manage roles
+→ HR assignment
+→ last OWNER protection
+
+TEAM MEMBER
+
+Owner
+→ Add team member
+→ recipient accepts
+→ ACTIVE CompanyMember
+→ intended roles granted
+→ no PersonCompanyRelationship created automatically
+
+DOCUMENT WORKFLOW
+
+Company HR
+→ Person relationship
+→ Add record
+→ upload through existing Garage path
+
+Person-visible record:
+→ visible/downloadable by Person
+
+Internal HR record:
+→ visible to authorised HR
+→ hidden from Person
+→ Person direct access denied
+
+OWNER-only:
+→ no HR document bypass
+
+==================================================
+5. GOVERNANCE USERS
+==================================================
+
+Confirm directory semantics:
+
+All
+→ all visible Accounts
+
+Person
+→ Person with no ACTIVE CompanyMembership
+
+Company user
+→ at least one ACTIVE CompanyMembership
+
+Governance
+→ active Governance grant
+
+Governance may overlap.
+
+==================================================
+6. DATABASE
+==================================================
+
+Confirm:
+
+- all expected migrations applied
+- zero-diff PASS
+- no stale invitation drift
+- EmploymentInvitation present
+- CompanyTeamInvitation present
+- accepted record/document schema intact
+
+Do not copy or clean test users during promotion.
+
+==================================================
+7. STORAGE
+==================================================
+
+Confirm:
+
+- Garage/S3 healthy
+- current shared record object readable
+- internal HR object readable for authorised HR
+- checksums valid
+- NOT_SCANNED_DEV remains explicit
+
+Do not change scan policy.
+
+==================================================
+8. MAIL / KEYCLOAK CURRENT NUC RULE
+==================================================
+
+Keep current NUC behaviour:
+
+Keycloak realm:
+samma
+
+Auth mail:
+Mailpit
+
+Application invitation mail:
+Mailpit
+
+Applies to current NUC DEV and RC surfaces.
+
+Do not restore real SMTP.
+
+Do not touch Rackzar.
+
+==================================================
+9. MERGE DEV → MAIN
+==================================================
+
+If validation passes:
+
+merge:
+
+dev
+→ main
+
+Use normal fast-forward/merge according to current repository policy.
+
+No history rewrite.
+No force push.
+
+Push main.
+
+Record exact resulting main SHA.
+
+==================================================
+10. BUILD RC
+==================================================
+
+Build exact main SHA.
+
+Inject:
+
+SAMMA_SHOW_BUILD_OVERLAY=true
+SAMMA_BUILD_CHANNEL=rc
+SAMMA_BUILD_BRANCH=main
+SAMMA_BUILD_SHA=<exact main SHA>
+
+Overlay:
+
+RC
+main
+<short SHA>
+
+==================================================
+11. DEPLOY CURRENT RC
+==================================================
+
+Deploy exact main SHA to:
+
+https://samma.co.za
+
+Do not change:
+
+https://dev.samma.co.za
+
+Do not change:
+
+http://192.168.1.152:2022
+
+Do not modify database/user data beyond normal deployment/migrations already applied.
+
+==================================================
+12. RC SMOKE
+==================================================
+
+Verify:
+
+https://samma.co.za
+→ 200
+
+/api/health
+→ 200
+
+/api/ready
+→ 200
+
+Overlay:
+
+RC / main / <short SHA>
+
+Smoke only:
+
+- landing
+- sign-in
+- one existing-user login
+- Company Info Center
+- Person Info Center
+- protected Governance route
+- one shared record visible where expected
+- one internal HR record still hidden from Person
+
+Do not create a new batch of test users unless absolutely required.
+
+==================================================
+13. DEV SAFETY
+==================================================
+
+Confirm:
+
+https://dev.samma.co.za
+→ 200
+
+Overlay:
+
+DEV / dev / <dev SHA>
+
+Do not redeploy dev unless required.
+
+==================================================
+14. EXPERIMENT SAFETY
+==================================================
+
+Confirm:
+
+192.168.1.152:2022
+
+remains experiment-only.
+
+No dev/main runtime owns 2022.
+
+==================================================
+15. DATA RULE
+==================================================
+
+Promotion copies NO users/data.
+
+Current NUC DEV and RC continue sharing:
+
+- Keycloak
+- PostgreSQL
+- Garage
+- Mailpit
+
+This is temporary until Rackzar exists.
+
+Do not:
+
+- clone users
+- reset Keycloak
+- delete test accounts
+- delete records
+- change Garage objects
+
+==================================================
+16. DOCUMENT PROMOTION
+==================================================
+
+Record:
+
+SAMMA DOCUMENT WORKFLOW V1 RC BASELINE
+
+Include:
+
+- source dev SHA
+- main promoted SHA
+- deployed RC SHA
+- validation result
+- current NUC shared-data caveat
+- Mailpit status
+- NOT_SCANNED_DEV status
+- future Rackzar separation note
+
+No secrets.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+DEV
+- source SHA
+- origin/dev
+
+MAIN
+- previous SHA
+- promoted SHA
+- origin/main
+
+VALIDATION
+- full tests
+- typecheck
+- lint
+- build
+- Prisma
+- audit
+
+ONBOARDING
+- Person
+- Company
+
+RELATIONSHIPS
+- Add person
+- acceptance
+- ACTIVE employment relationship
+
+TEAM & ACCESS
+- role assignment
+- last OWNER
+- team member invite
+
+DOCUMENTS
+- person-visible record
+- internal HR record
+- OWNER bypass: NO
+- Person denial: PASS
+
+STORAGE
+- Garage
+- checksum
+- NOT_SCANNED_DEV
+
+MAIL
+- Mailpit unchanged
+
+RC
+- URL
+- deployed SHA
+- overlay
+- health
+- readiness
+
+DEV
+- unchanged/healthy
+
+DATA
+- users copied: NO
+- shared NUC data retained: YES
+
+RACKZAR
+- untouched: YES
+
+PORT 2022
+- experiment-only: YES
