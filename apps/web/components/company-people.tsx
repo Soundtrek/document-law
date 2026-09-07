@@ -30,7 +30,7 @@ export function CompanyPeople({ companyId, companyName, roles, canAddPerson, peo
   const addPersonHref = `/company/people/add?companyId=${encodeURIComponent(companyId)}`;
   const active = people.filter(({ relationship }) => relationship.status === "ACTIVE").length;
   const former = people.filter(({ relationship }) => relationship.status === "FORMER" || relationship.status === "ENDED").length;
-  return <section className="company-people" aria-label={companyName}>
+  return <section className="company-people" id={`company-${companyId}`} aria-label={companyName}>
     <header className="card company-summary">
       <div className="company-summary-info">
         <p className="eyebrow">Company</p><h2>{companyName}</h2><p className="muted">{roles}</p>
@@ -45,7 +45,10 @@ export function CompanyPeople({ companyId, companyName, roles, canAddPerson, peo
         <p className="muted">Invite a person to connect with this company for employment records.</p>
       </div> : null}
     </header>
-    <section className="company-people-section" aria-label={`People at ${companyName}`}>
+    <nav className="actions" aria-label="Company workspace"><a className="button secondary" href={`#people-${companyId}`} aria-current="page">People</a>
+      {canAddPerson ? <Link className="button secondary" href={`/company/${encodeURIComponent(companyId)}/team`}>Team &amp; Access</Link> : null}
+    </nav>
+    <section id={`people-${companyId}`} className="company-people-section" aria-label={`People at ${companyName}`}>
       <header className="company-people-heading"><h2>People</h2><p className="muted">People connected to this company through employment relationships.</p></header>
       {people.length ? <div className="company-people-list">
         {people.map(person => <CompanyPersonCard key={person.relationship.id} {...person} />)}

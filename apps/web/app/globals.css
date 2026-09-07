@@ -351,3 +351,13 @@ button:disabled { cursor: wait; opacity: 0.65; }
   .company-people-list { grid-template-columns: minmax(0, 1fr); }
   .company-person-card { padding: 22px; }
 }
+
+.company-team-card { align-self: start; }
+.company-team-card p { overflow-wrap: anywhere; }
+.team-access-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.team-access-form legend { font-weight: 700; margin-bottom: 12px; }
+.team-role-option { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 0; cursor: pointer; }
+.team-role-option input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--samma-primary-dark); }
+.team-role-option > span { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.team-role-option .muted { font-size: .8rem; }
+@media (max-width: 600px) { .team-access-form .company-person-actions { flex-direction: column; align-items: stretch; } }

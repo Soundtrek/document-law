@@ -1,0 +1,533 @@
+SAMMA — TEAM & ACCESS V1
+BUILD DIRECTLY ON DEV
+
+GOAL
+
+Build a simple Company Team & Access area so a Company Owner can manage who operates SAMMA for that company and which functional roles they hold.
+
+Current DEV:
+
+https://dev.samma.co.za
+
+Current document-test blocker:
+
+Company1 operator has OWNER only.
+Current document definitions require HR.
+OWNER correctly does NOT bypass HR document permissions.
+
+We need a real UI/workflow to assign HR explicitly.
+
+Work directly on:
+
+dev
+
+Do NOT touch main.
+
+Do NOT change Keycloak auth.
+Do NOT change PersonCompanyRelationship.
+Do NOT change document visibility rules.
+
+==================================================
+PRODUCT MODEL
+==================================================
+
+CompanyMember
+= person operating SAMMA for the company
+
+PersonCompanyRelationship
+= employee/employer relationship
+
+These are different.
+
+Team & Access manages CompanyMember only.
+
+It must NOT:
+
+- turn employees into CompanyMembers
+- create employment relationships
+- grant document access through OWNER bypass
+- modify Person records
+
+==================================================
+TARGET UX
+==================================================
+
+Company Info Center
+
+Company1
+
+[ People ]
+[ Team & Access ]
+
+Team & Access
+
+Phil
+phil@samma.co.za
+
+Membership:
+ACTIVE
+
+Roles:
+OWNER
+HR
+
+[ Manage access ]
+
+==================================================
+1. COMPANY ENTRY
+==================================================
+
+Add a clear company-level action/link:
+
+Team & Access
+
+to each Company workspace.
+
+Keep it separate from:
+
+People
+Add person
+employment relationship cards
+
+Suggested route:
+
+/company/[companyId]/team
+
+or the closest existing route pattern.
+
+Use stable company ID, not name/email.
+
+==================================================
+2. TEAM LIST
+==================================================
+
+Show all CompanyMembers for the company.
+
+For each member show:
+
+- display name
+- email
+- membership status
+- functional roles
+- OWNER status if applicable
+
+Example:
+
+Phil
+phil@samma.co.za
+
+ACTIVE
+
+OWNER
+HR
+
+[ Manage access ]
+
+Do not show employment relationships here.
+
+==================================================
+3. FUNCTIONAL ROLES
+==================================================
+
+Use the existing FunctionalRole catalogue.
+
+Current expected roles include:
+
+OWNER
+HR
+PAYROLL
+CLERK
+LEGAL
+MANAGER
+BILLING
+
+Use actual current definitions from DB.
+
+Do NOT hardcode role permissions into UI.
+
+Show only active functional roles.
+
+==================================================
+4. OWNER SEMANTICS
+==================================================
+
+OWNER is company governance.
+
+OWNER may:
+
+- manage Team & Access
+- assign/revoke functional roles
+- invite company operators later if supported
+
+OWNER does NOT automatically gain:
+
+- HR record access
+- Payroll access
+- Legal record access
+- Clerk processing rights
+
+Preserve this exactly.
+
+==================================================
+5. SELF-ASSIGN ROLE
+==================================================
+
+Allow a current Company OWNER to assign a functional role to themselves.
+
+This is required for the current test:
+
+Phil
+OWNER
+→ assign HR
+
+After HR is granted:
+
+existing document permissions should naturally allow HR-only record definitions.
+
+Do not special-case Phil or Company1.
+
+==================================================
+6. ASSIGN / REVOKE
+==================================================
+
+For each active CompanyMember:
+
+Manage access
+
+Show active role checklist/toggles.
+
+Example:
+
+[x] OWNER
+[ ] HR
+[ ] PAYROLL
+[ ] CLERK
+[ ] LEGAL
+[ ] MANAGER
+[ ] BILLING
+
+[ Save ]
+
+Use existing role-grant model.
+
+Grant:
+- create current role grant if absent
+
+Revoke:
+- revoke current role grant using existing revoke semantics
+
+Do not delete historical grants if current model preserves them.
+
+==================================================
+7. OWNER PROTECTION
+==================================================
+
+Implement last-OWNER protection.
+
+A company must not be left with zero active OWNERs.
+
+If a company has one active OWNER:
+
+do not allow that OWNER role to be revoked.
+
+Show clear message:
+
+At least one active Company Owner is required.
+
+If there are multiple active OWNERs:
+
+one may revoke another/self according to current rules.
+
+Do not invent a complex ownership-transfer workflow yet.
+
+==================================================
+8. AUTHORISATION
+==================================================
+
+Only authenticated active CompanyMembers with the appropriate company-governance capability may manage Team & Access.
+
+Prefer existing capability/policy.
+
+Likely:
+
+company.members.manage
+
+Use the actual current accepted permission boundary.
+
+Server must verify:
+
+- active company
+- active membership
+- unrevoked active capability
+- target member belongs to same company
+
+Normal employees:
+DENIED
+
+CompanyMember without management permission:
+DENIED
+
+Governance user:
+does not automatically bypass company role policy unless existing platform policy explicitly allows it.
+
+==================================================
+9. ROLE GRANT EFFECT
+==================================================
+
+After assigning HR:
+
+existing document role checks must work automatically.
+
+Do NOT add any new document bypass.
+
+Expected:
+
+Phil OWNER only
+→ no HR-only Add record
+
+Phil OWNER + HR
+→ HR-only Add record appears
+
+Phil OWNER + HR revoked
+→ Add record disappears again
+
+This is the acceptance proof.
+
+==================================================
+10. AUDIT
+==================================================
+
+Use current ActivityEvent/audit system.
+
+Record equivalents of:
+
+COMPANY_ROLE_GRANTED
+COMPANY_ROLE_REVOKED
+COMPANY_MEMBER_ACCESS_VIEWED if current patterns warrant it
+
+Include safe identifiers:
+
+- companyId
+- target Account/CompanyMember ID
+- role code
+- actor Account ID
+
+Do not log:
+
+- tokens
+- passwords
+- unnecessary personal data
+
+==================================================
+11. DATABASE
+==================================================
+
+First use existing schema.
+
+Expected:
+NO migration required.
+
+If current role-grant model cannot support assignment/revocation cleanly:
+
+STOP and explain before schema changes.
+
+Do not add another role system.
+
+==================================================
+12. UI
+==================================================
+
+Keep the current SAMMA/Crewfinder-style direction.
+
+Company-level page:
+
+Company1
+Company Owner
+
+[ People ] [ Team & Access ]
+
+Team & Access section:
+
+member cards or clean compact list
+
+Member card:
+
+avatar initial
+name
+email
+ACTIVE
+role pills
+
+[ Manage access ]
+
+Manage form:
+simple role checkboxes/toggles
+
+No giant admin dashboard.
+
+==================================================
+13. MOBILE
+==================================================
+
+At 390px:
+
+- Team & Access entry visible
+- member cards stack
+- roles wrap cleanly
+- checkboxes/toggles usable
+- Save full-width if needed
+- no overflow
+- build overlay does not overlap controls
+
+==================================================
+14. FOCUSED TESTS
+==================================================
+
+Do NOT run full suite.
+
+Test only:
+
+1. OWNER can open Team & Access
+2. normal Person/employee denied
+3. CompanyMember without manage permission denied
+4. OWNER can assign self HR
+5. HR grant persists
+6. HR role appears in UI
+7. HR grant enables existing HR-only Add record action
+8. revoking HR removes Add record action
+9. last OWNER cannot be revoked
+10. multiple OWNER case allows safe revocation
+11. cross-company member editing denied
+12. audit events written
+
+Run:
+
+- targeted Team & Access tests
+- affected typecheck
+- affected lint
+- production build
+
+No full auth regression.
+No storage regression.
+No invitation regression.
+
+==================================================
+15. MANUAL DEV ACCEPTANCE
+==================================================
+
+Use current:
+
+Company1
+Phil
+OWNER only
+
+Step 1:
+
+Open:
+
+Company1
+→ Team & Access
+
+Step 2:
+
+Phil
+→ Manage access
+→ assign HR
+→ Save
+
+Confirm:
+
+Phil now shows:
+
+OWNER
+HR
+
+Step 3:
+
+Return to:
+
+Phil relationship page
+
+Confirm:
+
+Add record now appears because HR-only definitions are authorised.
+
+Step 4:
+
+Do NOT upload the document yet unless useful for a quick sanity check.
+
+The full document handoff test resumes immediately after this feature is approved.
+
+==================================================
+16. DEPLOYMENT
+==================================================
+
+Commit directly on dev.
+
+Suggested commit:
+
+feat: add company team and access management
+
+Push dev normally.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+17. STOP FOR PHIL
+==================================================
+
+After Team & Access manual acceptance:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+TEAM & ACCESS
+- route
+- member list
+- roles
+- manage access
+
+AUTHORISATION
+- OWNER allowed
+- non-manager denied
+- cross-company denied
+
+ROLES
+- self-assign HR
+- revoke HR
+- last OWNER protection
+
+DOCUMENT EFFECT
+- OWNER only → Add record hidden
+- OWNER + HR → Add record visible
+
+AUDIT
+- grant/revoke events
+
+DATABASE
+- migration: YES/NO
+
+VALIDATION
+- targeted tests
+- full suite rerun: NO
+
+DEV
+- commit
+- deployed SHA
+- health
+
+MAIN
+- unchanged
+
+STOPPED FOR PHIL APPROVAL

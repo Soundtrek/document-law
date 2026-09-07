@@ -897,3 +897,7 @@ Merge the validated experiment to dev; no main promotion. See
   from current dev: `/company/team/invite` is an unavailable demo route and no
   company role assignment handler exists. Company1 manual acceptance is pending
   that prerequisite; implementing role management is a separate scope decision.
+
+## 2026-09-07 — Company Team & Access V1
+
+Explicit user instruction authorises implementation, commit, normal push and exact-SHA deployment directly on dev for this task. Main remains unchanged. Team & Access manages existing CompanyMembers through the current active `company.members.manage` capability and database role catalogue. Self-assignment is allowed; OWNER has no document bypass. Existing grants are revoked with timestamps and retained; grant/revoke and safe actor/target identifiers are audited in the same serializable transaction. Concurrent changes retry and recheck authority and last-active-OWNER protection. No schema, identity, employment relationship or document-policy changes. Stop after DEV acceptance for Phil; no main promotion or document handoff test.
