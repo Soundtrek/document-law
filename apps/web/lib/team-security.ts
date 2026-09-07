@@ -13,3 +13,14 @@ export function teamRoleInput(value: unknown): value is { companyId: string; mem
   return Object.keys(data).sort().join(",") === "companyId,memberId,roleIds" && id(data.companyId) && id(data.memberId) &&
     Array.isArray(data.roleIds) && data.roleIds.length <= 100 && data.roleIds.every(id);
 }
+
+type TeamInvitationInput = { action: "send"; companyId: string; email: string; roleIds: string[] } |
+  { action: "accept" | "decline" | "revoke"; invitationId: string };
+export function teamInvitationInput(value: unknown): value is TeamInvitationInput {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const data = value as Record<string, unknown>;
+  const id = (value: unknown) => typeof value === "string" && value.length > 0 && value.length <= 128;
+  if (data.action === "send") return Object.keys(data).sort().join(",") === "action,companyId,email,roleIds" && id(data.companyId) &&
+    typeof data.email === "string" && data.email.length <= 254 && Array.isArray(data.roleIds) && data.roleIds.length <= 100 && data.roleIds.every(id);
+  return ["accept", "decline", "revoke"].includes(String(data.action)) && Object.keys(data).sort().join(",") === "action,invitationId" && id(data.invitationId);
+}

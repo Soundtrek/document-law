@@ -105,6 +105,8 @@ model Account {
   updatedAt           DateTime                       @updatedAt
   employmentInvitationsReceived EmploymentInvitation[] @relation("EmploymentRecipient")
   employmentInvitationsSent EmploymentInvitation[] @relation("EmploymentInviter")
+  teamInvitationsReceived CompanyTeamInvitation[] @relation("TeamRecipient")
+  teamInvitationsSent CompanyTeamInvitation[] @relation("TeamInviter")
   authSessions        AuthSession[]
   identities          AccountIdentity[]
   person              Person?
@@ -149,6 +151,7 @@ model Company {
   createdAt     DateTime                    @default(now())
   updatedAt     DateTime                    @updatedAt
   employmentInvitations EmploymentInvitation[]
+  teamInvitations CompanyTeamInvitation[]
   members       CompanyMember[]
   relationships PersonCompanyRelationship[]
   records       Record[]                    @relation("CompanyRecords")
@@ -166,6 +169,7 @@ model CompanyMember {
   updatedAt  DateTime          @updatedAt
   company    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   account    Account           @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  teamInvitations CompanyTeamInvitation[]
   roleGrants CompanyRoleGrant[]
 
   @@unique([companyId, accountId])
@@ -180,6 +184,7 @@ model FunctionalRoleDefinition {
   active       Boolean            @default(true)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
+  teamInvitationRoles CompanyTeamInvitationRole[]
   grants       CompanyRoleGrant[]
 }
 
@@ -473,4 +478,39 @@ model EmploymentInvitation {
   @@index([companyId, invitedEmail])
   @@index([invitedEmail, expiresAt])
   @@index([companyId, acceptedAt, declinedAt, revokedAt, expiresAt], map: "EmploymentInvitation_open_idx")
+}
+
+// Company operators only; never an employment relationship.
+model CompanyTeamInvitation {
+  id                 String   @id @default(cuid())
+  companyId          String
+  invitedEmail       String
+  invitedAccountId   String?
+  invitedByAccountId String
+  tokenHash          String   @unique
+  createdAt          DateTime @default(now())
+  expiresAt          DateTime
+  acceptedAt         DateTime?
+  declinedAt         DateTime?
+  revokedAt          DateTime?
+  companyMemberId    String?
+  company            Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  invitedAccount     Account? @relation("TeamRecipient", fields: [invitedAccountId], references: [id], onDelete: Restrict)
+  invitedByAccount   Account @relation("TeamInviter", fields: [invitedByAccountId], references: [id], onDelete: Restrict)
+  companyMember      CompanyMember? @relation(fields: [companyMemberId], references: [id], onDelete: Restrict)
+  initialRoles       CompanyTeamInvitationRole[]
+
+  @@index([companyId, invitedEmail])
+  @@index([invitedEmail, expiresAt])
+  @@index([companyId, acceptedAt, declinedAt, revokedAt, expiresAt], map: "CompanyTeamInvitation_open_idx")
+}
+
+model CompanyTeamInvitationRole {
+  invitationId     String
+  functionalRoleId String
+  invitation       CompanyTeamInvitation @relation(fields: [invitationId], references: [id], onDelete: Restrict)
+  functionalRole   FunctionalRoleDefinition @relation(fields: [functionalRoleId], references: [id], onDelete: Restrict)
+
+  @@id([invitationId, functionalRoleId])
+  @@index([functionalRoleId])
 }

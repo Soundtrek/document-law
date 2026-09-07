@@ -901,3 +901,35 @@ Merge the validated experiment to dev; no main promotion. See
 ## 2026-09-07 — Company Team & Access V1
 
 Explicit user instruction authorises implementation, commit, normal push and exact-SHA deployment directly on dev for this task. Main remains unchanged. Team & Access manages existing CompanyMembers through the current active `company.members.manage` capability and database role catalogue. Self-assignment is allowed; OWNER has no document bypass. Existing grants are revoked with timestamps and retained; grant/revoke and safe actor/target identifiers are audited in the same serializable transaction. Concurrent changes retry and recheck authority and last-active-OWNER protection. No schema, identity, employment relationship or document-policy changes. Stop after DEV acceptance for Phil; no main promotion or document handoff test.
+
+## 2026-09-07 — Add team member V1
+
+Explicit task approval supersedes the usual experiment branch step for this
+feature: implement, commit, push and deploy directly on dev; main is excluded.
+CompanyTeamInvitation and its initial-role join table describe company operator
+access only. EmploymentInvitation and PersonCompanyRelationship are unchanged.
+Current database roles and company.members.manage govern invitations. OWNER
+selection additionally requires an active OWNER grant. Roles take effect only
+on verified recipient acceptance, with current inviter authority rechecked.
+
+Use the authenticated Personal Info Center inbox with session-bound CSRF rather
+than bearer-token links. Generate 32 random bytes and persist SHA-256 only; no
+raw token in mail, logs, audit or client output. Pin existing verified Accounts;
+pin newly registered recipients at acceptance. No Account creation or email-only
+identity merge occurs in this feature. Ambiguous case-insensitive legacy account
+matches fail closed. Mail uses the existing MailProvider/DEV Mailpit after the
+transaction commits; delivery failure leaves an honest, usable inbox invitation.
+
+The unique CompanyMember company/account pair is retained on rejoining. Inactive
+memberships reactivate only through a fresh authorised invitation; any leftover
+unrevoked grants are revoked with audit before applying selected initial roles.
+Existing ACTIVE members retain their current grants and receive missing selected
+grants once. Accepted-invitation retries never restore revoked roles or removed
+membership. Deactivated intended roles block acceptance until a fresh invitation
+is issued. Invite TTL uses SAMMA_TEAM_INVITATION_TTL_HOURS (DEV 24 hours), not a
+legal retention value. Expired and resolved invitation/grant history is retained.
+
+Validation is restricted to focused team/invitation checks and the requested
+Prisma, affected typecheck/lint and production-build checks. DEV database backup
+and SQL review precede migration. Stop for Phil after DEV acceptance; no main
+promotion or production identity/storage/policy changes are authorised.

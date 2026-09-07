@@ -1,0 +1,604 @@
+SAMMA — ADD TEAM MEMBER V1
+BUILD DIRECTLY ON DEV
+
+GOAL
+
+Allow a Company Owner to invite a new SAMMA operator into the company workspace as a CompanyMember, then assign functional roles such as HR.
+
+Current DEV:
+
+https://dev.samma.co.za
+
+Current Team & Access already supports:
+
+- member list
+- manage access
+- assign/revoke roles
+- self-assign HR
+- last-OWNER protection
+
+Missing:
+
+Add team member
+
+Work directly on:
+
+dev
+
+Do NOT touch main.
+Do NOT change PersonCompanyRelationship.
+Do NOT reuse EmploymentInvitation for company operators.
+
+==================================================
+PRODUCT MODEL
+==================================================
+
+Add person
+→ employment relationship
+→ PersonCompanyRelationship
+
+Add team member
+→ company operator
+→ CompanyMember
+
+A team member may also separately be an employee, but these are different relationships.
+
+Do not mix them.
+
+==================================================
+TARGET FLOW
+==================================================
+
+Company1
+→ Team & Access
+→ Add team member
+→ enter email
+→ choose initial roles
+→ Send invite
+
+Recipient:
+
+existing SAMMA user:
+→ sign in
+→ accept company team invite
+→ CompanyMember ACTIVE
+
+new SAMMA user:
+→ register normally
+→ verify via Mailpit
+→ sign in
+→ pending team invite
+→ accept
+→ CompanyMember ACTIVE
+
+After acceptance:
+
+Owner can manage roles normally.
+
+==================================================
+1. INVITATION PERSISTENCE
+==================================================
+
+Add one small table if no current accepted table exists:
+
+CompanyTeamInvitation
+
+Suggested fields:
+
+id
+companyId
+invitedEmail
+invitedAccountId nullable
+invitedByAccountId
+tokenHash unique
+createdAt
+expiresAt
+acceptedAt nullable
+declinedAt nullable
+revokedAt nullable
+companyMemberId nullable
+
+Do NOT reuse EmploymentInvitation.
+
+Do NOT add broad InvitationKind enum.
+
+Purpose is implicit by table.
+
+==================================================
+2. INITIAL ROLE SELECTION
+==================================================
+
+At invite time, Owner may choose initial functional roles.
+
+Allowed active roles:
+
+OWNER
+HR
+PAYROLL
+CLERK
+LEGAL
+MANAGER
+BILLING
+
+Use current DB role catalogue.
+
+Do NOT hardcode permissions.
+
+Prefer storing intended initial role IDs/codes in a small join table if current model needs many-to-many.
+
+Do not grant roles until invitation acceptance.
+
+==================================================
+3. OWNER SAFETY
+==================================================
+
+Inviting someone with OWNER is allowed only for current authorised company Owner.
+
+Do not remove current Owner automatically.
+
+Last-OWNER protection remains unchanged.
+
+Do not create implicit ownership transfer.
+
+==================================================
+4. AUTHORISATION
+==================================================
+
+Caller must have:
+
+company.members.manage
+
+Server verifies:
+
+- authenticated Account
+- active CompanyMember
+- current unrevoked management capability
+- same company
+- company active
+
+Normal employee:
+DENIED
+
+CompanyMember without manage permission:
+DENIED
+
+Cross-company invite:
+DENIED
+
+==================================================
+5. EXISTING SAMMA ACCOUNT
+==================================================
+
+If invited email matches an existing verified SAMMA Account:
+
+store invitedAccountId.
+
+Do not create CompanyMember yet.
+
+Do not auto-add them.
+
+They must accept.
+
+==================================================
+6. NEW SAMMA ACCOUNT
+==================================================
+
+If email is not registered:
+
+create invitation only.
+
+Do NOT create fake Account/Person.
+
+Recipient registers through normal Person/Company-capable auth flow.
+
+After verified login, pending team invite is discoverable.
+
+No auth changes.
+
+==================================================
+7. RECIPIENT INBOX
+==================================================
+
+Reuse the same simple invitation pattern conceptually, but keep employment/team invitations distinct.
+
+On Personal Info Center, add:
+
+Pending company access invitations
+
+Example:
+
+Company1
+invites you to join its SAMMA team.
+
+Roles:
+HR
+
+[ Accept ]
+[ Decline ]
+
+Do not merge this visually with employment relationship invitation in a confusing way.
+
+Suggested separate sections:
+
+Employment invitations
+Company access invitations
+
+==================================================
+8. ACCEPTANCE
+==================================================
+
+On Accept:
+
+server verifies:
+
+- authenticated active Account
+- verified email
+- invitation pending
+- not expired
+- not revoked
+- not declined
+- normalized email matches
+- invitedAccountId matches if pinned
+- company still active
+
+Then transactionally:
+
+- create ACTIVE CompanyMember
+- apply intended initial functional role grants
+- mark invitation accepted
+- link companyMemberId
+- audit
+
+Do NOT create PersonCompanyRelationship.
+
+==================================================
+9. DUPLICATE RULES
+==================================================
+
+If Account already has ACTIVE CompanyMember membership for company:
+
+- do not create duplicate
+- resolve invitation idempotently
+
+If inactive/historical CompanyMember exists:
+
+use current membership semantics:
+prefer reactivation only if current model supports it safely;
+otherwise create the minimal approved current membership path.
+
+Do not destroy history.
+
+Only one open team invitation per:
+
+company + normalized email
+
+at a time.
+
+==================================================
+10. DECLINE / REVOKE
+==================================================
+
+Recipient may:
+
+Decline
+
+Company Owner may:
+
+Revoke
+
+Both preserve invitation history.
+
+No membership created.
+
+==================================================
+11. TOKEN SECURITY
+==================================================
+
+Same secure pattern:
+
+- 32 random bytes
+- persist SHA-256 only
+- raw token never logged/stored
+- expiry
+- single-use
+- wrong-account denial
+- no email-only merge
+- no auto-login
+
+Authenticated inbox acceptance may use invitation ID with recipient authorization and CSRF.
+
+==================================================
+12. MAIL
+==================================================
+
+Reuse existing app MailProvider.
+
+Send through current DEV Mailpit.
+
+Subject:
+
+SAMMA — Company access invitation from <Company>
+
+Body:
+
+<Company> has invited you to join its SAMMA team.
+
+Assigned access:
+HR
+etc.
+
+If you already have a SAMMA account:
+Sign in and open Company access invitations.
+
+If new:
+Register, verify, sign in, then accept.
+
+Do not include sensitive records.
+
+==================================================
+13. TEAM & ACCESS UI
+==================================================
+
+Add company-level button:
+
++ Add team member
+
+Place it in Team & Access header/hero.
+
+Keep separate from member cards.
+
+Form:
+
+Email address
+
+Initial roles:
+[ ] OWNER
+[ ] HR
+[ ] PAYROLL
+[ ] CLERK
+[ ] LEGAL
+[ ] MANAGER
+[ ] BILLING
+
+[ Send invite ]
+
+Keep simple.
+
+==================================================
+14. PENDING INVITES ON TEAM PAGE
+==================================================
+
+Show a small Pending invitations section:
+
+hr.person@example.com
+HR
+PENDING
+Expires ...
+
+[ Revoke ]
+
+Do not create another management dashboard.
+
+==================================================
+15. ROLE MATRIX BEHAVIOUR
+==================================================
+
+After acceptance:
+
+the existing Team & Access role model takes over.
+
+Example:
+
+HR person accepted
+→ CompanyMember ACTIVE
+→ HR role active
+→ HR-only record access works naturally
+
+No document permission special-case in this feature.
+
+==================================================
+16. AUDIT
+==================================================
+
+Use ActivityEvent.
+
+Record equivalents:
+
+COMPANY_TEAM_INVITATION_CREATED
+COMPANY_TEAM_INVITATION_REVOKED
+COMPANY_TEAM_INVITATION_ACCEPTED
+COMPANY_TEAM_INVITATION_DECLINED
+COMPANY_MEMBER_CREATED
+COMPANY_ROLE_GRANTED
+
+No raw tokens.
+No passwords.
+No mail payloads.
+
+==================================================
+17. DATABASE
+==================================================
+
+Expected:
+
+small migration required for CompanyTeamInvitation
+and maybe invitation-role join table.
+
+Before migration:
+
+- focused DEV DB backup
+- review SQL
+
+After:
+
+- migration status PASS
+- zero-diff PASS
+
+Do not modify EmploymentInvitation.
+
+==================================================
+18. TARGETED TESTS
+==================================================
+
+Focused only.
+
+Test:
+
+1. Owner can invite team member
+2. non-manager denied
+3. cross-company denied
+4. existing Account invite
+5. unknown email invite
+6. Mailpit delivery
+7. accept creates CompanyMember
+8. selected roles granted on acceptance
+9. no PersonCompanyRelationship created
+10. duplicate membership prevented
+11. revoke denied after acceptance
+12. decline creates no membership
+13. expired denied
+14. wrong-account denied
+15. last-OWNER rules remain intact
+16. audit events written
+
+No full suite.
+
+==================================================
+19. MANUAL DEV ACCEPTANCE
+==================================================
+
+Use Company1.
+
+Step 1:
+
+Team & Access
+→ Add team member
+
+Invite:
+
+hrtest@samma.co.za
+
+Initial role:
+
+HR
+
+Step 2:
+
+Mailpit
+→ receive invitation
+
+Step 3:
+
+recipient registers/signs in
+→ Company access invitation
+→ Accept
+
+Step 4:
+
+Company1 Team & Access shows:
+
+hrtest@samma.co.za
+ACTIVE
+HR
+
+Step 5:
+
+Confirm:
+
+- HR-only Add record access works
+- no employment relationship created
+- recipient does not appear under Company1 People unless separately invited as Person
+
+This separation is critical.
+
+==================================================
+20. VALIDATION
+==================================================
+
+Run:
+
+- targeted team invitation tests
+- Prisma generate/validate
+- migration status/zero-diff
+- affected typecheck/lint
+- production build
+
+Full suite rerun:
+NO
+
+==================================================
+21. DEPLOYMENT
+==================================================
+
+Commit directly on dev.
+
+Suggested commits:
+
+feat: add company team invitations
+feat: add team member acceptance flow
+
+Push dev.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+22. STOP FOR PHIL
+==================================================
+
+After manual DEV acceptance:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+TEAM INVITE
+- Add team member
+- role selection
+- pending invites
+- revoke
+
+RECIPIENT
+- existing/new user
+- inbox
+- accept/decline
+
+MEMBERSHIP
+- CompanyMember created
+- initial roles applied
+- PersonCompanyRelationship created: NO
+
+MAIL
+- Mailpit delivery
+
+SECURITY
+- recipient binding
+- expiry
+- token hashing
+- wrong-user denial
+
+DATABASE
+- migration
+- zero-diff
+
+VALIDATION
+- targeted tests
+- full suite rerun: NO
+
+DEV
+- commit(s)
+- deployed SHA
+
+MAIN
+- unchanged
+
+STOPPED FOR PHIL APPROVAL
