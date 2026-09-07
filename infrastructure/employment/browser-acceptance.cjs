@@ -140,7 +140,9 @@ async function screenshot(page, label) {
     await fresh.page.getByRole('button', { name: 'Accept', exact: true }).click();
     await fresh.page.locator('#companies').getByText(companyName + ' · ACTIVE', { exact: true }).waitFor();
     await owner.page.goto(base + '/company');
-    assert.equal(await owner.page.getByRole('link', { name: 'Add record', exact: true }).count(), 2);
+    assert.equal(await owner.page.getByRole('link', { name: 'View person', exact: true }).count(), 2);
+    // OWNER-only membership can invite people but has no record-definition role.
+    assert.equal(await owner.page.getByRole('link', { name: 'Add record', exact: true }).count(), 0);
     for (const label of ['existing', 'new']) assert.ok((await owner.page.locator('body').innerText()).includes(users[label].email));
     await screenshot(owner.page, 'company-people');
     stage = 'CSRF and company authorization';
