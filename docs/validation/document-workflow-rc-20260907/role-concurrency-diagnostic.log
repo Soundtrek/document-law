@@ -1,0 +1,38 @@
+TAP version 13
+# [
+#   {
+#     "name": "DriverAdapterError",
+#     "message": "TransactionWriteConflict",
+#     "cause": {
+#       "originalCode": "40001",
+#       "originalMessage": "could not serialize access due to read/write dependencies among transactions",
+#       "kind": "TransactionWriteConflict"
+#     }
+#   }
+# ]
+# Subtest: isolated simultaneous role grants across two independent companies
+not ok 1 - isolated simultaneous role grants across two independent companies
+  ---
+  duration_ms: 2791.436095
+  type: 'test'
+  location: '/evidence/role-concurrency.test.ts:33:1'
+  failureType: 'testCodeFailure'
+  error: 'Role assignment failed under isolated multi-company concurrency'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'fail'
+  stack: |-
+    TestContext.<anonymous> (/evidence/role-concurrency.test.ts:40:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4389.73751

@@ -1,0 +1,176 @@
+TAP version 13
+# Subtest: OWNER opens team; employee, non-manager, Governance-only and cross-company actors denied
+ok 1 - OWNER opens team; employee, non-manager, Governance-only and cross-company actors denied
+  ---
+  duration_ms: 2411.000731
+  type: 'test'
+  ...
+# Subtest: self HR persists, appears in team and enables existing Add record; revoke removes it with audited history
+ok 2 - self HR persists, appears in team and enables existing Add record; revoke removes it with audited history
+  ---
+  duration_ms: 610.772363
+  type: 'test'
+  ...
+# Subtest: last OWNER rejects atomically; a second active OWNER allows self revoke and immediately removes manage permission
+ok 3 - last OWNER rejects atomically; a second active OWNER allows self revoke and immediately removes manage permission
+  ---
+  duration_ms: 294.617832
+  type: 'test'
+  ...
+# Subtest: concurrent OWNER removals leave exactly one OWNER; duplicate grants stay singular
+not ok 4 - concurrent OWNER removals leave exactly one OWNER; duplicate grants stay singular
+  ---
+  duration_ms: 580.71342
+  type: 'test'
+  location: '/app/infrastructure/team/team-access.test.ts:80:1'
+  failureType: 'testCodeFailure'
+  error: 'TransactionWriteConflict'
+  code: 'ERR_TEST_FAILURE'
+  name: 'DriverAdapterError'
+  stack: |-
+    PgTransaction.onError (file:///app/node_modules/@prisma/adapter-pg/dist/index.mjs:666:11)
+    PgTransaction.performIO (file:///app/node_modules/@prisma/adapter-pg/dist/index.mjs:661:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async PgTransaction.executeRaw (file:///app/node_modules/@prisma/adapter-pg/dist/index.mjs:634:13)
+    async n (/app/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:538:13)
+    async gr.#f (/app/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:579:7)
+    async <anonymous> (/app/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:322:9)
+    async <anonymous> (/app/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:507:14)
+    async gr.#m (/app/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:523:14)
+    async gr.#d (/app/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:505:12)
+  ...
+# Subtest: inactive membership/account/company, revoked management, inactive role and invalid sessions deny
+ok 5 - inactive membership/account/company, revoked management, inactive role and invalid sessions deny
+  ---
+  duration_ms: 675.669184
+  type: 'test'
+  ...
+# Subtest: inactive target cannot be edited; inactive/unknown/duplicate roles rejected; inactive owners do not count
+ok 6 - inactive target cannot be edited; inactive/unknown/duplicate roles rejected; inactive owners do not count
+  ---
+  duration_ms: 252.127931
+  type: 'test'
+  ...
+# Subtest: CSRF is session/purpose bound and request input rejects forged fields
+ok 7 - CSRF is session/purpose bound and request input rejects forged fields
+  ---
+  duration_ms: 1.174509
+  type: 'test'
+  ...
+# Subtest: Owner sends verified Account invitation; acceptance alone creates member and selected roles, no employment
+ok 8 - Owner sends verified Account invitation; acceptance alone creates member and selected roles, no employment
+  ---
+  duration_ms: 2587.030041
+  type: 'test'
+  ...
+# Subtest: unknown email creates no fake Account; verified normal registration discovers and binds inbox
+ok 9 - unknown email creates no fake Account; verified normal registration discovers and binds inbox
+  ---
+  duration_ms: 338.900589
+  type: 'test'
+  ...
+# Subtest: employee, non-manager, Governance-only and cross-company actors denied
+ok 10 - employee, non-manager, Governance-only and cross-company actors denied
+  ---
+  duration_ms: 230.097364
+  type: 'test'
+  ...
+# Subtest: management capability alone cannot invite OWNER; owner invitation never transfers existing ownership
+ok 11 - management capability alone cannot invite OWNER; owner invitation never transfers existing ownership
+  ---
+  duration_ms: 211.08629
+  type: 'test'
+  ...
+# Subtest: wrong recipient and pinned different Account denied even when email matches
+ok 12 - wrong recipient and pinned different Account denied even when email matches
+  ---
+  duration_ms: 140.177696
+  type: 'test'
+  ...
+# Subtest: sessions, verified active Accounts, membership, company and management are checked again
+ok 13 - sessions, verified active Accounts, membership, company and management are checked again
+  ---
+  duration_ms: 872.530723
+  type: 'test'
+  ...
+# Subtest: expired creates no membership; history retained and re-invite allowed
+ok 14 - expired creates no membership; history retained and re-invite allowed
+  ---
+  duration_ms: 135.010716
+  type: 'test'
+  ...
+# Subtest: declined creates no membership; history retained and re-invite allowed
+ok 15 - declined creates no membership; history retained and re-invite allowed
+  ---
+  duration_ms: 91.687479
+  type: 'test'
+  ...
+# Subtest: revoked creates no membership; history retained and re-invite allowed
+ok 16 - revoked creates no membership; history retained and re-invite allowed
+  ---
+  duration_ms: 139.108152
+  type: 'test'
+  ...
+# Subtest: ACTIVE membership is reused without duplicate or stale privilege revival
+ok 17 - ACTIVE membership is reused without duplicate or stale privilege revival
+  ---
+  duration_ms: 106.685899
+  type: 'test'
+  ...
+# Subtest: INVITED membership is reused without duplicate or stale privilege revival
+ok 18 - INVITED membership is reused without duplicate or stale privilege revival
+  ---
+  duration_ms: 172.909944
+  type: 'test'
+  ...
+# Subtest: DISABLED membership is reused without duplicate or stale privilege revival
+ok 19 - DISABLED membership is reused without duplicate or stale privilege revival
+  ---
+  duration_ms: 108.027469
+  type: 'test'
+  ...
+# Subtest: REMOVED membership is reused without duplicate or stale privilege revival
+ok 20 - REMOVED membership is reused without duplicate or stale privilege revival
+  ---
+  duration_ms: 99.700573
+  type: 'test'
+  ...
+# Subtest: concurrent sends/accepts deduplicate and acceptance versus revoke resolves once
+ok 21 - concurrent sends/accepts deduplicate and acceptance versus revoke resolves once
+  ---
+  duration_ms: 493.272384
+  type: 'test'
+  ...
+# Subtest: different invitations resolving to same account/company serialize membership creation
+ok 22 - different invitations resolving to same account/company serialize membership creation
+  ---
+  duration_ms: 117.093874
+  type: 'test'
+  ...
+# Subtest: inactive/unknown/duplicate roles rejected; deactivated intended role blocks acceptance atomically
+ok 23 - inactive/unknown/duplicate roles rejected; deactivated intended role blocks acceptance atomically
+  ---
+  duration_ms: 118.475335
+  type: 'test'
+  ...
+# Subtest: mail failure preserves inbox; constraints reject invalid state, email and hash
+ok 24 - mail failure preserves inbox; constraints reject invalid state, email and hash
+  ---
+  duration_ms: 139.419773
+  type: 'test'
+  ...
+# Subtest: strict request fields and CSRF reject forged authority, injection and wrong sessions
+ok 25 - strict request fields and CSRF reject forged authority, injection and wrong sessions
+  ---
+  duration_ms: 1.171358
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 24
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16692.076835
