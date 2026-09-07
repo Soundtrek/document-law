@@ -1,0 +1,342 @@
+SAMMA — COMPANY INFO CENTER UI REWORK
+CREWFINDER-STYLE PEOPLE CARDS
+
+GOAL
+
+Rework the Company Info Center UI to match the cleaner Crewfinder-style card layout Phil approved.
+
+Work directly on:
+
+dev
+
+Runtime:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+This is a UI/layout refinement only.
+
+Do NOT change auth, database schema, invitations, relationship rules, storage, or permissions.
+
+==================================================
+DESIGN DIRECTION
+==================================================
+
+Use the existing SAMMA visual language:
+
+- pale background
+- white cards
+- soft borders
+- subtle shadows
+- rounded corners
+- green accents
+- clear spacing
+- simple typography
+
+Aim for the same general clarity/density as Crewfinder cards.
+
+Do NOT copy Crewfinder branding or unrelated controls.
+
+==================================================
+1. HERO / COMPANY SUMMARY
+==================================================
+
+Replace the current simple company card with a stronger company summary hero.
+
+Show:
+
+COMPANY
+
+Company1
+
+Company Owner
+
+Simple counts:
+
+People
+Active
+Former
+
+Example:
+
+1 People
+1 Active
+0 Former
+
+On the right side of the hero:
+
+large primary pill/button:
+
++ Add person
+
+Supporting text:
+
+Invite a person to connect with this company for employment records.
+
+Important:
+
+Add person must be COMPLETELY OUTSIDE the individual person card section.
+
+It is a company-level action.
+
+==================================================
+2. PEOPLE SECTION
+==================================================
+
+Below the company hero, create a dedicated section:
+
+People
+
+Supporting text:
+
+People connected to this company through employment relationships.
+
+Optional search field on the right:
+
+Search people...
+
+Only add search if it is trivial with current data.
+
+Do not add complex filtering yet.
+
+==================================================
+3. PERSON CARDS
+==================================================
+
+Render one independent card per PersonCompanyRelationship.
+
+Use Crewfinder-style card proportions.
+
+Each card should show:
+
+- avatar circle with initial
+- person display name
+- email
+- relationship status badge
+- relationship type badge
+- relationship summary
+- started date if available
+
+Example:
+
+Phil
+phil@samma.co.za
+
+ACTIVE
+EMPLOYMENT
+
+Employment relationship
+Active
+
+Started
+6 September 2026
+
+Actions at bottom:
+
+[ View person ]   [ Add record ]
+
+Use stable relationship-scoped routes.
+
+==================================================
+4. PERSON CARD ACTIONS
+==================================================
+
+View person
+→ relationship detail page
+
+Add record
+→ existing relationship-scoped Add Record route
+
+Do not change authorisation.
+
+If Add record is not allowed by current relationship state or role:
+
+do not show it.
+
+==================================================
+5. GRID
+==================================================
+
+Desktop:
+
+responsive card grid.
+
+Prefer roughly:
+
+3 columns on wide desktop
+2 columns on medium widths
+1 column on mobile
+
+Do not force cards to stretch awkwardly.
+
+Card widths should feel similar to Crewfinder profile cards.
+
+==================================================
+6. EMPTY / LOW-COUNT STATE
+==================================================
+
+If only one person exists:
+
+do NOT repeat another giant Add person CTA inside the card grid unless it genuinely improves layout.
+
+Preferred:
+
+hero already contains Add person.
+
+At bottom of People section, optional subtle empty-space prompt:
+
+No other people yet.
+
+But avoid duplicate CTAs if unnecessary.
+
+If zero people:
+
+show:
+
+No people connected yet.
+
+[ Add person ]
+
+This may reuse the company-level action.
+
+==================================================
+7. REMOVE OLD LAYOUT
+==================================================
+
+Remove the current layout where:
+
+Add person
+and
+person cards
+
+feel grouped into the same compact company card.
+
+Company summary and People listing should now be visually distinct sections.
+
+==================================================
+8. MOBILE
+==================================================
+
+At 390px:
+
+- hero stacks cleanly
+- Add person button becomes full width
+- stats do not overflow
+- People heading/search stack
+- person cards become one column
+- action buttons remain usable
+- build overlay does not overlap controls
+
+==================================================
+9. DATA
+==================================================
+
+Use existing projections only.
+
+No migration.
+
+Use:
+
+displayName
+email
+status
+relationshipType
+startDate if available
+
+Do not add new profile fields.
+
+==================================================
+10. SECURITY / BEHAVIOUR
+==================================================
+
+Do not change:
+
+- company.members.manage
+- relationship authorisation
+- Add Record permissions
+- invitation logic
+- PersonCompanyRelationship state rules
+
+This is presentation only.
+
+==================================================
+11. VALIDATION — FOCUSED ONLY
+==================================================
+
+Run:
+
+- focused Company Info Center/component tests
+- affected typecheck
+- affected lint
+- production build
+
+Browser check:
+
+1440px
+768px
+390px
+
+Check only:
+
+- hero layout
+- Add person separation
+- card grid
+- person card actions
+- no overflow
+
+Full suite rerun:
+NO
+
+==================================================
+12. DEPLOYMENT
+==================================================
+
+Commit directly on dev.
+
+Suggested commit:
+
+feat: redesign company people cards
+
+Push dev.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+HERO
+- company summary
+- counts
+- Add person CTA
+
+PEOPLE
+- section separated
+- search if implemented
+- responsive grid
+
+PERSON CARDS
+- avatar
+- name/email
+- status/type
+- relationship info
+- View person
+- Add record
+
+VALIDATION
+- focused only
+- full suite rerun: NO
+
+DEV
+- commit
+- deployed SHA
+
+MAIN
+- unchanged

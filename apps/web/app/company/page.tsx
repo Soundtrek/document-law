@@ -20,7 +20,7 @@ export default async function CompanyPage() {
     }))),
   })));
   return <main className="page-shell"><PageHero eyebrow="COMPANY" title="Company Info Center" description="Companies where you have active membership." />
-    <section className="grid">{companies.length ? companies.map(({ member, people }) => <CompanyPeople key={member.id}
+    <section className="company-workspaces">{companies.length ? companies.map(({ member, people }) => <CompanyPeople key={member.id}
       companyId={member.companyId} companyName={member.company.name}
       roles={member.roleGrants.map(grant => grant.functionalRole.label).join(", ") || "No functional roles assigned"}
       canAddPerson={hasInvitationCapability(member.roleGrants)} people={people} />) : <article className="card"><h2>No company access yet</h2><p className="muted">An authorised company owner can arrange your membership.</p></article>}</section>

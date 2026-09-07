@@ -844,3 +844,25 @@ Merge the validated experiment to dev; no main promotion. See
 - Validation is limited to the new cards/detail and entry-point authorisation,
   affected web typecheck/lint, responsive browser checks and exact-SHA production
   build. Full suite rerun: NO.
+
+## 2026-09-07 — Company Info Center visual rework
+
+- Phil explicitly authorises direct work, commit and push on `dev`, followed by
+  exact-SHA deployment to `https://dev.samma.co.za`. Main remains unchanged.
+  Request: `prompts/2026-09-07-company-info-center-rework.txt`.
+- Separate each company into a white summary hero and a People section. Keep the
+  invitation action in the hero, with a secondary shortcut only for zero people.
+  Show three, two and one card columns at desktop, tablet and mobile widths;
+  a single card retains the same grid width as cards in a populated list.
+- Count all projected relationships as People, ACTIVE as Active, and FORMER plus
+  ENDED as Former. Preserve exact state/type badges and existing role labels.
+  Add initials and readable relationship summaries using the existing projection.
+  Start dates are absent from that projection and are omitted; no query/schema
+  expansion. Optional search is deferred to keep this pass presentation-only.
+- Preserve server-computed invitation/upload permissions and stable relationship
+  routes. No authentication, invitation, domain, database or storage changes.
+- Validation scope: focused Company People tests (including existing access
+  negatives), affected typecheck/lint, production build, and browser layout/action
+  checks at 1440, 768 and 390 pixels. Full suite rerun: NO. Deployment evidence is
+  retained privately under
+  `/srv/nuc-archive/juanity/validation/company-info-center-rework`.

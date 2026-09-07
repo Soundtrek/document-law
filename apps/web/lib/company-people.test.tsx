@@ -45,8 +45,13 @@ test("separate cards retain every state, names/emails and exact relationship act
   assert.equal(relationships.length, 4);
   const people = await Promise.all(relationships.map(async relationship => ({ relationship, canAddRecord: (await allowedRelationshipDefinitions(db, owner, relationship.id)).length > 0 })));
   const html = renderToStaticMarkup(<CompanyPeople companyId={company} companyName="Synthetic Cards Company" roles="Company Owner" canAddPerson people={people} />);
-  assert.equal((html.match(/>Add person<\/a>/g) || []).length, 1);
-  assert.ok(html.indexOf('>Add person</a>') < html.indexOf('company-people-list'));
+  assert.equal((html.match(/Add person<\/a>/g) || []).length, 1);
+  assert.ok(html.indexOf('Add person</a>') < html.indexOf('company-people-section'));
+  assert.ok(html.includes('<dt>People</dt><dd>4</dd>'));
+  assert.ok(html.includes('<dt>Active</dt><dd>1</dd>'));
+  assert.ok(html.includes('<dt>Former</dt><dd>2</dd>'));
+  assert.equal((html.match(/company-person-avatar/g) || []).length, 4);
+  assert.equal((html.match(/Employment relationship<\/p>/g) || []).length, 4);
   assert.equal((html.match(/company-person-card/g) || []).length, 4);
   for (const state of states) {
     assert.ok(html.includes(`href="/company/relationships/${relationshipId(state)}"`));
@@ -57,6 +62,22 @@ test("separate cards retain every state, names/emails and exact relationship act
   assert.ok(html.includes(`${person}@example.test</p>`));
   assert.equal((html.match(/>EMPLOYMENT<\/span>/g) || []).length, 4);
   assert.ok(!html.includes(`/company/relationships/${person}@`));
+});
+
+test("empty and single-person sections keep company actions outside the card grid", async () => {
+  for (const canAddPerson of [true, false]) {
+    const html = renderToStaticMarkup(<CompanyPeople companyId="company / test" companyName="Company" roles="Member" canAddPerson={canAddPerson} people={[]} />);
+    assert.ok(html.includes('No people connected yet.'));
+    assert.ok(html.includes('<dt>People</dt><dd>0</dd>'));
+    assert.equal((html.match(/href="\/company\/people\/add\?companyId=company%20%2F%20test"/g) || []).length, canAddPerson ? 2 : 0);
+    assert.ok(!html.includes('company-person-card'));
+  }
+  const relationship = await companyPersonDetail(db, owner, relationshipId("ACTIVE"));
+  assert.ok(relationship);
+  const html = renderToStaticMarkup(<CompanyPeople companyId={company} companyName="Company" roles="Member" canAddPerson people={[{ relationship, canAddRecord: false }]} />);
+  assert.equal((html.match(/Add person<\/a>/g) || []).length, 1);
+  assert.equal((html.match(/company-person-card/g) || []).length, 1);
+  assert.ok(!html.includes('Add record'));
 });
 
 test("blank display name falls back to email, preferring the accepted invitation address", async () => {
