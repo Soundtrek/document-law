@@ -4,7 +4,20 @@ import type {
   PersonCompanyRelationship,
   RecordDefinitionVersion,
   RecordEntry,
+  RecordUploadActor,
 } from "./model";
+
+// Account/session verification and relationship lookup belong to the server adapter.
+export const canUploadRelationshipRecord = (
+  actor: RecordUploadActor,
+  relationship: PersonCompanyRelationship,
+  definition: RecordDefinitionVersion,
+): boolean => {
+  if (!definition.active || definition.context !== "RELATIONSHIP" || relationship.status !== "ACTIVE") return false;
+  if (actor.kind === "PERSON") return actor.personId === relationship.personId && definition.direction === "PERSON_TO_COMPANY";
+  return actor.companyId === relationship.companyId && actor.membershipStatus === "ACTIVE" &&
+    definition.allowedCompanyRoles.some(role => actor.roleCodes.includes(role));
+};
 
 const addUtcMonths = (iso: string, months: number): string => {
   const date = new Date(iso);

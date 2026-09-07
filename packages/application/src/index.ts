@@ -1,5 +1,5 @@
-import type { ActivityEvent, CompanyActorContext, PersonCompanyRelationship, RecordDefinitionVersion, RecordEntry, RecordFile } from "@samma/domain";
-import { canCompanyMemberViewRecord, deriveRecordDates, validateRecordContext } from "@samma/domain";
+import type { ActivityEvent, RecordUploadActor, PersonCompanyRelationship, RecordDefinitionVersion, RecordEntry, RecordFile } from "@samma/domain";
+import { canUploadRelationshipRecord, deriveRecordDates, validateRecordContext } from "@samma/domain";
 import { createRecordObjectKey, contentInfo, type StorageProvider, type UploadContent } from "@samma/storage";
 export interface Clock { now(): string }
 export interface IdGenerator { next(prefix: string): string }
@@ -15,7 +15,7 @@ export interface RecordRepository {
   appendActivity(event: ActivityEvent): Promise<void>;
 }
 export type CreateRelationshipRecordInput = {
-  readonly actor: CompanyActorContext; readonly relationship: PersonCompanyRelationship;
+  readonly actor: RecordUploadActor; readonly relationship: PersonCompanyRelationship;
   readonly definition: RecordDefinitionVersion; readonly title: string; readonly periodLabel?: string;
   readonly originalFilename: string; readonly contentType: string;
   readonly existingRecord?: RecordEntry;
@@ -29,15 +29,14 @@ export class RecordIntakeService {
     private readonly repository: RecordRepository, private readonly ids: IdGenerator, private readonly clock: Clock,
     private readonly policy: ScanPolicy = { environment: "production", allowUnscannedDev: false }) {}
   async createRelationshipRecord(input: CreateRelationshipRecordInput): Promise<CreateRelationshipRecordResult> {
-    if (!input.definition.active || input.definition.context !== "RELATIONSHIP") throw new Error("Record definition is not valid for a relationship record");
-    if (input.relationship.companyId !== input.actor.companyId) throw new Error("Company context mismatch");
-    if (input.relationship.status !== "ACTIVE") throw new Error("Relationship must be active to add a new record");
-    if (input.actor.membershipStatus !== "ACTIVE" || !input.definition.allowedCompanyRoles.some(role => input.actor.roleCodes.includes(role))) throw new Error("Functional role is not authorised for this record definition");
+    if (!canUploadRelationshipRecord(input.actor, input.relationship, input.definition)) throw new Error("Upload is not authorised for this relationship and definition");
+    // V1 Person sharing creates records; existing company replacement policy is unchanged.
+    if (input.actor.kind === "PERSON" && input.existingRecord) throw new Error("Person file replacement is not authorised");
     if (!input.title.trim()) throw new Error("Record title is required");
     const info = contentInfo(input);
     if (info.sizeBytes === 0) throw new Error("Empty files are not accepted");
     if (info.sizeBytes > 25 * 1024 * 1024) throw new Error("File exceeds safety limit");
-    if (input.existingRecord && (input.existingRecord.relationshipId !== input.relationship.id || input.existingRecord.companyId !== input.actor.companyId || input.existingRecord.personId !== input.relationship.personId || input.existingRecord.definitionVersionId !== input.definition.id || input.existingRecord.status !== "ACTIVE")) throw new Error("Invalid replacement context");
+    if (input.existingRecord && (input.existingRecord.relationshipId !== input.relationship.id || input.existingRecord.companyId !== input.relationship.companyId || input.existingRecord.personId !== input.relationship.personId || input.existingRecord.definitionVersionId !== input.definition.id || input.existingRecord.status !== "ACTIVE")) throw new Error("Invalid replacement context");
     const createdAt = this.clock.now(), recordId = input.existingRecord?.id ?? this.ids.next("record"), fileId = this.ids.next("file");
     const storageKey = createRecordObjectKey(recordId, fileId);
     const record: RecordEntry = input.existingRecord ? { ...input.existingRecord, currentFileId: fileId } : {
@@ -46,9 +45,9 @@ export class RecordIntakeService {
       ...(input.periodLabel ? { periodLabel: input.periodLabel } : {}), uploadedByAccountId: input.actor.accountId,
       createdAt, ...deriveRecordDates(input.definition, createdAt), status: "ACTIVE", currentFileId: fileId,
     };
-    if (!validateRecordContext(record) || !canCompanyMemberViewRecord(input.actor, record, input.definition)) throw new Error("Invalid record context");
+    if (!validateRecordContext(record)) throw new Error("Invalid record context");
     const activity = (type: string, summary: string): ActivityEvent => ({ id: this.ids.next("activity"), type,
-      actorAccountId: input.actor.accountId, companyId: input.actor.companyId, personId: input.relationship.personId,
+      actorAccountId: input.actor.accountId, companyId: input.relationship.companyId, personId: input.relationship.personId,
       relationshipId: input.relationship.id, recordId, occurredAt: createdAt, summary });
     const content = "bytes" in input ? { bytes: input.bytes } : { source: input.source };
     try {

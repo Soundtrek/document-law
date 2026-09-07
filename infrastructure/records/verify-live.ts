@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { createPrismaClient } from "@samma/database";
+import { createStorageProvider } from "@samma/storage";
+assert.equal(process.env.SAMMA_ENV, "development");
+assert.equal(process.env.SAMMA_BASE_URL, "https://dev.samma.co.za");
+let text = ""; for await (const chunk of process.stdin) text += chunk;
+const input = JSON.parse(text) as { recordId: string; fileId: string; personAccountId: string; relationshipId: string; checksum: string };
+const db = createPrismaClient();
+try {
+  const record = await db.record.findUniqueOrThrow({ where: { id: input.recordId }, include: { definitionVersion: true, person: true, company: true, files: true } });
+  assert.match(record.company!.name, /^Synthetic Employment Introduction /);
+  assert.equal(record.relationshipId, input.relationshipId); assert.equal(record.person!.accountId, input.personAccountId);
+  assert.equal(record.uploadedByAccountId, input.personAccountId); assert.equal(record.definitionVersion.direction, "PERSON_TO_COMPANY");
+  assert.equal(record.definitionVersion.personVisible, true); assert.deepEqual(record.definitionVersion.allowedCompanyRoles, ["HR"]);
+  assert.equal(record.definitionVersion.notificationPolicy, "NONE");
+  assert.equal(record.files.length, 1);
+  const file = record.files[0]!; assert.equal(file.id, input.fileId); assert.equal(file.isCurrent, true);
+  assert.equal(file.scanStatus, "NOT_SCANNED_DEV"); assert.ok(file.acceptedAt);
+  assert.match(file.storageKey, /^records\/[0-9a-f-]{36}\/files\/[0-9a-f-]{36}$/);
+  const storage = createStorageProvider(), metadata = await storage.metadata(file.storageKey);
+  assert.equal(metadata!.state, "ACCEPTED"); assert.equal(metadata!.checksumSha256, input.checksum);
+  assert.equal(file.checksumSha256, input.checksum); assert.equal(metadata!.sizeBytes, file.sizeBytes);
+  const bytes = await storage.readAccepted(file.storageKey); assert.ok(bytes);
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), input.checksum);
+  assert.ok(await db.activityEvent.findFirst({ where: { recordId: record.id, actorAccountId: input.personAccountId, type: "RECORD_CREATED" } }));
+  assert.ok(await db.activityEvent.findFirst({ where: { actorAccountId: input.personAccountId, type: "RECORD_UPLOAD_DENIED", relationshipId: null, companyId: null } }));
+  assert.ok(await db.activityEvent.findFirst({ where: { recordId: record.id, type: "RECORD_FILE_DOWNLOAD", actorAccountId: { not: input.personAccountId } } }));
+  assert.ok(await db.activityEvent.findFirst({ where: { recordId: record.id, type: "RECORD_ACCESS_DENIED" } }));
+  console.log("PASS existing Garage private path, checksum, pinned Person definition, attribution and denied-upload audit.");
+} finally { await db.$disconnect(); }

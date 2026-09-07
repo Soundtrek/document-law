@@ -945,3 +945,23 @@ projections and all authorisation, role, identity, storage and schema behavior.
 Existing Records / No records yet. / Add record wording already meets the request.
 Explicitly authorised: direct-dev commit, push and exact-SHA DEV deployment;
 focused validation only, no full suite and no main promotion.
+
+## 2026-09-08 — Person → Company document sharing V1
+
+- Explicit user instruction authorises implementation/commit directly on dev,
+  normal dev push and exact-SHA DEV deployment; main is unchanged. Prompt:
+  `prompts/2026-09-08-person-company-document-sharing-v1.txt`.
+- Reuse relationship-scoped Record/RecordFile and the existing upload form,
+  intake transaction and Garage/S3 adapter. Add explicit Person actor authority:
+  verified active Account → linked Person → owned ACTIVE relationship/active
+  company → active RELATIONSHIP/PERSON_TO_COMPANY definition/version. Recheck
+  authority and prepared relationship IDs at commit. Historical relationships
+  deny new uploads; Person replacement is outside this creation flow.
+- Pinned visibility/roles govern existing projections/downloads; OWNER has no
+  read bypass. No new storage/auth/schema/notification path or migration.
+- Configure one synthetic DEV proof-of-address definition through the existing
+  Governance data model: person-visible, HR-only, NONE notifications, no inferred
+  retention/review values. Audit authenticated early upload denial safely.
+- Use focused negative/security tests and synthetic HTTPS acceptance. Phil's
+  named-account walkthrough and approval are explicitly distinct from synthetic
+  browser results. Stop after DEV; no dev → main promotion.

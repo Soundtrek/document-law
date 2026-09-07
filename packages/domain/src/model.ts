@@ -155,8 +155,18 @@ export interface ActivityEvent {
 }
 
 export interface CompanyActorContext {
+  readonly kind?: "COMPANY";
   readonly accountId: Id;
   readonly companyId: Id;
   readonly membershipStatus: MembershipStatus;
   readonly roleCodes: readonly string[];
 }
+
+export interface PersonActorContext {
+  readonly kind: "PERSON";
+  readonly accountId: Id;
+  readonly personId: Id;
+}
+
+export type RecordUploadActor = CompanyActorContext | PersonActorContext;
+export type RecordUploadActorKind = "COMPANY" | "PERSON";

@@ -1,0 +1,614 @@
+SAMMA — PERSON → COMPANY DOCUMENT SHARING V1
+BUILD DIRECTLY ON DEV
+
+GOAL
+
+Add Person → Company document sharing using the existing relationship-scoped record engine and existing Garage/S3 upload path.
+
+Current runtime:
+
+dev
+→ https://dev.samma.co.za
+
+Work directly on:
+
+dev
+
+Do NOT touch main.
+Do NOT create a new storage path.
+Do NOT change Keycloak/auth.
+Do NOT create a migration.
+
+==================================================
+TARGET PRODUCT FLOW
+==================================================
+
+Person:
+
+Personal Info Center
+→ My companies
+→ Company1
+→ Share document
+→ choose allowed PERSON_TO_COMPANY definition
+→ enter title
+→ upload file
+→ save
+
+Company:
+
+Company Info Center
+→ Person card
+→ View person
+→ Records
+→ authorised company role sees person-supplied document
+→ View / Download
+
+Person should also continue to see their own uploaded record if the pinned definition is person-visible.
+
+==================================================
+1. RECORD DIRECTION
+==================================================
+
+The existing RecordDirection already supports:
+
+PERSON_TO_COMPANY
+
+Use it.
+
+For Person-side upload, only allow active RecordDefinitionVersions where:
+
+direction = PERSON_TO_COMPANY
+
+Do not allow a Person to create:
+
+COMPANY_TO_PERSON
+INTERNAL_COMPANY
+
+records.
+
+This direction check must be enforced server-side.
+
+==================================================
+2. LIVE REVERSE-FLOW DEFINITION
+==================================================
+
+DEV currently has no live PERSON_TO_COMPANY definition.
+
+Create one synthetic Governance-managed definition through the current definition model.
+
+Preferred DEV definition:
+
+Synthetic proof of address
+
+Direction:
+PERSON_TO_COMPANY
+
+Person visible:
+true
+
+Allowed company roles:
+HR
+
+or use the closest existing source-fixture policy if already defined.
+
+Notification:
+NONE
+
+Do not hardcode this definition into UI.
+
+Do not add a migration.
+
+Add/seed it through the existing Governance/definition configuration mechanism.
+
+==================================================
+3. PERSON ENTRY POINT
+==================================================
+
+On:
+
+/person
+
+under each eligible company relationship in:
+
+My companies
+
+add:
+
+Share document
+
+Example:
+
+Company1
+ACTIVE
+
+[ Share document ]
+
+Show only when:
+
+- relationship is ACTIVE
+- company is active
+- at least one active PERSON_TO_COMPANY definition is available
+
+Do not show for:
+
+PENDING
+FORMER
+ENDED
+
+==================================================
+4. PERSON UPLOAD ROUTE
+==================================================
+
+Add a relationship-scoped Person route.
+
+Preferred:
+
+/person/relationships/[relationshipId]/add-record
+
+or repository-equivalent stable route.
+
+Do not route by email or company name.
+
+The route must derive the target Person from the authenticated Account.
+
+==================================================
+5. REUSE ADD RECORD FORM
+==================================================
+
+Reuse the existing:
+
+AddRecordForm
+
+with the smallest possible changes.
+
+It should continue to provide:
+
+- RecordDefinition selector
+- title
+- file
+- validation/errors
+
+Add context so it can operate as:
+
+company actor
+or
+person actor
+
+Do not duplicate the form.
+
+For Person context:
+
+selector must contain only allowed:
+
+PERSON_TO_COMPANY
+
+definitions.
+
+Successful redirect:
+
+Person Info Center
+or
+the appropriate Person relationship context
+
+Do not redirect to Company workspace.
+
+==================================================
+6. UPLOAD AUTHORISATION
+==================================================
+
+Extend the existing uploadContext / intake authorisation cleanly.
+
+Current company actor behaviour remains unchanged.
+
+Add explicit Person actor behaviour.
+
+PERSON actor must satisfy:
+
+- authenticated active Account
+- verified email
+- linked Person exists
+- target relationship belongs to that Person
+- relationship status = ACTIVE
+- target company active
+- selected definition/version active
+- direction = PERSON_TO_COMPANY
+- definition allowed for this relationship context
+
+Derive:
+
+personId
+companyId
+relationshipId
+
+from the stored relationship.
+
+Do not trust browser-supplied person/company IDs.
+
+==================================================
+7. TRANSACTION RECHECK
+==================================================
+
+The existing intake transaction already rechecks company authority.
+
+Extend it so Person uploads also recheck inside the commit transaction:
+
+- Account still active
+- Person linkage still valid
+- relationship still ACTIVE
+- company still active
+- definition/version still active
+- direction still PERSON_TO_COMPANY
+
+Fail closed if anything changed between form load/upload and commit.
+
+==================================================
+8. COMPANY ACCESS
+==================================================
+
+Do NOT special-case person-supplied records.
+
+Use existing pinned-definition company access:
+
+active CompanyMember
++
+active/unrevoked role
++
+role code in allowedCompanyRoles
+
+For the synthetic proof-of-address definition:
+
+HR should be able to see/download.
+
+OWNER without HR:
+NO bypass.
+
+==================================================
+9. COMPANY RELATIONSHIP PAGE
+==================================================
+
+Existing Records section should render PERSON_TO_COMPANY records automatically.
+
+Confirm it does.
+
+If useful and trivial, add a small source label:
+
+Supplied by person
+
+or:
+
+Source: Person
+
+Only if the current projection can derive this cleanly from direction/uploader.
+
+Do not add complex badges/workflow.
+
+==================================================
+10. PERSON MY RECORDS
+==================================================
+
+The Person who uploaded the document should continue to see it under:
+
+My records
+
+if:
+
+personVisible = true
+
+Show existing fields:
+
+- title
+- company
+- definition/type
+- status
+- date
+- View / Download
+
+No separate "My uploads" section yet.
+
+==================================================
+11. STORAGE
+==================================================
+
+Reuse the exact existing path:
+
+persistRelationshipUpload
+→ RecordIntakeService
+→ staging
+→ quarantine
+→ SHA-256
+→ S3StorageProvider
+→ Garage
+→ Record/RecordFile transaction
+
+Keep:
+
+- opaque immutable object keys
+- PDF/PNG/JPEG
+- 10 MiB
+- signature-based MIME detection
+- sanitized filename
+- NOT_SCANNED_DEV
+
+No second implementation.
+
+==================================================
+12. DOWNLOAD
+==================================================
+
+Reuse existing:
+
+/api/files/[fileId]
+
+Confirm:
+
+Person uploader:
+→ can download own visible record
+
+Company HR:
+→ can download according to definition
+
+Company OWNER without HR:
+→ denied
+
+Wrong company:
+→ denied
+
+Unrelated Person:
+→ denied
+
+==================================================
+13. DENIED UPLOAD AUDIT
+==================================================
+
+Preflight found a small gap:
+
+early upload-authorisation failures are not audited.
+
+Add a focused event such as:
+
+RECORD_UPLOAD_DENIED
+
+or current naming convention.
+
+Capture safe identifiers/context only.
+
+Do not log:
+
+- file contents
+- raw file names if unnecessary
+- tokens
+- storage credentials
+- request bodies
+
+Do not broaden audit architecture.
+
+==================================================
+14. RELATIONSHIP STATE RULES
+==================================================
+
+V1:
+
+ACTIVE
+→ upload allowed if definition permits
+
+PENDING
+→ denied
+
+FORMER
+→ denied
+
+ENDED
+→ denied
+
+Do not change relationship states.
+
+Do not allow new documents into historical relationships in V1.
+
+==================================================
+15. NOTIFICATIONS
+==================================================
+
+No email notification in this version.
+
+Definition notification remains:
+
+NONE
+
+Do not use Mailpit for document notifications yet.
+
+==================================================
+16. TARGETED TESTS
+==================================================
+
+Do NOT run full suite.
+
+Test only:
+
+PERSON CREATE
+- ACTIVE relationship can upload PERSON_TO_COMPANY
+- selector excludes COMPANY_TO_PERSON
+- selector excludes INTERNAL_COMPANY
+- PENDING denied
+- FORMER denied
+- ENDED denied
+- wrong Person relationship denied
+
+SECURITY
+- direction enforced server-side
+- company/person IDs derived server-side
+- revoked/inactive definition denied
+- company inactive denied
+- early denial audited
+
+COMPANY ACCESS
+- HR can read/download
+- OWNER without HR denied
+- unrelated company denied
+
+PERSON ACCESS
+- uploader sees visible record
+- unrelated Person denied
+
+STORAGE
+- same existing Garage path used
+- checksum/object persistence unchanged
+
+==================================================
+17. MANUAL DEV ACCEPTANCE
+==================================================
+
+Use existing:
+
+Phil
+↔ Company1
+ACTIVE EMPLOYMENT
+
+and Company1 HR-capable team member.
+
+Step 1 — Person
+
+Sign in as Phil.
+
+Personal Info Center
+→ Company1
+→ Share document
+
+Choose:
+
+Synthetic proof of address
+
+Upload a small synthetic PDF.
+
+Title:
+
+Test Proof of Address
+
+Confirm:
+
+- upload succeeds
+- appears in Phil's My records
+- download works
+
+Step 2 — Company
+
+Sign in as Company1 HR.
+
+Company1
+→ Phil
+→ View person
+→ Records
+
+Confirm:
+
+Test Proof of Address
+
+appears and downloads.
+
+Step 3 — OWNER permission
+
+Use OWNER-only account/context without HR if available.
+
+Confirm the reverse-flow record is not readable merely because of OWNER.
+
+==================================================
+18. DATABASE
+==================================================
+
+No migration expected.
+
+Run:
+
+- Prisma validate
+- migration status
+- zero-diff
+
+only because record/data-layer authorisation code is touched.
+
+Do not alter schema.
+
+==================================================
+19. VALIDATION
+==================================================
+
+Run:
+
+- targeted reverse-flow tests
+- Prisma validate/status/zero-diff
+- affected typecheck
+- affected lint
+- production build
+
+Full suite rerun:
+NO
+
+==================================================
+20. DEV DEPLOYMENT
+==================================================
+
+Commit directly on dev.
+
+Suggested commit:
+
+feat: add person to company document sharing
+
+Push dev normally.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+21. STOP FOR PHIL
+==================================================
+
+After manual DEV acceptance:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+PERSON
+- Share document entry
+- definition filtering
+- upload
+- My records
+
+COMPANY
+- reverse-flow record visible to authorised role
+- OWNER bypass: NO
+
+DIRECTION
+- PERSON_TO_COMPANY enforced
+
+STORAGE
+- existing Garage path reused
+- NOT_SCANNED_DEV unchanged
+
+AUDIT
+- denied upload event
+
+DATABASE
+- migration: NO
+- zero-diff
+
+VALIDATION
+- targeted tests
+- full suite rerun: NO
+
+DEV
+- commit
+- deployed SHA
+- health
+
+MAIN
+- unchanged
+
+STOPPED FOR PHIL APPROVAL

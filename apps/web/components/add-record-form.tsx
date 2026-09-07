@@ -1,9 +1,9 @@
 "use client";
-import type { RecordDefinitionVersion } from "@samma/domain";
+import type { RecordDefinitionVersion, RecordUploadActorKind } from "@samma/domain";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-export function AddRecordForm({ definitions, relationshipId, recordId, recordTitle, maxBytes }: {
-  readonly definitions: readonly RecordDefinitionVersion[]; readonly relationshipId: string; readonly recordId?: string; readonly recordTitle?: string; readonly maxBytes: number;
+export function AddRecordForm({ definitions, relationshipId, recordId, recordTitle, maxBytes, actorKind = "COMPANY" }: {
+  readonly definitions: readonly RecordDefinitionVersion[]; readonly relationshipId: string; readonly recordId?: string; readonly recordTitle?: string; readonly maxBytes: number; readonly actorKind?: RecordUploadActorKind;
 }) {
   const router = useRouter();
   const [definitionId, setDefinitionId] = useState(definitions[0]?.id ?? ""), [title, setTitle] = useState(recordTitle ?? "");
@@ -15,13 +15,13 @@ export function AddRecordForm({ definitions, relationshipId, recordId, recordTit
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/records/upload", { method: "POST", headers: {
-        "Content-Type": "application/octet-stream", "X-Samma-Upload": "1", "X-Samma-Relationship": encodeURIComponent(relationshipId),
+        "Content-Type": "application/octet-stream", "X-Samma-Upload": "1", "X-Samma-Actor": actorKind, "X-Samma-Relationship": encodeURIComponent(relationshipId),
         "X-Samma-Definition": encodeURIComponent(definitionId), "X-Samma-Title": encodeURIComponent(title), "X-Samma-Filename": encodeURIComponent(file.name),
         ...(recordId ? { "X-Samma-Record": encodeURIComponent(recordId) } : {}),
       }, body: file });
       if (!response.ok) throw new Error("Upload could not be completed. Check the record before retrying.");
       const result = await response.json();
-      router.push(recordId ? `/records/${result.recordId}` : `/company/relationships/${relationshipId}`);
+      router.push(actorKind === "PERSON" ? "/person#records" : recordId ? `/records/${result.recordId}` : `/company/relationships/${relationshipId}`);
       router.refresh();
     } catch { setError("Upload could not be completed. Check your access, file and size limit; check the record before retrying."); }
     finally { setBusy(false); }

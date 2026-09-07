@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { RecordUploadActor, RecordUploadActorKind } from "@samma/domain";
 import type { createPrismaClient } from "@samma/database";
 import { RecordIntakeService, RecordMetadataWriteError, type RecordRepository, type UploadScanner, type ScanPolicy } from "@samma/application";
 import type { StorageProvider, UploadSource } from "@samma/storage";
@@ -6,33 +7,43 @@ import { domainDefinition, domainRecord } from "./record-access";
 type Database = ReturnType<typeof createPrismaClient>;
 type Reader = Pick<Database, "companyMember" | "personCompanyRelationship" | "recordDefinitionVersion" | "record">;
 // Share the add-record page's version selection and authorisation with its entry points.
-export async function allowedRelationshipDefinitions(db: Reader, accountId: string, relationshipId: string) {
+export async function allowedRelationshipDefinitions(db: Reader, accountId: string, relationshipId: string, actorKind: RecordUploadActorKind = "COMPANY") {
   const definitions = await db.recordDefinitionVersion.findMany({ where: { active: true, context: "RELATIONSHIP", recordDefinition: { active: true } }, orderBy: { version: "desc" } });
   const allowed = [];
   const seen = new Set<string>();
   for (const definition of definitions) {
     if (seen.has(definition.recordDefinitionId)) continue;
     seen.add(definition.recordDefinitionId);
-    try { await uploadContext(db, accountId, relationshipId, definition.id); allowed.push(domainDefinition(definition)); } catch { /* deny by default */ }
+    try { await uploadContext(db, accountId, relationshipId, definition.id, undefined, actorKind); allowed.push(domainDefinition(definition)); } catch { /* deny by default */ }
   }
   return allowed;
 }
-export async function uploadContext(db: Reader, accountId: string, relationshipId: string, definitionId: string, recordId?: string) {
-  const relationship = await db.personCompanyRelationship.findFirst({ where: { id: relationshipId, status: "ACTIVE", company: { status: "ACTIVE" } } });
+export async function uploadContext(db: Reader, accountId: string, relationshipId: string, definitionId: string, recordId?: string, actorKind: RecordUploadActorKind = "COMPANY") {
+  if (actorKind !== "COMPANY" && actorKind !== "PERSON") throw new Error("Upload not authorised");
+  const relationship = await db.personCompanyRelationship.findFirst({ where: { id: relationshipId, status: "ACTIVE", company: { status: "ACTIVE" },
+    ...(actorKind === "PERSON" ? { person: { accountId, account: { status: "ACTIVE", emailVerified: true } } } : {}) } });
   if (!relationship) throw new Error("Upload not authorised");
-  const member = await db.companyMember.findFirst({ where: { companyId: relationship.companyId, accountId, status: "ACTIVE" }, include: { roleGrants: { where: { revokedAt: null, functionalRole: { active: true } }, include: { functionalRole: true } } } });
   const definition = await db.recordDefinitionVersion.findUnique({ where: { id: definitionId }, include: { recordDefinition: true } });
-  if (!member || !definition || !definition.active || !definition.recordDefinition.active || definition.context !== "RELATIONSHIP") throw new Error("Upload not authorised");
-  const actor = { accountId, companyId: relationship.companyId, membershipStatus: member.status, roleCodes: member.roleGrants.map(grant => grant.functionalRole.code) };
-  if (!domainDefinition(definition).allowedCompanyRoles.some(role => actor.roleCodes.includes(role))) throw new Error("Upload not authorised");
+  if (!definition || !definition.active || !definition.recordDefinition.active || definition.context !== "RELATIONSHIP") throw new Error("Upload not authorised");
+  let actor: RecordUploadActor;
+  if (actorKind === "PERSON") {
+    if (definition.direction !== "PERSON_TO_COMPANY" || recordId) throw new Error("Upload not authorised");
+    actor = { kind: "PERSON", accountId, personId: relationship.personId };
+  } else {
+    const member = await db.companyMember.findFirst({ where: { companyId: relationship.companyId, accountId, status: "ACTIVE" }, include: { roleGrants: { where: { revokedAt: null, functionalRole: { active: true } }, include: { functionalRole: true } } } });
+    if (!member) throw new Error("Upload not authorised");
+    const roleCodes = member.roleGrants.map(grant => grant.functionalRole.code);
+    actor = { kind: "COMPANY", accountId, companyId: relationship.companyId, membershipStatus: member.status, roleCodes };
+    if (!domainDefinition(definition).allowedCompanyRoles.some(role => roleCodes.includes(role))) throw new Error("Upload not authorised");
+  }
   const existing = recordId ? await db.record.findUnique({ where: { id: recordId }, include: { definitionVersion: true } }) : null;
   if (recordId && (!existing || existing.relationshipId !== relationshipId || existing.companyId !== relationship.companyId || existing.personId !== relationship.personId || existing.definitionVersionId !== definition.id || existing.status !== "ACTIVE")) throw new Error("Upload not authorised");
   return { actor, relationship, definition, existing };
 }
 export async function persistRelationshipUpload(db: Database, storage: StorageProvider, scanner: UploadScanner, policy: ScanPolicy, input: {
-  accountId: string; relationshipId: string; definitionId: string; title: string; filename: string; contentType: string; source: UploadSource; recordId?: string; sessionToken?: string;
+  accountId: string; relationshipId: string; definitionId: string; title: string; filename: string; contentType: string; source: UploadSource; recordId?: string; sessionToken?: string; actorKind?: RecordUploadActorKind;
 }) {
-  const context = await uploadContext(db, input.accountId, input.relationshipId, input.definitionId, input.recordId);
+  const context = await uploadContext(db, input.accountId, input.relationshipId, input.definitionId, input.recordId, input.actorKind);
   const repository: RecordRepository = {
     isFileCommitted: async fileId => Boolean(await db.recordFile.findUnique({ where: { id: fileId }, select: { id: true } })),
     appendActivity: async activity => { await db.activityEvent.create({ data: { ...activity, occurredAt: new Date(activity.occurredAt) } }); },
@@ -48,7 +59,10 @@ export async function persistRelationshipUpload(db: Database, storage: StoragePr
           const session = await tx.authSession.findFirst({ where: { sessionToken: input.sessionToken, accountId: input.accountId, expires: { gt: new Date() } } });
           if (!session) throw new Error("Upload session revoked");
         }
-        await uploadContext(tx, input.accountId, input.relationshipId, input.definitionId, input.recordId);
+        const current = await uploadContext(tx, input.accountId, input.relationshipId, input.definitionId, input.recordId, input.actorKind);
+        // Do not commit prepared metadata into a relationship reassigned during intake.
+        if (current.relationship.personId !== record.personId || current.relationship.companyId !== record.companyId ||
+            current.relationship.id !== record.relationshipId) throw new Error("Upload context changed");
         if (!input.recordId) {
           await tx.record.create({ data: { id: record.id, definitionVersionId: record.definitionVersionId, context: record.context,
             personId: record.personId!, companyId: record.companyId!, relationshipId: record.relationshipId!, title: record.title,
