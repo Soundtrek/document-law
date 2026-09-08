@@ -1010,3 +1010,11 @@ product rule is DOCUMENT-SHARING-PRINCIPLES.md; full prompt is captured in promp
   workflow exists yet, so there is no background job or automatic destruction.
 - Starter pack is operator-installed once via the same validated, audited policy
   writer used by authenticated forms. Later runs preserve Governance edits.
+
+- Deployment review found that the older RC runtime shared juanity_law and could
+  select company-local definitions without understanding scope. DEV now uses a
+  consistent copy in samma_dev on the same PostgreSQL service. Account IDs,
+  relationships and existing private Garage file references are preserved; no
+  identity/provider configuration changes. RC remains on juanity_law. New DEV
+  metadata changes do not propagate to RC. This is development environment
+  isolation, not production database/object-storage/backup architecture.

@@ -1,4 +1,4 @@
-# Dedicated public DEV web only. Existing shared DEV services are external.
+# Dedicated public DEV web only. Existing DEV services are external; metadata is isolated from RC.
 name: samma-dev
 
 x-logging: &logging
@@ -22,7 +22,7 @@ services:
       - /etc/samma-dev/storage.env
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://juanity:${SAMMA_DB_PASSWORD}@db:5432/juanity_law
+      DATABASE_URL: postgresql://juanity:${SAMMA_DB_PASSWORD}@db:5432/samma_dev
       SAMMA_ENV: development
       SAMMA_BASE_URL: https://dev.samma.co.za
       SAMMA_DEV_IDENTITY_ENABLED: "false"

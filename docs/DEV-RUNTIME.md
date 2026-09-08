@@ -1,3 +1,26 @@
+# Record Definitions V1 — isolated DEV metadata (2026-09-08)
+
+DEV web now uses PostgreSQL database `samma_dev` on the existing SAMMA PostgreSQL
+service. It was copied consistently from the previous shared `juanity_law` while
+DEV web was stopped. Stable Accounts, identities, relationships, historic versions
+and private Garage file references were preserved. RC keeps `juanity_law` and its
+existing application runtime. DEV and RC metadata now evolve independently; do
+not automatically merge DEV business configuration/data into RC on promotion.
+
+This separation is required before company-local definitions can be enabled:
+the older RC engine does not understand their scope. Garage and Keycloak remain
+existing shared development services; no provider configuration was changed.
+Original file objects are shared references, so this is not a production storage
+or backup isolation design. New opaque file IDs avoid replacing original objects.
+
+Run future DEV migrations/pack installation against `samma_dev`, with a private
+backup first. The initial additive migration also exists in `juanity_law` from
+before the split, preserving old application compatibility. Do not roll that
+schema backward. Roll back DEV web artifacts against its own database; never
+silently point DEV back at the older RC metadata after company definitions exist.
+
+The sections below describe earlier deployments and the build process.
+
 # Dedicated public DEV runtime
 
 The locked map is `experiment/*` → `http://192.168.1.152:2022` (preview),

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createPrismaClient } from "@samma/database";
 assert.equal(process.env.SAMMA_ENV, "development");
 assert.equal(process.env.SAMMA_BASE_URL, "https://dev.samma.co.za");
+assert.equal(new URL(process.env.DATABASE_URL!).pathname, "/samma_dev");
 let text = ""; for await (const chunk of process.stdin) text += chunk;
 const input = JSON.parse(text);
 const db = createPrismaClient();
