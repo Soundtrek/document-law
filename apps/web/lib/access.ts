@@ -45,5 +45,5 @@ export async function navigationAccess() {
     db.governanceCapabilityGrant.findMany({ where: { accountId: session.accountId, revokedAt: null }, select: { capability: true } }),
     db.legalAccessGrant.findFirst({ where: { grantedToAccountId: session.accountId, status: "ACTIVE", revokedAt: null, startsAt: { lte: new Date() }, expiresAt: { gt: new Date() } } }),
   ]);
-  return { signedIn: true, company: Boolean(company), governance: governance.length > 0, governanceHref: governance.some(grant => grant.capability === "platform.security.review") && !["platform.definitions.manage", "platform.roles.manage", "platform.audit.review"].every(capability => governance.some(grant => grant.capability === capability)) ? "/governance/users" : "/governance", legal: Boolean(legal), companySetup: !company && await pendingCompanySetup(session) };
+  return { signedIn: true, company: Boolean(company), governance: governance.length > 0, governanceHref: governance.some(grant => grant.capability === "platform.definitions.manage") ? "/governance/definitions" : governance.some(grant => grant.capability === "platform.security.review") ? "/governance/users" : "/governance", legal: Boolean(legal), companySetup: !company && await pendingCompanySetup(session) };
 }
