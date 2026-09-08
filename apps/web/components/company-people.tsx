@@ -23,8 +23,8 @@ export function CompanyPersonCard({ relationship, canAddRecord, detail = false }
   </article>;
 }
 
-export function CompanyPeople({ companyId, companyName, roles, canAddPerson, people }: {
-  readonly companyId: string; readonly companyName: string; readonly roles: string; readonly canAddPerson: boolean;
+export function CompanyPeople({ companyId, companyName, roles, canAddPerson, canManageDocuments = false, people }: {
+  readonly companyId: string; readonly companyName: string; readonly roles: string; readonly canAddPerson: boolean; readonly canManageDocuments?: boolean;
   readonly people: readonly { relationship: CompanyPerson; canAddRecord: boolean }[];
 }) {
   const addPersonHref = `/company/people/add?companyId=${encodeURIComponent(companyId)}`;
@@ -47,6 +47,7 @@ export function CompanyPeople({ companyId, companyName, roles, canAddPerson, peo
     </header>
     <nav className="actions" aria-label="Company workspace"><a className="button secondary" href={`#people-${companyId}`} aria-current="page">People</a>
       {canAddPerson ? <Link className="button secondary" href={`/company/${encodeURIComponent(companyId)}/team`}>Team &amp; Access</Link> : null}
+      {canManageDocuments ? <Link className="button secondary" href={`/company/${encodeURIComponent(companyId)}/document-settings`}>Document Settings</Link> : null}
     </nav>
     <section id={`people-${companyId}`} className="company-people-section" aria-label={`People at ${companyName}`}>
       <header className="company-people-heading"><h2>People</h2><p className="muted">People connected to this company through employment relationships.</p></header>

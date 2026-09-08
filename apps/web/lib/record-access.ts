@@ -34,7 +34,7 @@ export function domainDefinition(row: StoredRecord["definitionVersion"]): Record
   return { id: row.id, definitionId: row.recordDefinitionId, version: row.version, name: row.name, category: row.category,
     context: row.context, direction: row.direction, classification: row.classification, personVisible: row.personVisible,
     allowedCompanyRoles: strings(row.allowedCompanyRoles), active: row.active,
-    createdAt: row.createdAt.toISOString(), notificationPolicy: "NONE",
+    createdAt: row.createdAt.toISOString(), notificationPolicy: "NONE", retentionMode: row.retentionMode,
     ...(row.retentionMonths !== null ? { retentionMonths: row.retentionMonths } : {}),
     ...(row.reviewMonths !== null ? { reviewMonths: row.reviewMonths } : {}),
   };

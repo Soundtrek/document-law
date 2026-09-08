@@ -156,6 +156,7 @@ model Company {
   relationships PersonCompanyRelationship[]
   records       Record[]                    @relation("CompanyRecords")
   subscriptions CompanySubscription[]
+  recordDefinitions RecordDefinition[]
 
   @@index([name])
 }
@@ -224,13 +225,24 @@ model PersonCompanyRelationship {
   @@index([companyId, externalReference])
 }
 
+enum RetentionMode {
+  NONE
+  FIXED_FROM_CREATED
+  FIXED_FROM_RELATIONSHIP_END
+}
+
 model RecordDefinition {
   id        String                    @id @default(cuid())
   key       String                    @unique
+  code      String                    @default("")
+  companyId String?
+  company   Company?                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
   active    Boolean                   @default(true)
   createdAt DateTime                  @default(now())
   updatedAt DateTime                  @updatedAt
   versions  RecordDefinitionVersion[]
+
+  @@unique([companyId, code])
 }
 
 model RecordDefinitionVersion {
@@ -239,11 +251,13 @@ model RecordDefinitionVersion {
   version             Int
   name                String
   category            String
+  description         String               @default("")
   context             RecordContext
   direction           RecordDirection
   classification      DataClassification
   allowedCompanyRoles Json
   personVisible       Boolean              @default(false)
+  retentionMode       RetentionMode        @default(FIXED_FROM_CREATED)
   retentionMonths     Int?
   reviewMonths        Int?
   notificationPolicy  String               @default("NONE")

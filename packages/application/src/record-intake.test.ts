@@ -3,7 +3,6 @@ import test from "node:test";
 
 import {
   syntheticDefinitions,
-  syntheticOwnerActor,
   syntheticPayrollActor,
   syntheticRelationship,
 } from "@samma/domain";
@@ -73,9 +72,9 @@ test("rejected scan never creates record metadata", async () => {
   const rejectingScanner: UploadScanner = { async scan() { return "REJECTED"; } };
   const { service, repository } = buildService(rejectingScanner);
   await assert.rejects(() => service.createRelationshipRecord({
-    actor: syntheticOwnerActor,
+    actor: syntheticPayrollActor,
     relationship: syntheticRelationship,
-    definition: syntheticDefinitions[1]!,
+    definition: syntheticDefinitions[0]!,
     title: "Proof of address",
     originalFilename: "synthetic.pdf",
     contentType: "application/pdf",

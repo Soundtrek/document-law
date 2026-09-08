@@ -88,6 +88,7 @@ export interface RecordDefinitionVersion {
   readonly classification: DataClassification;
   readonly allowedCompanyRoles: readonly string[];
   readonly personVisible: boolean;
+  readonly retentionMode?: "NONE" | "FIXED_FROM_CREATED" | "FIXED_FROM_RELATIONSHIP_END";
   readonly retentionMonths?: number;
   readonly reviewMonths?: number;
   readonly notificationPolicy: "NONE" | "NEW_RECORD" | "REVIEW_DUE" | "NEW_RECORD_AND_REVIEW_DUE";

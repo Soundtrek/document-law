@@ -15,7 +15,8 @@ export const canUploadRelationshipRecord = (
 ): boolean => {
   if (!definition.active || definition.context !== "RELATIONSHIP" || relationship.status !== "ACTIVE") return false;
   if (actor.kind === "PERSON") return actor.personId === relationship.personId && definition.direction === "PERSON_TO_COMPANY";
-  return actor.companyId === relationship.companyId && actor.membershipStatus === "ACTIVE" &&
+  return (definition.direction === "COMPANY_TO_PERSON" || definition.direction === "INTERNAL_COMPANY" || definition.direction === "BIDIRECTIONAL") &&
+    actor.companyId === relationship.companyId && actor.membershipStatus === "ACTIVE" &&
     definition.allowedCompanyRoles.some(role => actor.roleCodes.includes(role));
 };
 
@@ -31,11 +32,13 @@ const addUtcMonths = (iso: string, months: number): string => {
 };
 
 export const deriveRecordDates = (
-  definition: Pick<RecordDefinitionVersion, "retentionMonths" | "reviewMonths">,
+  definition: Pick<RecordDefinitionVersion, "retentionMode" | "retentionMonths" | "reviewMonths">,
   createdAt: string,
+  relationshipEndedAt?: string,
 ): { retainUntil?: string; reviewDueAt?: string } => {
   const result: { retainUntil?: string; reviewDueAt?: string } = {};
-  if (definition.retentionMonths !== undefined) result.retainUntil = addUtcMonths(createdAt, definition.retentionMonths);
+  const retentionBase = definition.retentionMode === "FIXED_FROM_RELATIONSHIP_END" ? relationshipEndedAt : createdAt;
+  if (definition.retentionMode !== "NONE" && definition.retentionMonths !== undefined && retentionBase) result.retainUntil = addUtcMonths(retentionBase, definition.retentionMonths);
   if (definition.reviewMonths !== undefined) result.reviewDueAt = addUtcMonths(createdAt, definition.reviewMonths);
   return result;
 };

@@ -1,0 +1,1148 @@
+SAMMA — RECORD DEFINITIONS + DOCUMENT ACCESS MATRIX V1
+BUILD DIRECTLY ON DEV
+
+GOAL
+
+Turn SAMMA’s proven document engine into a configurable real document-policy system.
+
+Current product baseline already proves:
+
+- Company → Person documents
+- Person → Company documents
+- Company-private/internal documents
+- role-controlled access
+- Team & Access
+- PersonCompanyRelationship
+- persistent Garage storage
+- versioned RecordDefinition support
+- Governance area
+
+New principle document now exists on dev:
+
+docs/DOCUMENT-SHARING-PRINCIPLES.md
+
+Recent commit:
+
+ccef50d6302a1f823fe203fecab0fef6448349a3
+
+Treat that document as the governing product rule for this build.
+
+Work directly on:
+
+dev
+
+Runtime:
+
+https://dev.samma.co.za
+
+Do NOT touch main until Phil approves DEV.
+
+==================================================
+CORE PRODUCT LAW — NO HARDCODE
+==================================================
+
+Business document policy must be configuration-driven.
+
+Security invariants may be enforced in code.
+
+Do NOT hardcode business document types such as:
+
+- Payslip
+- Employment Contract
+- Proof of Address
+- Medical Certificate
+- Disciplinary Record
+
+into upload routes, UI branches or permission code.
+
+SAMMA Governance and authorised Companies must be able to define document types without a developer change.
+
+Document access must be driven by stored policy.
+
+Company personnel access must be role-driven.
+
+OWNER is governance and does not automatically bypass document access policy.
+
+==================================================
+TARGET MODEL
+==================================================
+
+RecordDefinition
+        ↓
+RecordDefinitionVersion
+        ↓
+Record
+        ↓
+RecordFile
+
+A definition is the document rule/template.
+
+A record is one real document instance.
+
+A Record must remain pinned to the exact definition version that governed it when created.
+
+Do not silently mutate old record policy when definitions change.
+
+==================================================
+1. DOCUMENT DIRECTIONS
+==================================================
+
+Use the existing direction model:
+
+COMPANY_TO_PERSON
+PERSON_TO_COMPANY
+INTERNAL_COMPANY
+
+Meaning:
+
+COMPANY_TO_PERSON
+- authorised Company operator creates
+- Person may see if policy allows
+
+PERSON_TO_COMPANY
+- Person creates against their active Company relationship
+- authorised Company roles may access
+
+INTERNAL_COMPANY
+- authorised Company operator creates
+- Person does not automatically see
+
+Do not invent additional directions in V1 unless existing architecture genuinely requires one.
+
+==================================================
+2. GOVERNANCE RECORD DEFINITIONS
+==================================================
+
+Expand the existing Governance Definitions area into a real Record Definitions manager.
+
+Preferred routes:
+
+/governance/definitions
+
+/governance/definitions/new
+
+/governance/definitions/[definitionId]
+
+Use current routing conventions if equivalents already exist.
+
+==================================================
+3. DEFINITIONS LIST
+==================================================
+
+Show a clean list/card view.
+
+Each definition should show:
+
+- name
+- stable code
+- category
+- direction
+- current version
+- active/inactive
+- Person visible yes/no
+- allowed company roles summary
+
+Example:
+
+Payslip
+PAYSLIP
+Payroll
+Company → Person
+v1
+Active
+Person visible
+HR, PAYROLL
+
+Add:
+
+[ + Add definition ]
+
+Keep UI simple.
+
+==================================================
+4. CREATE DEFINITION
+==================================================
+
+Governance must be able to create a new document type.
+
+Minimum fields:
+
+Name
+Stable code
+Category
+Description
+Direction
+Person visible
+Classification
+Allowed company roles
+Review policy
+Retention policy
+Notification policy
+Active
+
+Do not hardcode allowed names/categories.
+
+==================================================
+5. STABLE CODE
+==================================================
+
+Each RecordDefinition has a stable machine code.
+
+Examples:
+
+PAYSLIP
+EMPLOYMENT_CONTRACT
+PROOF_OF_ADDRESS
+
+Code must:
+
+- be unique
+- be stable
+- not change silently between versions
+- be suitable for reporting/integration later
+
+Governance may choose it during creation, subject to validation.
+
+Do not derive runtime policy from display name.
+
+==================================================
+6. CATEGORIES
+==================================================
+
+Keep categories lightweight and configurable.
+
+Examples may include:
+
+Employment
+Payroll
+Identity
+Compliance
+Medical
+Training
+Disciplinary
+Legal
+HR Internal
+
+Do NOT make those values hardcoded business rules.
+
+If current schema stores category as text, keep it simple.
+
+If there is already a category model, reuse it.
+
+No taxonomy project in V1.
+
+==================================================
+7. PERSON VISIBILITY
+==================================================
+
+Definition version controls:
+
+personVisible = true / false
+
+This is separate from direction.
+
+Examples:
+
+COMPANY_TO_PERSON + personVisible=true
+→ Person sees it
+
+INTERNAL_COMPANY + personVisible=false
+→ Person does not see it
+
+PERSON_TO_COMPANY + personVisible=true
+→ Person continues to see their supplied document
+
+Keep V1 binary.
+
+No release workflow or acknowledgement logic in this task.
+
+==================================================
+8. COMPANY ROLE ACCESS
+==================================================
+
+Definition version must specify which Company functional roles may access the record.
+
+Use current active FunctionalRole catalogue.
+
+Examples:
+
+HR
+PAYROLL
+CLERK
+LEGAL
+MANAGER
+BILLING
+OWNER
+
+Do not hardcode the matrix.
+
+Governance chooses roles per definition.
+
+Example:
+
+Payslip:
+HR
+PAYROLL
+
+Employment Contract:
+HR
+LEGAL
+
+Proof of Address:
+HR
+CLERK
+
+Internal HR Note:
+HR
+
+==================================================
+9. OWNER RULE
+==================================================
+
+OWNER must remain company governance only.
+
+OWNER does NOT automatically gain document access.
+
+If Governance explicitly adds OWNER to a RecordDefinition’s allowed roles, then OWNER may access that definition through normal policy.
+
+Do not implement an implicit OWNER bypass.
+
+==================================================
+10. CREATE VS READ
+==================================================
+
+For V1, preserve the current simpler model unless inspection shows an existing split:
+
+allowed company roles
+→ may create/read according to existing engine behaviour
+
+Do NOT introduce separate:
+
+create roles
+read roles
+
+unless the current schema already supports it cleanly or a real blocker requires it.
+
+Document the V1 limitation.
+
+We can split create/read roles later if needed.
+
+==================================================
+11. CLASSIFICATION
+==================================================
+
+Expose the existing classification policy if already modeled.
+
+Preferred simple values if current schema supports them:
+
+GENERAL
+PERSONAL
+SENSITIVE
+HIGHLY_SENSITIVE
+
+Do not create a second classification system.
+
+Classification should be stored in the definition version and shown in Governance.
+
+Do not add step-up/MFA behaviour in this task.
+
+==================================================
+12. REVIEW POLICY
+==================================================
+
+Governance must be able to define a review/renewal period.
+
+Examples:
+
+Proof of Address
+→ review after 12 months
+
+Qualification Certificate
+→ no scheduled review
+
+Keep V1 simple:
+
+review required:
+YES/NO
+
+if YES:
+period value
+period unit
+
+Examples:
+12 months
+2 years
+
+When a Record is created, existing record logic should calculate review date from the pinned definition policy if current architecture supports it.
+
+If calculation plumbing is missing, implement the smallest clean policy application.
+
+==================================================
+13. RETENTION POLICY
+==================================================
+
+Governance must be able to define retention policy.
+
+Preferred V1 modes:
+
+NONE
+
+FIXED_FROM_CREATED
+
+FIXED_FROM_RELATIONSHIP_END
+
+Fields:
+
+retention value
+retention unit
+
+Examples:
+
+7 years from created
+
+5 years from relationship end
+
+Do not hardcode South African legal retention periods in application code.
+
+Governance configures them.
+
+If relationship-end based retention cannot yet be calculated because end date is future/unknown:
+
+store enough policy/reference state so retainUntil can be calculated when relationship ends.
+
+Do not invent a background workflow unless needed.
+
+==================================================
+14. NOTIFICATION POLICY
+==================================================
+
+Keep existing notification policy.
+
+V1 may remain:
+
+NONE
+
+Expose it in definition editing if already modeled.
+
+Do not build notification sending in this task.
+
+==================================================
+15. VERSIONING
+==================================================
+
+Policy changes must create a new RecordDefinitionVersion.
+
+Do NOT mutate a version already used by Records.
+
+Editing a definition should conceptually:
+
+Definition
+→ Save as new version
+
+Example:
+
+Payslip v1
+HR + PAYROLL
+5-year retention
+
+Later:
+
+Payslip v2
+HR + PAYROLL
+7-year retention
+
+Existing records remain pinned to v1.
+
+New records use v2.
+
+==================================================
+16. ACTIVE / INACTIVE
+==================================================
+
+Governance can activate/deactivate definitions.
+
+Inactive definition:
+
+- cannot be selected for new records
+- remains available for historical records
+- existing records still resolve correctly
+
+Do not delete definitions that are referenced.
+
+==================================================
+17. COMPANY CUSTOM DOCUMENT TYPES
+==================================================
+
+NO-HARDCODE LAW requires Companies to be able to add their own document types.
+
+Design this now.
+
+Preferred V1 structure:
+
+System / Governance definitions
++
+Company-specific definitions
+
+A Company Owner or appropriately authorised CompanyMember should be able to create a Company-local RecordDefinition or CompanyDocumentDefinition according to current architecture.
+
+Examples:
+
+Company1 wants:
+
+Safety Induction Form
+Tool Issue Register
+Site Access Certificate
+
+They should NOT need SAMMA Governance or a code deployment.
+
+==================================================
+18. COMPANY DOCUMENT SETTINGS
+==================================================
+
+Add a Company-level area:
+
+Document Settings
+
+Suggested route:
+
+/company/[companyId]/document-settings
+
+or current route convention.
+
+Company Info Center should link to:
+
+Document Settings
+
+This is NOT employment records themselves.
+
+It manages Company-specific document types/policies.
+
+==================================================
+19. COMPANY CUSTOM DEFINITION RULES
+==================================================
+
+Company-created definition must be scoped to that Company only.
+
+Company A must not see/use Company B custom definitions.
+
+Company definition should support the same important policy fields where appropriate:
+
+- name
+- code
+- category
+- direction
+- Person visible
+- allowed Company roles
+- classification
+- review policy
+- retention policy
+- active/inactive
+
+Do not let Company custom definitions change platform/system definitions.
+
+==================================================
+20. GOVERNANCE VS COMPANY AUTHORITY
+==================================================
+
+Governance:
+
+- defines platform/system definitions
+- can inspect system policy
+- can manage platform-wide definitions
+- owns the security framework
+
+Company:
+
+- may create Company-scoped document types
+- may choose which of its functional roles may access them
+- cannot create new platform capabilities
+- cannot bypass SAMMA security invariants
+- cannot grant access outside its own Company
+
+==================================================
+21. COMPANY ROLE CHOICE
+==================================================
+
+When creating/editing a Company-specific document type:
+
+show only roles that exist and are active in the Company/global FunctionalRole catalogue.
+
+Example:
+
+Allowed personnel
+
+[ ] HR
+[ ] PAYROLL
+[ ] CLERK
+[ ] LEGAL
+[ ] MANAGER
+[ ] BILLING
+[ ] OWNER
+
+This is how a Company determines which personnel may access a document type.
+
+Do NOT allow free-text role names to become permissions.
+
+Use actual functional-role IDs/codes.
+
+==================================================
+22. ACCESS MATRIX — GOVERNANCE
+==================================================
+
+Add a read-only Governance view:
+
+Definitions | Access Matrix
+
+Access Matrix derives from stored definitions.
+
+Example:
+
+| Document type | Direction | Person | HR | Payroll | Legal | Clerk |
+| Payslip | C→P | Yes | Yes | Yes | No | No |
+| Contract | C→P | Yes | Yes | No | Yes | No |
+| Proof of Address | P→C | Yes | Yes | No | No | Yes |
+| Internal HR Note | Internal | No | Yes | No | No | No |
+
+This matrix must NOT be a separate policy store.
+
+It is a projection of RecordDefinitionVersion policy.
+
+Clicking a row should open the real definition.
+
+Keep matrix read-only in V1.
+
+==================================================
+23. COMPANY ACCESS MATRIX
+==================================================
+
+If simple, Company Document Settings may also show a scoped read-only matrix of:
+
+- system definitions available to the Company
+- Company-local definitions
+
+Do not build spreadsheet-style editing.
+
+Definition detail remains the edit surface.
+
+==================================================
+24. RECORD SELECTION
+==================================================
+
+Existing Add Record and Share Document flows must query definitions dynamically.
+
+Company upload:
+
+only definitions:
+- active
+- correct relationship context
+- correct direction
+- authorised role
+- system or same-company custom definition
+
+Person upload:
+
+only definitions:
+- active
+- PERSON_TO_COMPANY
+- appropriate relationship
+- system or company definition available to that relationship
+
+Do not hardcode options.
+
+==================================================
+25. POLICY APPLICATION
+==================================================
+
+At record creation:
+
+pin exact RecordDefinitionVersion.
+
+Derive policy values from the pinned version.
+
+Expected record behaviour:
+
+- access uses pinned allowed roles
+- Person visibility uses pinned policy
+- classification uses pinned policy
+- review date derives from pinned review policy
+- retention metadata derives from pinned retention policy
+
+Do not resolve historical Records against the newest definition version.
+
+==================================================
+26. INITIAL REAL SAMMA DEFINITION PACK
+==================================================
+
+Create a small initial system-definition pack through the same configuration path.
+
+Suggested starting set:
+
+Payslip
+COMPANY_TO_PERSON
+Person visible
+HR, PAYROLL
+Payroll
+
+Employment Contract
+COMPANY_TO_PERSON
+Person visible
+HR, LEGAL
+Employment
+
+Employment Confirmation Letter
+COMPANY_TO_PERSON
+Person visible
+HR
+Employment
+
+Proof of Address
+PERSON_TO_COMPANY
+Person visible
+HR, CLERK
+Identity/Compliance
+
+Identity Document
+PERSON_TO_COMPANY
+Person visible
+HR
+Identity
+
+Medical Certificate
+PERSON_TO_COMPANY
+Person visible
+HR
+Medical
+
+Qualification Certificate
+PERSON_TO_COMPANY
+Person visible
+HR
+Training/Qualification
+
+Training Certificate
+COMPANY_TO_PERSON
+Person visible
+HR
+Training
+
+Disciplinary Record
+COMPANY_TO_PERSON
+Person visible for V1 unless Governance specifies otherwise
+HR, LEGAL
+Disciplinary
+
+Internal HR Note
+INTERNAL_COMPANY
+Person hidden
+HR
+HR Internal
+
+Internal Legal Note
+INTERNAL_COMPANY
+Person hidden
+LEGAL
+Legal
+
+Payroll Internal Record
+INTERNAL_COMPANY
+Person hidden
+PAYROLL
+Payroll
+
+==================================================
+27. IMPORTANT — RETENTION VALUES
+==================================================
+
+Do NOT invent legal retention periods.
+
+Where no approved policy exists:
+
+leave retention/review unset or mark:
+
+Not configured
+
+Do not make legal claims in code or seed data.
+
+The purpose of V1 is to make these configurable.
+
+==================================================
+28. SYNTHETIC DEFINITIONS
+==================================================
+
+Current synthetic definitions:
+
+Synthetic employee document
+Synthetic internal HR note
+Synthetic proof of address
+
+Do not delete historical records relying on them.
+
+Preferred:
+
+deactivate these definitions for new record creation after real definitions are available.
+
+Historical records remain pinned and valid.
+
+Do not rewrite them onto new definitions.
+
+==================================================
+29. GOVERNANCE UI
+==================================================
+
+Governance navigation should remain simple:
+
+Definitions
+Roles
+Users
+Audit / Security
+
+Definitions page:
+
+[ Definitions ] [ Access Matrix ]
+
+Definitions list:
+cards/table
+
+Definition detail:
+sections
+
+- Identity
+- Direction
+- Person Access
+- Company Access
+- Classification
+- Review
+- Retention
+- Notification
+- Versions
+
+Primary actions:
+
+[ Save as new version ]
+
+[ Activate / Deactivate ]
+
+==================================================
+30. COMPANY UI
+==================================================
+
+Company Info Center:
+
+add company-level link:
+
+Document Settings
+
+Document Settings:
+
+[ + Add document type ]
+
+System document types
+Company document types
+
+Do not mix this with Person relationship Records.
+
+==================================================
+31. SECURITY
+==================================================
+
+Server-side policy only.
+
+Never trust UI selections alone.
+
+Verify:
+
+Governance definition changes:
+→ Governance capability
+
+Company definition changes:
+→ active CompanyMember
+→ company management permission
+→ same Company scope
+
+Company role selection:
+→ valid active FunctionalRole only
+
+Definition usage:
+→ active definition/version
+→ correct company scope
+→ correct direction
+→ correct relationship
+→ correct actor
+→ allowed role
+
+==================================================
+32. AUDIT
+==================================================
+
+Audit:
+
+RECORD_DEFINITION_CREATED
+RECORD_DEFINITION_VERSION_CREATED
+RECORD_DEFINITION_ACTIVATED
+RECORD_DEFINITION_DEACTIVATED
+
+COMPANY_DOCUMENT_DEFINITION_CREATED
+COMPANY_DOCUMENT_DEFINITION_VERSION_CREATED
+COMPANY_DOCUMENT_DEFINITION_ACTIVATED
+COMPANY_DOCUMENT_DEFINITION_DEACTIVATED
+
+Use existing naming conventions where appropriate.
+
+Record safe stable identifiers.
+
+Do not log full policy payloads if unnecessary.
+
+==================================================
+33. DATABASE PREFLIGHT
+==================================================
+
+Before coding, inspect existing schema carefully.
+
+Determine whether current RecordDefinition already has tenant/company scoping support.
+
+If company-specific definitions can be represented cleanly with an optional companyId or existing scope field:
+
+use it.
+
+If a small additive migration is required:
+
+plan one coherent migration.
+
+Do NOT build a parallel second definition engine unless necessary.
+
+Prefer one definition/version model supporting:
+
+SYSTEM
+COMPANY
+
+scope.
+
+==================================================
+34. MIGRATION RULE
+==================================================
+
+If migration required:
+
+- focused DEV DB backup
+- review SQL
+- additive/backward-compatible only
+- apply to DEV
+- migration status PASS
+- zero-diff PASS
+
+Do not touch main.
+
+==================================================
+35. TARGETED TESTS
+==================================================
+
+Do NOT run full suite during feature iteration.
+
+Test:
+
+GOVERNANCE
+- create system definition
+- save new version
+- deactivate
+- old Records stay pinned
+- access matrix correct
+
+COMPANY
+- create Company-scoped definition
+- Company B cannot see Company A definition
+- Company role policy stored
+- unauthorised member denied
+
+SELECTION
+- company upload selector dynamic
+- Person upload selector dynamic
+- inactive definitions excluded
+- wrong direction excluded
+- wrong role excluded
+- other-company custom definitions excluded
+
+VERSIONING
+- new Records use latest active version
+- old Records retain old version/policy
+
+ACCESS
+- HR/PAYROLL/LEGAL matrix enforced
+- OWNER no bypass unless explicitly selected
+
+REVIEW/RETENTION
+- calculated only from configured policy
+- unset remains unset
+
+==================================================
+36. UI VALIDATION
+==================================================
+
+Check:
+
+Governance Definitions
+Governance Access Matrix
+Company Document Settings
+
+Desktop:
+1440
+
+Tablet:
+768
+
+Mobile:
+390
+
+Keep SAMMA/Crewfinder-style cards.
+
+No huge admin dashboard.
+
+==================================================
+37. DEV DEPLOYMENT
+==================================================
+
+Work directly on dev.
+
+Use focused commits.
+
+Suggested:
+
+feat: add configurable record definitions
+
+feat: add document access matrix
+
+feat: add company document types
+
+feat: seed initial SAMMA definition pack
+
+Use fewer commits if implementation is tightly coupled.
+
+Push dev normally.
+
+Deploy exact dev SHA to:
+
+https://dev.samma.co.za
+
+Do NOT touch main.
+
+==================================================
+38. MANUAL ACCEPTANCE
+==================================================
+
+On DEV, prove:
+
+A. Governance creates/edits a system definition.
+
+B. Company1 creates a custom document type:
+
+Safety Induction Form
+
+Direction:
+COMPANY_TO_PERSON
+
+Person visible:
+Yes
+
+Allowed roles:
+HR
+
+C. HR opens Phil relationship.
+
+Add Record selector includes:
+
+Safety Induction Form
+
+D. Company without HR does not get access.
+
+E. Company2 does not see Company1 custom definition.
+
+F. Person upload selector receives configured PERSON_TO_COMPANY definition dynamically.
+
+G. Access Matrix accurately reflects stored policy.
+
+==================================================
+39. NO HARDCODE ACCEPTANCE
+==================================================
+
+PASS only if a Governance user or authorised Company can create a new document type and have it appear in the appropriate Add Record/Share Document flow:
+
+WITHOUT
+
+- code change
+- rebuild
+- redeploy
+- migration
+
+That is the critical V1 acceptance criterion.
+
+==================================================
+40. STOP FOR PHIL
+==================================================
+
+After DEV manual acceptance:
+
+STOP.
+
+Do not promote dev → main.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / PARTIAL / BLOCKED
+
+MODEL
+- single RecordDefinition engine
+- system/company scope
+- migration
+
+GOVERNANCE
+- definitions
+- versions
+- active/inactive
+- access matrix
+
+COMPANY
+- Document Settings
+- custom document type creation
+- role access control
+
+NO HARDCODE
+- new type works without code/redeploy: YES/NO
+
+POLICY
+- direction
+- Person visibility
+- company roles
+- classification
+- review
+- retention
+- notifications
+
+VERSIONING
+- historical records pinned
+
+SELECTION
+- Company Add Record dynamic
+- Person Share Document dynamic
+
+SECURITY
+- cross-company isolation
+- OWNER bypass: NO
+
+DATABASE
+- migration
+- zero-diff
+
+VALIDATION
+- targeted tests
+- full suite rerun: NO during development
+
+DEV
+- commit(s)
+- deployed SHA
+- health
+
+MAIN
+- unchanged
+
+STOPPED FOR PHIL APPROVAL

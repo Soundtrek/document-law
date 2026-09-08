@@ -8,7 +8,7 @@ type Database = ReturnType<typeof createPrismaClient>;
 type Reader = Pick<Database, "companyMember" | "personCompanyRelationship" | "recordDefinitionVersion" | "record">;
 // Share the add-record page's version selection and authorisation with its entry points.
 export async function allowedRelationshipDefinitions(db: Reader, accountId: string, relationshipId: string, actorKind: RecordUploadActorKind = "COMPANY") {
-  const definitions = await db.recordDefinitionVersion.findMany({ where: { active: true, context: "RELATIONSHIP", recordDefinition: { active: true } }, orderBy: { version: "desc" } });
+  const definitions = await db.recordDefinitionVersion.findMany({ where: { context: "RELATIONSHIP", recordDefinition: { active: true } }, orderBy: { version: "desc" } });
   const allowed = [];
   const seen = new Set<string>();
   for (const definition of definitions) {
@@ -25,11 +25,17 @@ export async function uploadContext(db: Reader, accountId: string, relationshipI
   if (!relationship) throw new Error("Upload not authorised");
   const definition = await db.recordDefinitionVersion.findUnique({ where: { id: definitionId }, include: { recordDefinition: true } });
   if (!definition || !definition.active || !definition.recordDefinition.active || definition.context !== "RELATIONSHIP") throw new Error("Upload not authorised");
+  if (definition.recordDefinition.companyId && definition.recordDefinition.companyId !== relationship.companyId) throw new Error("Upload not authorised");
+  if (!recordId) {
+    const latest = await db.recordDefinitionVersion.findFirst({ where: { recordDefinitionId: definition.recordDefinitionId }, orderBy: { version: "desc" }, select: { id: true } });
+    if (latest?.id !== definition.id) throw new Error("Definition changed; select the current version");
+  }
   let actor: RecordUploadActor;
   if (actorKind === "PERSON") {
     if (definition.direction !== "PERSON_TO_COMPANY" || recordId) throw new Error("Upload not authorised");
     actor = { kind: "PERSON", accountId, personId: relationship.personId };
   } else {
+    if (!["COMPANY_TO_PERSON", "INTERNAL_COMPANY", "BIDIRECTIONAL"].includes(definition.direction)) throw new Error("Upload not authorised");
     const member = await db.companyMember.findFirst({ where: { companyId: relationship.companyId, accountId, status: "ACTIVE" }, include: { roleGrants: { where: { revokedAt: null, functionalRole: { active: true } }, include: { functionalRole: true } } } });
     if (!member) throw new Error("Upload not authorised");
     const roleCodes = member.roleGrants.map(grant => grant.functionalRole.code);

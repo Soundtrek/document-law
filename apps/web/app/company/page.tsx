@@ -1,3 +1,4 @@
+import { hasDocumentSettingsCapability } from "../../lib/definition-policy";
 import { PageHero } from "../../components/page-hero";
 import { requireSession } from "../../lib/access";
 import { db } from "../../lib/database";
@@ -18,6 +19,6 @@ export default async function CompanyPage() {
     <section className="company-workspaces">{companies.length ? companies.map(({ member, people }) => <CompanyPeople key={member.id}
       companyId={member.companyId} companyName={member.company.name}
       roles={member.roleGrants.map(grant => grant.functionalRole.label).join(", ") || "No functional roles assigned"}
-      canAddPerson={hasInvitationCapability(member.roleGrants)} people={people} />) : <article className="card"><h2>No company access yet</h2><p className="muted">An authorised company owner can arrange your membership.</p></article>}</section>
+      canManageDocuments={hasDocumentSettingsCapability(member.roleGrants)} canAddPerson={hasInvitationCapability(member.roleGrants)} people={people} />) : <article className="card"><h2>No company access yet</h2><p className="muted">An authorised company owner can arrange your membership.</p></article>}</section>
   </main>;
 }

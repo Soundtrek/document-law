@@ -4,7 +4,7 @@ import { PageHero } from "./page-hero";
 import type { UserDirectoryDetail, UserDirectoryList, UserDirectoryView } from "../lib/governance-users";
 
 export const governanceNavigation = [
-  { href: "/governance", label: "Definitions" },
+  { href: "/governance/definitions", label: "Definitions" },
   { href: "/governance#roles", label: "Roles" },
   { href: "/governance/users", label: "Users" },
   { href: "/governance#audit", label: "Audit / Security" },

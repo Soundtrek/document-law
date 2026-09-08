@@ -983,3 +983,30 @@ focused validation only, no full suite and no main promotion.
   usable DEV, and experiment-only port 2022. Rackzar and billing remain outside
   this task. Exact candidate/runtime SHAs, acceptance and final RC baseline are
   recorded under `/srv/nuc-archive/juanity/validation/document-workflow-v1-rc-20260908/`.
+
+## 2026-09-08 — Record Definitions and Access Matrix V1
+
+Explicit request authorises implementation, normal push and deployment directly on
+`dev`; main promotion remains prohibited until Phil approves DEV. The governing
+product rule is DOCUMENT-SHARING-PRINCIPLES.md; full prompt is captured in prompts.
+
+- Extend the single definition/version model: nullable companyId denotes SYSTEM,
+  non-null denotes COMPANY. Preserve unique internal keys; add immutable display /
+  integration codes unique within company scope. System codes retain global keys.
+- Company administration uses existing `company.settings.manage`; functional role
+  access remains independent, including OWNER. Catalogue role IDs are validated
+  server-side and pinned as stable role codes, as the existing engine expects.
+- V1 has one allowed-role set for create/read; company creation accepts company
+  directions, Person creation only PERSON_TO_COMPANY. Legacy BIDIRECTIONAL stays
+  readable and usable by company operators; new policy forms offer three directions.
+- Always append policy versions; never edit historic policy. New records require
+  the latest active version and active definition. Deactivation affects selection,
+  not historical access. Version conflicts reject instead of overwriting changes.
+- Reuse classification enum (PUBLIC / INTERNAL / PERSONAL / SENSITIVE /
+  HIGHLY_SENSITIVE), month storage and NONE notifications. Forms accept months or
+  years. No legal retention/review period is invented by the starter pack.
+- Relationship-end retention pins its mode/months and relationship ID while the
+  end is unknown. The date calculator supports an eventual endedAt; no offboarding
+  workflow exists yet, so there is no background job or automatic destruction.
+- Starter pack is operator-installed once via the same validated, audited policy
+  writer used by authenticated forms. Later runs preserve Governance edits.

@@ -51,9 +51,9 @@ after(async () => {
   await db.$disconnect();
 });
 
-test("Person selector contains only active PERSON_TO_COMPANY; company selection unchanged", async () => {
+test("Person selector contains only active PERSON_TO_COMPANY; company selector excludes Person direction", async () => {
   assert.deepEqual((await allowedRelationshipDefinitions(db, id("person"), id("relationship"), "PERSON")).map(d => d.direction), ["PERSON_TO_COMPANY"]);
-  assert.equal((await allowedRelationshipDefinitions(db, id("hr"), id("relationship"))).length, 4);
+  assert.equal((await allowedRelationshipDefinitions(db, id("hr"), id("relationship"))).length, 3);
   assert.equal((await allowedRelationshipDefinitions(db, id("owner"), id("relationship"))).length, 0);
   for (const direction of ["COMPANY_TO_PERSON", "INTERNAL_COMPANY", "BIDIRECTIONAL"]) await assert.rejects(() => context("person", direction));
 });

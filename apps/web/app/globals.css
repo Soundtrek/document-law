@@ -365,3 +365,21 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .team-invite-composer { margin-top: 18px; display: grid; justify-items: start; gap: 16px; }
 .team-invite-composer form { width: 100%; max-width: 560px; padding: 22px; border: 1px solid var(--samma-border); border-radius: 16px; background: var(--samma-surface); }
 .team-invite-composer .notice { overflow-wrap: anywhere; }
+
+/* Document policy uses the existing card and table system. */
+.definition-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem; }
+.definition-cards h3 { margin: 0; overflow-wrap: anywhere; }
+.definition-code { overflow-wrap: anywhere; font-size: .85rem; color: var(--muted); }
+.definition-form { display: grid; gap: 1.25rem; }
+.definition-form fieldset { min-width: 0; border: 1px solid var(--border, #dce3ea); border-radius: 12px; padding: 1rem; }
+.definition-form legend { font-weight: 650; padding: 0 .4rem; }
+.definition-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.definition-form label { display: grid; gap: .4rem; font-size: .9rem; }
+.definition-form input:not([type=checkbox]), .definition-form select, .definition-form textarea { width: 100%; min-width: 0; padding: .7rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white; color: #17243a; font: inherit; }
+.definition-form textarea { min-height: 90px; resize: vertical; }
+.definition-form .definition-check { display: flex; align-items: center; gap: .55rem; padding: .5rem 0; }
+.definition-check input { width: 18px; height: 18px; flex-shrink: 0; }
+.definition-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: .5rem; }
+.definition-version { padding: 1rem 0; border-top: 1px solid #dce3ea; }
+.definition-version summary { cursor: pointer; font-weight: 600; }
+@media (max-width: 600px) { .definition-fields { grid-template-columns: 1fr; } }
