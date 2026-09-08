@@ -369,7 +369,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
 /* Document policy uses the existing card and table system. */
 .definition-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem; }
 .definition-cards h3 { margin: 0; overflow-wrap: anywhere; }
-.definition-code { overflow-wrap: anywhere; font-size: .85rem; color: var(--muted); }
+.definition-code { overflow-wrap: anywhere; font-size: .85rem; color: var(--samma-muted); }
 .definition-form { display: grid; gap: 1.25rem; }
 .definition-form fieldset { min-width: 0; border: 1px solid var(--border, #dce3ea); border-radius: 12px; padding: 1rem; }
 .definition-form legend { font-weight: 650; padding: 0 .4rem; }
@@ -383,3 +383,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .definition-version { padding: 1rem 0; border-top: 1px solid #dce3ea; }
 .definition-version summary { cursor: pointer; font-weight: 600; }
 @media (max-width: 600px) { .definition-fields { grid-template-columns: 1fr; } }
+
+.definition-matrix th, .definition-matrix td { white-space: nowrap; overflow-wrap: normal; }
+.definition-matrix th:first-child { min-width: 220px; max-width: 280px; white-space: normal; }
+.definition-matrix .record-meta { display: block; margin-top: .35rem; }

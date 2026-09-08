@@ -37,7 +37,7 @@ async function create(page, path, name, code, direction) {
   await page.goto(base + path + '/new');
   await page.getByLabel('Name', { exact: true }).fill(name); await page.getByLabel('Stable code', { exact: false }).fill(code);
   await page.getByLabel('Category', { exact: true }).fill('Synthetic acceptance');
-  await page.getByLabel('Direction', { exact: true }).selectOption(direction);
+  await page.getByLabel(/^Direction/).selectOption(direction);
   await page.getByLabel('Person visible', { exact: true }).check();
   await page.locator('.definition-roles label').filter({ hasText: /^HR\s+HR$/ }).locator('input').check();
   return save(page, 'Create definition');
@@ -59,7 +59,11 @@ async function create(page, path, name, code, direction) {
     await gov.page.goto(base + '/governance/definitions'); await screenshots(gov.page, 'governance-definitions');
     await gov.page.goto(base + '/governance/definitions?view=matrix'); await screenshots(gov.page, 'governance-matrix');
     const systemRow = gov.page.getByRole('row').filter({ hasText: 'Synthetic configured Person form ' + suffix });
-    assert.ok((await systemRow.innerText()).includes('Person → Company')); assert.ok((await systemRow.innerText()).includes('Yes'));
+    assert.ok((await systemRow.innerText()).includes('Person → Company'));
+    const headers = await gov.page.getByRole('columnheader').allTextContents();
+    const cells = await systemRow.locator('th, td').allTextContents();
+    assert.equal(cells[2], 'Yes');
+    for (let index = 3; index < headers.length; index++) assert.equal(cells[index], headers[index] === 'HR' ? 'Yes' : 'No');
     stage = 'Company definition create';
     const owner = await login(browser, 'owner'); const companyPath = `/company/${fixture.companyId}/document-settings`;
     const custom = await create(owner.page, companyPath, 'Safety Induction Form', 'SAFETY_INDUCTION_' + suffix, 'COMPANY_TO_PERSON');
