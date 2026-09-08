@@ -1,0 +1,671 @@
+SAMMA — PREPARE DOCUMENT WORKFLOW V1 FOR RC
+CLEANUP + VALIDATE + PROMOTE DEV → MAIN
+
+GOAL
+
+Prepare the currently accepted SAMMA DEV document workflow for RC release.
+
+This milestone includes:
+
+- Person onboarding
+- Company onboarding
+- Person ↔ Company employment relationships
+- Company Team & Access
+- functional roles
+- Add team member
+- Company → Person documents
+- Company-private HR documents
+- Person → Company documents
+- persistent Garage storage
+- role-controlled record access
+- Governance user directory
+
+Current environments:
+
+dev
+→ https://dev.samma.co.za
+
+main / current RC
+→ https://samma.co.za
+
+experiment
+→ 192.168.1.152:2022
+
+Future Rackzar remains OUT OF SCOPE.
+
+Do NOT work on billing/packages.
+
+==================================================
+PHASE 1 — SMALL UI CLEANUP
+==================================================
+
+Current company relationship page shows Add record twice:
+
+1. prominent Add record button in the relationship/person section
+2. second Add record button below the Records list
+
+Keep ONLY the prominent top Add record action.
+
+Remove the duplicate bottom button.
+
+Do NOT change:
+
+- Add record authorisation
+- relationship logic
+- record queries
+- storage
+- definitions
+- role checks
+
+Focused check:
+
+- authorised HR sees one Add record action
+- OWNER without HR sees none
+- records list unchanged
+- mobile/desktop layout clean
+
+Commit directly to dev.
+
+Suggested commit:
+
+chore: remove duplicate relationship add record action
+
+==================================================
+PHASE 2 — FREEZE DEV CANDIDATE
+==================================================
+
+After the cleanup:
+
+fetch origin
+
+Confirm:
+
+- dev working tree clean
+- local dev == origin/dev
+- main working tree clean
+- local main == origin/main
+- current deployed DEV SHA recorded
+- current deployed RC SHA recorded
+- no uncommitted experiment work contaminates dev
+- port 2022 remains experiment-only
+
+Record the exact final DEV candidate SHA.
+
+From this point:
+
+NO new features.
+
+==================================================
+PHASE 3 — FULL RC PROMOTION VALIDATION
+==================================================
+
+This is the correct place to run the comprehensive checks ONCE.
+
+Run:
+
+- npm ci
+- Prisma generate
+- Prisma validate
+- migration status
+- schema zero-diff
+- full automated test suite
+- typecheck
+- lint
+- production build
+- dependency audit gate
+
+Existing documented Prisma temporary exception may remain only if it still matches its exact approved advisory/version policy.
+
+If:
+
+- schema drift appears
+- migration mismatch appears
+- new high/critical dependency issue appears
+- unexpected test regression appears
+
+STOP.
+
+Do not create exceptions automatically.
+
+==================================================
+PHASE 4 — CORE ONBOARDING ACCEPTANCE
+==================================================
+
+Verify existing accepted evidence remains consistent.
+
+PERSON
+
+register
+→ verify
+→ Account
+→ AccountIdentity
+→ Person
+→ Personal Info Center
+
+COMPANY
+
+register
+→ verify
+→ Company setup
+→ CompanyMember
+→ OWNER
+→ Company Info Center
+
+Interrupted Company registration:
+
+Continue Company setup
+→ verified existing Keycloak identity
+→ onboarding resumes correctly
+
+Logout/account switching:
+
+Account A
+→ Sign out
+→ Account B login in same browser
+→ PASS
+
+No need to create unnecessary new users if current acceptance evidence plus targeted smoke is sufficient.
+
+==================================================
+PHASE 5 — EMPLOYMENT RELATIONSHIP ACCEPTANCE
+==================================================
+
+Confirm:
+
+Company
+→ Add person
+→ EmploymentInvitation
+→ recipient accepts
+→ ACTIVE PersonCompanyRelationship
+
+Critical:
+
+CompanyMember created: NO
+
+Company employment relationship and company operator membership remain separate.
+
+==================================================
+PHASE 6 — TEAM & ACCESS ACCEPTANCE
+==================================================
+
+Confirm:
+
+Company Owner
+→ Team & Access
+→ assign/revoke functional roles
+
+Last OWNER protection:
+PASS
+
+OWNER itself does NOT bypass document roles.
+
+Add team member:
+
+Owner
+→ invite company operator
+→ recipient accepts
+→ ACTIVE CompanyMember
+→ selected functional roles granted
+
+Critical:
+
+PersonCompanyRelationship created automatically: NO
+
+==================================================
+PHASE 7 — DOCUMENT ACCESS MATRIX ACCEPTANCE
+==================================================
+
+Verify the current role/definition model still enforces pinned RecordDefinition policy.
+
+OWNER:
+no blanket record bypass
+
+HR:
+access only where definition allows HR
+
+Other functional roles:
+remain definition-driven
+
+Do not hardcode role access during promotion.
+
+==================================================
+PHASE 8 — COMPANY → PERSON DOCUMENT
+==================================================
+
+Confirm accepted flow:
+
+Company HR
+→ Person relationship
+→ Add record
+→ COMPANY_TO_PERSON definition
+→ upload
+→ persistent Record + RecordFile
+→ Person Info Center shows record
+→ Person View/Download passes
+
+Existing accepted example:
+
+First shared doc
+
+Confirm:
+
+Person visible: YES
+
+==================================================
+PHASE 9 — COMPANY-PRIVATE DOCUMENT
+==================================================
+
+Confirm:
+
+Company HR
+→ INTERNAL_COMPANY record
+→ company HR sees/downloads
+
+Person:
+→ does NOT see it in My records
+→ direct access/download denied
+
+Existing accepted example:
+
+test pr note
+
+Confirm:
+
+Person visible: NO
+
+==================================================
+PHASE 10 — PERSON → COMPANY DOCUMENT
+==================================================
+
+Confirm accepted reverse flow:
+
+Person
+→ active Company relationship
+→ Share document
+→ PERSON_TO_COMPANY definition
+→ upload
+→ Person My records
+→ Company relationship Records
+→ authorised company HR sees/downloads
+
+Existing accepted example:
+
+test poa
+
+Confirm:
+
+- direction enforcement = PERSON_TO_COMPANY
+- Person upload uses existing Garage pipeline
+- Company HR access passes
+- OWNER-only access does not bypass HR rule
+
+==================================================
+PHASE 11 — STORAGE
+==================================================
+
+Confirm current storage:
+
+S3StorageProvider
+→ Garage
+→ private bucket
+→ opaque immutable object keys
+→ SHA-256
+→ RecordFile linkage
+
+Check representative accepted objects:
+
+- First shared doc
+- test pr note
+- test poa
+
+Verify:
+
+- object exists
+- metadata consistent
+- checksum valid
+
+Keep:
+
+NOT_SCANNED_DEV
+
+explicit.
+
+Do NOT introduce malware scanning during this release task.
+
+==================================================
+PHASE 12 — AUDIT
+==================================================
+
+Confirm existing audit coverage includes:
+
+- record creation
+- file replacement
+- view
+- download
+- denied record access
+- denied record upload
+- employment invitation actions
+- team invitation actions
+- role grant/revoke
+
+No raw tokens.
+No document content.
+No secrets.
+
+==================================================
+PHASE 13 — GOVERNANCE USERS
+==================================================
+
+Confirm filters:
+
+All
+Person
+Company user
+Governance
+
+Semantics:
+
+Person
+= Person with no ACTIVE CompanyMembership
+
+Company user
+= at least one ACTIVE CompanyMembership
+
+Governance
+= active Governance grant
+
+Governance may overlap.
+
+==================================================
+PHASE 14 — DATABASE
+==================================================
+
+Confirm all accepted migrations applied.
+
+Expected current schema includes:
+
+- EmploymentInvitation
+- CompanyTeamInvitation and any accepted invitation-role persistence
+- record/document schema
+- relationship schema
+
+Zero-diff must PASS.
+
+Do not clean test users/data as part of promotion.
+
+Do not copy data between branches.
+
+==================================================
+PHASE 15 — CURRENT NUC MAIL RULE
+==================================================
+
+Keep current NUC arrangement:
+
+Keycloak auth mail
+→ Mailpit
+
+SAMMA application invitation mail
+→ Mailpit
+
+Inbox:
+http://192.168.1.152:8025
+
+This applies to the current NUC DEV and RC surfaces.
+
+Do NOT restore real SMTP.
+
+Rackzar production/RC mail configuration is future work.
+
+==================================================
+PHASE 16 — MERGE DEV → MAIN
+==================================================
+
+Only after all promotion gates pass:
+
+merge:
+
+dev
+→ main
+
+Use normal fast-forward/merge according to current branch policy.
+
+Do NOT:
+
+- force push
+- rewrite history
+- cherry-pick individual features
+
+The complete integrated DEV candidate is the source.
+
+Push main.
+
+Record exact main SHA.
+
+==================================================
+PHASE 17 — BUILD RC
+==================================================
+
+Build exact main SHA.
+
+Build metadata:
+
+SAMMA_SHOW_BUILD_OVERLAY=true
+SAMMA_BUILD_CHANNEL=rc
+SAMMA_BUILD_BRANCH=main
+SAMMA_BUILD_SHA=<exact main SHA>
+
+Expected overlay:
+
+RC
+main
+<short SHA>
+
+==================================================
+PHASE 18 — DEPLOY CURRENT NUC RC
+==================================================
+
+Deploy exact main build to:
+
+https://samma.co.za
+
+Do NOT modify:
+
+https://dev.samma.co.za
+
+Do NOT modify:
+
+192.168.1.152:2022
+
+Do not reset:
+
+- PostgreSQL
+- Keycloak
+- Garage
+- Mailpit
+
+==================================================
+PHASE 19 — RC SMOKE
+==================================================
+
+Verify:
+
+https://samma.co.za
+→ 200
+
+/api/health
+→ 200
+
+/api/ready
+→ 200
+
+Overlay:
+
+RC / main / <short SHA>
+
+Smoke:
+
+- landing
+- sign in
+- Personal Info Center
+- Company Info Center
+- Team & Access
+- one employment relationship
+- one shared visible record
+- internal HR record remains hidden from Person
+- reverse-flow Person document visible to authorised HR
+- Governance route protection
+
+Do not create a new batch of users unless necessary.
+
+==================================================
+PHASE 20 — DEV SAFETY
+==================================================
+
+Confirm:
+
+https://dev.samma.co.za
+→ healthy
+
+Overlay:
+
+DEV / dev / <same promoted source SHA>
+
+DEV should remain usable after RC promotion.
+
+==================================================
+PHASE 21 — DATA RULE
+==================================================
+
+IMPORTANT:
+
+Git promotion copies NO users or documents.
+
+Current NUC DEV and RC temporarily share:
+
+- PostgreSQL data
+- Keycloak realm/users
+- Garage
+- Mailpit
+
+That is accepted until Rackzar deployment is created later.
+
+Do not:
+
+- duplicate accounts
+- delete test users
+- reset Keycloak
+- move files
+- duplicate Garage objects
+
+==================================================
+PHASE 22 — RC BASELINE DOCUMENT
+==================================================
+
+Record:
+
+SAMMA DOCUMENT WORKFLOW V1 RC
+
+Include:
+
+- source dev SHA
+- final main SHA
+- deployed RC SHA
+- migrations
+- full validation result
+- document-direction acceptance:
+  - Company → Person PASS
+  - Company-private PASS
+  - Person → Company PASS
+- Team & Access PASS
+- OWNER bypass NO
+- Garage status
+- Mailpit status
+- NOT_SCANNED_DEV warning
+- shared NUC environment caveat
+- Rackzar untouched
+
+No secrets.
+
+==================================================
+FINAL REPORT
+==================================================
+
+STATUS: PASS / BLOCKED
+
+CLEANUP
+- duplicate Add record removed
+
+DEV
+- source SHA
+- origin/dev
+- deployed SHA
+
+MAIN
+- previous SHA
+- promoted SHA
+- origin/main
+
+VALIDATION
+- full tests
+- Prisma
+- zero-diff
+- typecheck
+- lint
+- build
+- dependency audit
+
+ONBOARDING
+- Person
+- Company
+- resume
+- logout/account switching
+
+RELATIONSHIPS
+- employment invitation
+- ACTIVE relationship
+- no CompanyMember crossover
+
+TEAM & ACCESS
+- functional roles
+- last OWNER
+- team invitation
+- no employment crossover
+
+DOCUMENTS
+- Company → Person: PASS
+- Company-private: PASS
+- Person → Company: PASS
+- OWNER bypass: NO
+
+STORAGE
+- Garage
+- checksums
+- NOT_SCANNED_DEV
+
+AUDIT
+- creation/view/download/denial coverage
+
+MAIL
+- Mailpit unchanged
+
+RC
+- URL
+- deployed SHA
+- overlay
+- health
+- readiness
+
+DATA
+- users copied: NO
+- documents copied: NO
+- shared NUC data retained: YES
+
+RACKZAR
+- untouched: YES
+
+PORT 2022
+- experiment-only: YES
+
+FINAL LABEL
+
+SAMMA DOCUMENT WORKFLOW V1 RC

@@ -965,3 +965,21 @@ focused validation only, no full suite and no main promotion.
 - Use focused negative/security tests and synthetic HTTPS acceptance. Phil's
   named-account walkthrough and approval are explicitly distinct from synthetic
   browser results. Stop after DEV; no dev → main promotion.
+
+## 2026-09-08 — Document Workflow V1 RC preparation
+
+- The user accepts the integrated document workflow and authorises direct-dev
+  removal of the duplicate lower relationship Add record button, then a frozen
+  candidate, comprehensive RC validation once, normal dev → main promotion and
+  exact-main NUC RC deployment. Prompt:
+  `prompts/2026-09-08-document-workflow-v1-rc.txt`.
+- Keep the existing prominent top action and its server authority unchanged.
+  No record query, role, definition, relationship or storage policy changes.
+- Stop promotion on schema/migration mismatch, new unapproved high/critical
+  dependency findings or unexpected test regression. Retain only the exact
+  already-approved Prisma exception, applicable to synthetic NUC development.
+- Current NUC DEV/RC share PostgreSQL, Keycloak, Garage and Mailpit. Promotion
+  copies no users/documents. Keep explicit NOT_SCANNED_DEV, Mailpit mail routing,
+  usable DEV, and experiment-only port 2022. Rackzar and billing remain outside
+  this task. Exact candidate/runtime SHAs, acceptance and final RC baseline are
+  recorded under `/srv/nuc-archive/juanity/validation/document-workflow-v1-rc-20260908/`.

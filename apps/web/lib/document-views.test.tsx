@@ -6,6 +6,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createPrismaClient } from "@samma/database";
 import { RecordList } from "../components/record-list";
 import { RelationshipRecords } from "../components/relationship-records";
+import { CompanyPersonCard } from "../components/company-people";
+import { companyPersonDetail } from "./company-people";
 import { personRecords, relationshipRecords } from "./record-queries";
 import { allowedRelationshipDefinitions } from "./record-service";
 import { authoriseRecordAccess, canReadStoredRecord, isDownloadableFile } from "./record-access";
@@ -55,20 +57,22 @@ after(async () => {
   await db.$disconnect();
 });
 
-test("relationship empty state and Add record use current server-authorised definitions", async () => {
+test("relationship keeps one authorised top Add record action and no action below Records", async () => {
   for (const account of ["hr", "owner", "outsider"]) {
     const records = await relationshipRecords(db, id(account), id("empty"));
     const canAddRecord = (await allowedRelationshipDefinitions(db, id(account), id("empty"))).length > 0;
-    const html = renderToStaticMarkup(<RelationshipRecords records={records} relationshipId={id("empty")} canAddRecord={canAddRecord} />);
+    const relationship = await companyPersonDetail(db, id(account), id("empty"));
+    const html = renderToStaticMarkup(<>{relationship ? <CompanyPersonCard relationship={relationship} canAddRecord={canAddRecord} detail /> : null}<RelationshipRecords records={records} /></>);
     assert.ok(html.includes("No records yet."));
-    assert.equal(html.includes("Add record"), account === "hr");
+    assert.equal((html.match(/>Add record<\/a>/g) ?? []).length, account === "hr" ? 1 : 0);
+    assert.ok(!renderToStaticMarkup(<RelationshipRecords records={records} />).includes("Add record"));
   }
 });
 
 test("company list shows both permitted pinned records with visibility and existing actions", async () => {
   const records = await relationshipRecords(db, id("hr"), id("relationship"));
   assert.equal(records.length, 2);
-  const html = renderToStaticMarkup(<RelationshipRecords records={records} relationshipId={id("relationship")} canAddRecord />);
+  const html = renderToStaticMarkup(<RelationshipRecords records={records} />);
   for (const value of ["September Test Payslip", "Synthetic employee document", "Synthetic internal HR note", "Person visible: Yes", "Person visible: No", "ACTIVE", "Added", "Review due:"]) assert.ok(html.includes(value), value);
   assert.ok(html.includes(`/records/${id("visible")}`));
   assert.ok(html.includes(`/api/files/${id("file-hidden")}`));

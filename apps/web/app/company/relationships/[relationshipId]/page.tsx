@@ -18,7 +18,7 @@ export default async function CompanyPersonPage({ params }: { params: Promise<{ 
   return <main className="page-shell">
     <PageHero eyebrow="PEOPLE" title={companyPersonIdentity(relationship).name} description={relationship.company.name} />
     <CompanyPersonCard relationship={relationship} canAddRecord={definitions.length > 0} detail />
-    <RelationshipRecords records={records} relationshipId={relationship.id} canAddRecord={definitions.length > 0} />
+    <RelationshipRecords records={records} />
     <Link href="/company">Back to Company Info Center</Link>
   </main>;
 }
