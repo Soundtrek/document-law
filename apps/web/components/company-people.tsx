@@ -45,15 +45,15 @@ export function CompanyPeople({ companyId, companyName, roles, canAddPerson, can
         <p className="muted">Invite a person to connect with this company for employment records.</p>
       </div> : null}
     </header>
-    <nav className="actions" aria-label="Company workspace"><a className="button secondary" href={`#people-${companyId}`} aria-current="page">People</a>
-      {canAddPerson ? <Link className="button secondary" href={`/company/${encodeURIComponent(companyId)}/team`}>Team &amp; Access</Link> : null}
-      {canManageDocuments ? <Link className="button secondary" href={`/company/${encodeURIComponent(companyId)}/document-settings`}>Document Settings</Link> : null}
+    <nav className="context-nav company-workspace-nav" aria-label="Company workspace"><a href={`#people-${companyId}`} data-active="true" aria-current="page">People</a>
+      {canAddPerson ? <Link href={`/company/${encodeURIComponent(companyId)}/team`}>Team &amp; Access</Link> : null}
+      {canManageDocuments ? <Link href={`/company/${encodeURIComponent(companyId)}/document-settings`}>Document Settings</Link> : null}
     </nav>
     <section id={`people-${companyId}`} className="company-people-section" aria-label={`People at ${companyName}`}>
       <header className="company-people-heading"><h2>People</h2><p className="muted">People connected to this company through employment relationships.</p></header>
       {people.length ? <div className="company-people-list">
         {people.map(person => <CompanyPersonCard key={person.relationship.id} {...person} />)}
-      </div> : <div className="card company-people-empty"><p className="muted">No people connected yet.</p>
+      </div> : <div className="empty-state company-people-empty"><p className="muted">No people connected yet.</p>
         {canAddPerson ? <Link className="button secondary" href={addPersonHref}>Add person</Link> : null}
       </div>}
     </section>

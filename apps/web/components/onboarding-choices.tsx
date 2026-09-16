@@ -11,8 +11,8 @@ export function OnboardingChoices({ companyOnly = false }: { companyOnly?: boole
     {!companyOnly ? <p className="eyebrow">I&apos;m joining as</p> : null}
     <div className="onboarding-choices">
       {[
-        { value: "PERSON", label: "Person", description: "For individuals who want to receive and manage their employment records." },
-        { value: "COMPANY", label: "Company", description: "For organisations that want to manage employment records for their people." },
+        { value: "PERSON", label: "Person", description: "Access employment documents shared with you by a company." },
+        { value: "COMPANY", label: "Company", description: "Provide people with secure access to the employment documents that relate to them." },
       ].filter(choice => !companyOnly || choice.value === "COMPANY").map(choice => <form key={choice.value} onSubmit={event => {
         event.preventDefault(); setBusy(true); setError(false);
         void submitAuth(event.currentTarget, "signin/keycloak").catch(() => { setBusy(false); setError(true); });

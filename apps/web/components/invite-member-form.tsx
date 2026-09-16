@@ -15,18 +15,17 @@ export function InviteMemberForm({ roles }: { readonly roles: readonly Functiona
 
   return (
     <div className="stack">
-      <label className="stack">
-        <strong>1. Staff email</strong>
+      <label className="form-field">
+        <span className="form-label">1. Staff email</span>
         <input
           onChange={(event) => { setEmail(event.target.value); setSent(false); }}
           placeholder="staff@example.com"
-          style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
           type="email"
           value={email}
         />
       </label>
 
-      <fieldset className="stack" style={{ border: 0, padding: 0, margin: 0 }}>
+      <fieldset className="form-field form-fieldset">
         <legend><strong>2. Functional roles</strong></legend>
         <div className="actions">
           {roles.map((role) => (
@@ -39,7 +38,7 @@ export function InviteMemberForm({ roles }: { readonly roles: readonly Functiona
       </fieldset>
 
       <div className="row">
-        <span className="record-meta">One human account may hold several roles. Owner remains governance, not automatic HR/Payroll/Legal access.</span>
+        <span className="form-help">One human account may hold several roles. Owner remains governance, not automatic HR/Payroll/Legal access.</span>
         <button className="button" disabled={!email || selectedRoles.length === 0} onClick={() => setSent(true)} type="button">3. Send invite</button>
       </div>
 

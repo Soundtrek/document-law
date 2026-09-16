@@ -12,7 +12,7 @@ export interface RecordListItem extends RecordProjection {
 export function RecordList({ records, emptyText = "No records available.", showPersonVisibility = false }: {
   readonly records: readonly RecordListItem[]; readonly emptyText?: string; readonly showPersonVisibility?: boolean;
 }) {
-  if (records.length === 0) return <p className="muted">{emptyText}</p>;
+  if (records.length === 0) return <p className="empty-state muted">{emptyText}</p>;
 
   return (
     <div className="stack">
@@ -27,8 +27,8 @@ export function RecordList({ records, emptyText = "No records available.", showP
             {record.reviewDueAt ? <span className="record-meta">Review due: {formatDate(record.reviewDueAt)}</span> : null}
             {showPersonVisibility ? <span className="record-meta">Person visible: {definition.personVisible ? "Yes" : "No"}</span> : null}
           </div>
-          <div className="actions">
-            <span className="pill">{record.status.replaceAll("_", " ")}</span>
+          <div className="actions record-row-actions">
+            <span className="pill" data-status={record.status}>{record.status.replaceAll("_", " ")}</span>
             {reviewDue ? <span className="pill warning">Review due</span> : null}
             <Link className="button secondary" href={`/records/${record.id}`}>View</Link>
             {downloadFileId ? <Link className="button secondary" href={`/api/files/${downloadFileId}`}>Download</Link> : null}

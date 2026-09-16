@@ -26,7 +26,7 @@ export function CompanyTeamMember({ member, roles, companyId, csrf }: {
   return <article className="card company-person-card company-team-card" aria-label={member.name}>
     <header className="company-person-identity"><span className="company-person-avatar" aria-hidden="true">{Array.from(member.name)[0]?.toUpperCase()}</span>
       <div><h3>{member.name}</h3><p className="muted">{member.email}</p></div></header>
-    <div className="actions company-person-meta"><span className="pill">{member.status}</span></div>
+    <div className="actions company-person-meta"><span className="pill" data-status={member.status}>{member.status}</span></div>
     <div className="actions company-person-meta" aria-label="Functional roles">{member.roles.length ? member.roles.map(role => <span key={role.id} className="pill info" title={role.label}>{role.code}</span>) : <p className="muted">No functional roles assigned.</p>}</div>
     {member.status === "ACTIVE" ? editing ? <form className="stack team-access-form" onSubmit={save}>
       <fieldset disabled={saving}><legend>Functional roles</legend>{roles.map(role => <label key={role.id} className="team-role-option">

@@ -11,33 +11,30 @@ export function GrantLegalAccessForm({ definitions }: { readonly definitions: re
 
   return (
     <div className="stack">
-      <label className="stack">
-        <strong>1. Legal professional email</strong>
+      <label className="form-field">
+        <span className="form-label">1. Legal professional email</span>
         <input
           onChange={(event) => { setEmail(event.target.value); setSent(false); }}
           placeholder="lawyer@example.com"
-          style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
           type="email"
           value={email}
         />
       </label>
 
       <div className="grid">
-        <label className="stack">
-          <strong>2. Record scope</strong>
+        <label className="form-field">
+          <span className="form-label">2. Record scope</span>
           <select
             onChange={(event) => { setDefinitionId(event.target.value); setSent(false); }}
-            style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
             value={definitionId}
           >
             {definitions.map((definition) => <option key={definition.id} value={definition.definitionId}>{definition.name}</option>)}
           </select>
         </label>
-        <label className="stack">
-          <strong>Expiry</strong>
+        <label className="form-field">
+          <span className="form-label">Expiry</span>
           <select
             onChange={(event) => { setDays(event.target.value); setSent(false); }}
-            style={{ minHeight: 44, border: "1px solid var(--samma-border-strong)", borderRadius: "var(--samma-radius-control)", padding: "0 12px", background: "var(--samma-surface)" }}
             value={days}
           >
             <option value="7">7 days</option>
@@ -48,7 +45,7 @@ export function GrantLegalAccessForm({ definitions }: { readonly definitions: re
       </div>
 
       <div className="row">
-        <span className="record-meta">Default: view-only, one employment relationship, explicit definition scope, automatic expiry.</span>
+        <span className="form-help">Default: view-only, one employment relationship, explicit definition scope, automatic expiry.</span>
         <button className="button" disabled={!email || !definitionId} onClick={() => setSent(true)} type="button">3. Send access</button>
       </div>
 

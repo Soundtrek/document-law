@@ -14,9 +14,9 @@ export async function submitAuth(form: HTMLFormElement, action: "signin/keycloak
 
 export function LogoutButton() {
   const [error, setError] = useState(false);
-  return <form onSubmit={event => { event.preventDefault(); void submitAuth(event.currentTarget, "signout").catch(() => setError(true)); }}>
+  return <form className="header-signout" onSubmit={event => { event.preventDefault(); void submitAuth(event.currentTarget, "signout").catch(() => setError(true)); }}>
     <input type="hidden" name="callbackUrl" value="/auth/logout" />
-    <button className="button secondary" type="submit">Sign out</button>
+    <button className="button tertiary" type="submit">Sign out</button>
     {error ? <span role="alert">Sign out unavailable. Please try again.</span> : null}
   </form>;
 }

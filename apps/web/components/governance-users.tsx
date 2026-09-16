@@ -31,7 +31,7 @@ export function GovernanceUsers({ result }: { result: UserDirectoryList }) {
     <section className="card">
       <form action="/governance/users" method="get" className="directory-search">
         {result.view !== "all" ? <input type="hidden" name="view" value={result.view} /> : null}
-        <div className="landing-field"><label htmlFor="user-search">Search users</label><input id="user-search" type="search" name="q" maxLength={200} defaultValue={result.query} placeholder="Name or email address" /></div>
+        <div className="form-field"><label className="form-label" htmlFor="user-search">Search users</label><input id="user-search" type="search" name="q" maxLength={200} defaultValue={result.query} placeholder="Name or email address" /></div>
         <button className="button" type="submit">Search</button>
         {result.query ? <Link className="button secondary" href={directoryLink("", result.view)}>Clear</Link> : null}
       </form>

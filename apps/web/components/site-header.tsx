@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "./auth-controls";
+import { SiteNavLink } from "./site-nav-link";
 import { navigationAccess } from "../lib/access";
 
 export async function SiteHeader() {
@@ -7,11 +8,11 @@ export async function SiteHeader() {
   return <header className="site-header" data-public={!signedIn}><div className="site-header-inner">
     <Link className="brand" href="/" aria-label="SAMMA home"><strong>SAMMA</strong><span>Employment Records &amp; Document Management</span></Link>
     {signedIn ? <nav aria-label="SAMMA navigation" className="top-nav">
-      {companySetup ? <Link href="/onboarding/company">Complete company setup</Link> : <Link href="/person">Personal Info Center</Link>}
-      {company ? <Link href="/company">Company Info Center</Link> : null}
-      {legal ? <Link href="/legal-access">Legal Access</Link> : null}
-      {governance ? <Link href={governanceHref}>Governance</Link> : null}
+      {companySetup ? <SiteNavLink href="/onboarding/company">Complete company setup</SiteNavLink> : <SiteNavLink href="/person">Personal Info Center</SiteNavLink>}
+      {company ? <SiteNavLink href="/company">Company Info Center</SiteNavLink> : null}
+      {legal ? <SiteNavLink href="/legal-access">Legal Access</SiteNavLink> : null}
+      {governance ? <SiteNavLink href={governanceHref}>Governance</SiteNavLink> : null}
       <LogoutButton />
-    </nav> : null}
+    </nav> : <nav aria-label="Public navigation" className="top-nav public-nav"><SiteNavLink href="/sign-in">Sign in</SiteNavLink></nav>}
   </div></header>;
 }

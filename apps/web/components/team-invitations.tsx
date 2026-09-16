@@ -30,10 +30,10 @@ export function AddTeamMember({ companyId, roles, csrf }: { companyId: string; r
       } catch (error) { setError(error instanceof Error ? error.message : "Invitation unavailable."); }
       finally { setBusy(false); }
     }}>
-      <div className="landing-field"><label htmlFor="team-invite-email">Email address</label><input id="team-invite-email" name="email" type="email" autoComplete="email" required maxLength={254} disabled={busy} /></div>
+      <div className="form-field"><label className="form-label" htmlFor="team-invite-email">Email address</label><input id="team-invite-email" name="email" type="email" autoComplete="email" required maxLength={254} disabled={busy} /></div>
       <fieldset disabled={busy}><legend>Initial roles</legend>{roles.map(role => <label key={role.id} className="team-role-option"><input type="checkbox" name="roleIds" value={role.id} /><span><strong>{role.code}</strong><span className="muted">{role.label}</span></span></label>)}</fieldset>
       <div className="actions"><button className="button" type="submit" disabled={busy}>{busy ? "Sending…" : "Send invite"}</button><button className="button secondary" type="button" disabled={busy} onClick={() => setOpen(false)}>Cancel</button></div>
-      {error ? <p role="alert" className="landing-error">{error}</p> : null}
+      {error ? <p role="alert" className="form-error">{error}</p> : null}
     </form> : null}{message ? <p role="status" className="notice">{message}</p> : null}</div>;
 }
 export function TeamInvitationList({ invitations, csrf, company = false }: { invitations: Invitation[]; csrf: string; company?: boolean }) {
@@ -51,10 +51,10 @@ export function TeamInvitationList({ invitations, csrf, company = false }: { inv
   return <div>{invitations.filter(invitation => !resolved.includes(invitation.id)).map(invitation => <article key={invitation.id} className="employment-invitation">
     <h3>{company ? invitation.invitedEmail : invitation.company.name}</h3>
     {!company ? <p>Invites you to join its SAMMA team.</p> : null}
-    <p>Roles: {invitation.initialRoles.map(row => row.functionalRole.code).join(", ") || "No functional roles assigned"}</p><span className="pill">PENDING</span>
+    <p>Roles: {invitation.initialRoles.map(row => row.functionalRole.code).join(", ") || "No functional roles assigned"}</p><span className="pill warning" data-status="PENDING">PENDING</span>
     <p className="muted">Expires <time dateTime={invitation.expiresAt}>{new Date(invitation.expiresAt).toLocaleString("en-ZA", { timeZone: "Africa/Johannesburg", dateStyle: "medium", timeStyle: "short" })} SAST</time></p>
-    <div className="employment-actions">{company ? <button className="button secondary" disabled={busy !== null} onClick={() => void act(invitation.id, "revoke")}>Revoke</button> : <>
+    <div className="employment-actions">{company ? <button className="button danger" disabled={busy !== null} onClick={() => void act(invitation.id, "revoke")}>Revoke</button> : <>
       <button className="button" disabled={busy !== null} onClick={() => void act(invitation.id, "accept")}>{busy === invitation.id ? "Updating…" : "Accept"}</button>
-      <button className="button secondary" disabled={busy !== null} onClick={() => void act(invitation.id, "decline")}>Decline</button></>}</div>
-  </article>)}{message ? <p role="status">{message}</p> : null}{error ? <p role="alert" className="landing-error">{error}</p> : null}</div>;
+      <button className="button danger" disabled={busy !== null} onClick={() => void act(invitation.id, "decline")}>Decline</button></>}</div>
+  </article>)}{message ? <p role="status" className="form-success">{message}</p> : null}{error ? <p role="alert" className="form-error">{error}</p> : null}</div>;
 }

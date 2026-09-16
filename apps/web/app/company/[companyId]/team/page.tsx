@@ -19,7 +19,7 @@ export default async function CompanyTeamPage({ params }: { params: Promise<{ co
   const invitations = await companyTeamInvitations(db, { sessionToken: session.sessionToken, issuer: settings.issuer }, companyId);
   const csrf = teamCsrf(settings.secret, session.sessionToken);
   return <main className="page-shell"><PageHero eyebrow="COMPANY" title={team.company.name} description={team.viewerRoles.join(", ")} />
-    <nav className="actions" aria-label="Company workspace"><Link className="button secondary" href={`/company#company-${encodeURIComponent(companyId)}`}>People</Link><Link className="button" href={`/company/${encodeURIComponent(companyId)}/team`} aria-current="page">Team &amp; Access</Link></nav>
+    <nav className="context-nav company-workspace-nav" aria-label="Company workspace"><Link href={`/company#company-${encodeURIComponent(companyId)}`}>People</Link><Link href={`/company/${encodeURIComponent(companyId)}/team`} data-active="true" aria-current="page">Team &amp; Access</Link></nav>
     <section className="company-people-section"><header className="company-people-heading"><h2>Team &amp; Access</h2><p className="muted">Company operators and their functional roles. Company Owner manages access; record access requires the relevant functional role.</p><AddTeamMember companyId={companyId} roles={team.roles} csrf={csrf} /></header>
       <div className="company-people-list">{team.members.map(member => <CompanyTeamMember key={member.id} member={member} roles={team.roles} companyId={companyId} csrf={teamCsrf(settings.secret, session.sessionToken)} />)}</div>
     </section>

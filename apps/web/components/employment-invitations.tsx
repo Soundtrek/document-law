@@ -17,17 +17,17 @@ export function AddPersonForm({ companyId, csrf }: { companyId: string; csrf: st
   const router = useRouter();
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [result, setResult] = useState<{ created: boolean; mailDelivered: boolean } | null>(null);
-  return <><form className="landing-form" onSubmit={async event => {
+  return <><form className="form" onSubmit={async event => {
     event.preventDefault(); const form = event.currentTarget; const email = new FormData(form).get("email");
     setBusy(true); setError(""); setResult(null);
     try { setResult(await post(csrf, { action: "send", companyId, email })); form.reset(); router.refresh(); }
     catch (error) { setError(error instanceof Error ? error.message : "Invitation unavailable."); }
     finally { setBusy(false); }
   }}>
-    <div className="landing-field"><label htmlFor="invite-email">Email address</label><input id="invite-email" name="email" type="email" autoComplete="email" required maxLength={254} disabled={busy} /></div>
-    <button className="landing-submit" type="submit" disabled={busy}>{busy ? "Sending…" : "Send invite"}</button>
-    {error ? <p role="alert" className="landing-error">{error}</p> : null}
-  </form>{result ? <div role="status"><h2>{result.created ? result.mailDelivered ? "Invitation sent" : "Invitation created" : "Invitation already pending"}</h2><p>Pending acceptance</p>
+    <div className="form-field"><label className="form-label" htmlFor="invite-email">Email address</label><input id="invite-email" name="email" type="email" autoComplete="email" required maxLength={254} disabled={busy} /></div>
+    <button className="button" type="submit" disabled={busy}>{busy ? "Sending…" : "Send invite"}</button>
+    {error ? <p role="alert" className="form-error">{error}</p> : null}
+  </form>{result ? <div className="form-success notice success" role="status"><h2>{result.created ? result.mailDelivered ? "Invitation sent" : "Invitation created" : "Invitation already pending"}</h2><p>Pending acceptance</p>
     {result.created && !result.mailDelivered ? <p>Email could not be delivered. The invitation is available in the person’s inbox. To send a new email, revoke it below and invite again.</p> : null}</div> : null}</>;
 }
 export function EmploymentInvitationList({ invitations, csrf, company = false }: { invitations: Invitation[]; csrf: string; company?: boolean }) {
@@ -46,8 +46,8 @@ export function EmploymentInvitationList({ invitations, csrf, company = false }:
     <h3>{company ? invitation.invitedEmail : invitation.company.name}</h3>
     {!company ? <p>{invitation.invitedEmail}</p> : <p className="muted">Pending acceptance</p>}
     <p className="muted">Expires <time dateTime={invitation.expiresAt}>{new Date(invitation.expiresAt).toLocaleString("en-ZA", { timeZone: "Africa/Johannesburg", dateStyle: "medium", timeStyle: "short" })} SAST</time></p>
-    <div className="employment-actions">{company ? <button className="button secondary" disabled={busy !== null} onClick={() => void act(invitation.id, "revoke")}>Revoke</button> : <>
+    <div className="employment-actions">{company ? <button className="button danger" disabled={busy !== null} onClick={() => void act(invitation.id, "revoke")}>Revoke</button> : <>
       <button className="button" disabled={busy !== null} onClick={() => void act(invitation.id, "accept")}>{busy === invitation.id ? "Updating…" : "Accept"}</button>
-      <button className="button secondary" disabled={busy !== null} onClick={() => void act(invitation.id, "decline")}>Decline</button></>}</div>
-  </div>)}{message ? <p role="status">{message}</p> : null}{error ? <p role="alert" className="landing-error">{error}</p> : null}</div>;
+      <button className="button danger" disabled={busy !== null} onClick={() => void act(invitation.id, "decline")}>Decline</button></>}</div>
+  </div>)}{message ? <p role="status" className="form-success">{message}</p> : null}{error ? <p role="alert" className="form-error">{error}</p> : null}</div>;
 }

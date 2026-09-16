@@ -9,7 +9,7 @@ type Props = DefinitionCatalogue & { base: string; companyId: string | null; csr
 const roleCodes = (value: unknown): string[] => Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 export function DefinitionsHero({ company, base, matrix = false }: Pick<Props, "company" | "base"> & { matrix?: boolean }) {
   return <><PageHero eyebrow={company ? "COMPANY" : "SAMMA GOVERNANCE"} title={company ? "Document Settings" : "Record Definitions"} description={company ? `${company.name} · Manage document types and personnel access.` : "Configure document policy and view access across functional roles."} nav={company ? [{ href: "/company", label: "Company Info Center" }] : governanceNavigation} />
-    <nav className="context-nav" aria-label="Document policy views"><Link href={base} data-active={!matrix}>Definitions</Link><Link href={`${base}?view=matrix`} data-active={matrix}>Access Matrix</Link></nav></>;
+    <nav className="context-nav" aria-label="Document policy views"><Link href={base} data-active={!matrix} aria-current={!matrix ? "page" : undefined}>Definitions</Link><Link href={`${base}?view=matrix`} data-active={matrix} aria-current={matrix ? "page" : undefined}>Access Matrix</Link></nav></>;
 }
 function DefinitionCards({ definitions, base, companyId }: Pick<Props, "definitions" | "base" | "companyId">) {
   return <div className="definition-cards">{definitions.map(d => {

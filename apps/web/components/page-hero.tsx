@@ -28,7 +28,7 @@ export function PageHero({
       {nav.length > 0 ? (
         <nav aria-label={`${title} sections`} className="context-nav">
           {nav.map((item) => (
-            <Link data-active={item.active ? "true" : "false"} href={item.href} key={item.href}>
+            <Link data-active={item.active ? "true" : "false"} aria-current={item.active ? "page" : undefined} href={item.href} key={item.href}>
               {item.label}
             </Link>
           ))}
