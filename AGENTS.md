@@ -2,6 +2,12 @@
 
 This file governs AI-assisted work in this repository.
 
+## 0. Mandatory session-start guard
+
+**Before any coding, migration, deployment, database change or infrastructure change, read `docs/CODEX-SESSION-START.md`.**
+
+That file is a hard session-start guard. In particular, it defines the current `experiment/* → dev → main` runtime mapping, protects DEV `samma_dev` metadata/database isolation, and forbids treating code promotion as data/catalogue promotion. If the branch, runtime or database target is ambiguous, stop before writing.
+
 ## 1. Product boundary
 
 SAMMA is an employment records and document management system. Do not couple it to another product runtime, schema, authentication system, database or package model.
