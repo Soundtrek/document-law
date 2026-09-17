@@ -1018,3 +1018,34 @@ product rule is DOCUMENT-SHARING-PRINCIPLES.md; full prompt is captured in promp
   identity/provider configuration changes. RC remains on juanity_law. New DEV
   metadata changes do not propagate to RC. This is development environment
   isolation, not production database/object-storage/backup architecture.
+
+## 2026-09-17 — Frontend audit top-three remediation
+
+- On experiment branch `experiment/frontend-audit-top3`, remove the proven-unused
+  synthetic Legal Access and team invitation components. Keep the four legacy
+  authenticated 404 routes because existing browser validation explicitly covers
+  them as negative/compatibility routes; do not invent a new Legal Access flow.
+- Make only `/` use a lightweight public header. A request-path marker supplied
+  by the Next proxy selects the public presentation path; protected routes retain
+  the existing server-side `navigationAccess()` authority and all route guards.
+- Preserve only a validated email login hint in the existing encrypted,
+  short-lived authentication flow cookie and return it to `/sign-in` on callback
+  failure. Passwords, tokens, codes, PKCE state and provider errors remain
+  excluded. No Keycloak, schema, migration, storage or production change.
+- Prompt: `prompts/2026-09-17-frontend-audit-top3.txt`.
+
+## 2026-09-17 — DEV Keycloak login branding
+
+- Prepare a small `keycloak.v2` child theme at
+  `infrastructure/auth/themes/samma/login`, mounted read-only from the host at
+  `/opt/keycloak/themes`. Keep Keycloak templates, form semantics, flows and
+  authentication logic authoritative; no JavaScript or schema change.
+- Keep realm `samma` loginTheme unset and preserve `samma-web` unchanged. The
+  separate `samma-dev-web` client is restricted to the DEV callback, origin and
+  post-logout destination, uses its own confidential secret and has client
+  login theme `samma`.
+- The operator provisioning script writes a secret-free private backup before
+  applying changes and updates only `/etc/samma-dev/dev-web.env`. Live changes
+  are allowed only from the integrated `dev` branch; this experiment branch is
+  repository preparation and must not be deployed to the DEV hostname.
+- Prompt: `prompts/2026-09-17-keycloak-dev-branding.txt`.

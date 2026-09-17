@@ -24,6 +24,11 @@ test("flow is encrypted, authenticated, purpose-bound and expires", () => {
   for (const attribute of ["Path=/", "Secure", "HttpOnly", "SameSite=Lax", "Max-Age=900"]) assert.ok(serialized.includes(attribute));
   assert.ok(onboardingCookie("__Host-test", "", 0).includes("Max-Age=0"));
 });
+test("authentication flow can preserve only a validated login hint", () => {
+  const flow = newFlow(undefined, "provider-state", "person@example.test"), secret = "unit-test-secret";
+  assert.deepEqual(readOnboarding(sealOnboarding(flow, secret), secret, "authentication"), flow);
+  assert.equal(readOnboarding(sealOnboarding({ ...flow, loginHint: "not-an-email" }, secret), secret, "authentication"), null);
+});
 test("company name is the only required business input", () => {
   assert.equal(companyName("  Synthetic Company  "), "Synthetic Company");
   for (const value of [null, "", "   ", "x".repeat(161), "Test\nCompany"]) assert.throws(() => companyName(value));

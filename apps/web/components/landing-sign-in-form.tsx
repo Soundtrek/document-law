@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 const emailPattern = String.raw`[^\s@]+@[^\s@]+\.[^\s@]+`;
 const emailError = "Enter a valid email address, such as name@example.com.";
 
-export function LandingSignInForm() {
+export function LandingSignInForm({ loginHint = "" }: { loginHint?: string | undefined }) {
   const [error, setError] = useState("");
 
   function continueWithEmail(event: FormEvent<HTMLFormElement>) {
@@ -36,6 +36,7 @@ export function LandingSignInForm() {
           autoCapitalize="none"
           spellCheck={false}
           placeholder="name@example.com"
+          defaultValue={loginHint}
           required
           pattern={emailPattern}
           onInvalid={(event) => {

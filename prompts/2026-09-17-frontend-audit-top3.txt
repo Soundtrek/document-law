@@ -1,0 +1,14 @@
+# SAMMA frontend audit remediation — top three findings
+
+Inspect and, where current repository behavior proves the intended workflow,
+remediate the synthetic Legal Access/invitation UI, unnecessary authenticated
+database work from the public landing header, and loss of sign-in email after a
+redirect-based authentication failure. Keep the existing product, security,
+storage, database and runtime boundaries. Do not deploy, migrate, or modify
+production. Work on an isolated experiment branch from the current baseline.
+
+Accepted decisions: remove only the two proven-unused synthetic components;
+retain the four authenticated 404 legacy routes because browser validation
+explicitly covers them; make `/` use a lightweight public header while keeping
+protected-route navigationAccess authority unchanged; preserve only a validated
+email login hint in the existing sealed, short-lived auth flow state.

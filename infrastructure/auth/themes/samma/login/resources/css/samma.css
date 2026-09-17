@@ -1,0 +1,117 @@
+:root {
+  --samma-background: #f4f7f5;
+  --samma-surface: #ffffff;
+  --samma-soft-surface: #eef4f1;
+  --samma-border: #d7e1dc;
+  --samma-strong-border: #bfcfc7;
+  --samma-text: #18231f;
+  --samma-muted: #65736c;
+  --samma-primary: #32695f;
+  --samma-primary-hover: #204d46;
+  --samma-primary-soft: #dcece7;
+}
+
+html,
+body {
+  background: var(--samma-background);
+  color: var(--samma-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.pf-v5-c-login {
+  background: var(--samma-background);
+}
+
+#kc-header,
+#kc-header-wrapper {
+  color: var(--samma-primary);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+#kc-header-wrapper {
+  padding: 2rem 0 1rem;
+}
+
+.pf-v5-c-login__container {
+  max-width: 29rem;
+}
+
+.pf-v5-c-login__main {
+  background: var(--samma-surface);
+  border: 1px solid var(--samma-border);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgb(24 35 31 / 8%);
+}
+
+.pf-v5-c-login__main-header {
+  color: var(--samma-text);
+}
+
+.pf-v5-c-login__main-header p,
+.pf-v5-c-login__main-footer-band,
+.pf-v5-c-login__main-footer-band a,
+.pf-v5-c-form__helper-text {
+  color: var(--samma-muted);
+}
+
+.pf-v5-c-form-control {
+  min-height: 2.75rem;
+  border: 1px solid var(--samma-strong-border);
+  border-radius: 9px;
+  color: var(--samma-text);
+  background: var(--samma-surface);
+  box-shadow: none;
+}
+
+.pf-v5-c-form-control:focus {
+  border-color: var(--samma-primary);
+  box-shadow: 0 0 0 3px var(--samma-primary-soft);
+}
+
+.pf-v5-c-button.pf-m-primary,
+input[type="submit"].pf-v5-c-button.pf-m-primary {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 9px;
+  background: var(--samma-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus {
+  background: var(--samma-primary-hover);
+}
+
+a {
+  color: var(--samma-primary);
+}
+
+a:hover,
+a:focus {
+  color: var(--samma-primary-hover);
+}
+
+.pf-v5-c-alert {
+  border-radius: 9px;
+}
+
+.pf-v5-c-login__main-footer-band {
+  background: var(--samma-soft-surface);
+  border-radius: 0 0 16px 16px;
+}
+
+@media (max-width: 480px) {
+  .pf-v5-c-login__main {
+    border-radius: 12px;
+  }
+
+  #kc-header-wrapper {
+    padding-top: 1rem;
+  }
+}

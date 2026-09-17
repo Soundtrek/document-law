@@ -118,6 +118,26 @@ origin. Browsers do not send DEV cookies to RC. The shared provider may retain
 its normal SSO behavior; the shared synthetic database is not an independent
 security boundary against manually copied bearer tokens.
 
+## DEV-only Keycloak branding
+
+The repository contains a small inherited theme at
+`infrastructure/auth/themes/samma/login`. The Keycloak compose service mounts
+the host directory
+`/opt/Juanita-Labour-Law/infrastructure/auth/themes` read-only at
+`/opt/keycloak/themes`; the source therefore survives normal container
+recreation. The theme does not copy bundled templates, add JavaScript or change
+authentication flows.
+
+After the accepted change is integrated onto `dev`, run the operator-only
+`infrastructure/auth/keycloak-dev-client.py` from that checkout. It verifies the
+shared realm and production client preconditions, captures a 0600 private
+representation backup, creates/updates `samma-dev-web`, assigns client login
+theme `samma`, and updates only `/etc/samma-dev/dev-web.env`. It never prints the
+client secret. Restart only Keycloak to load the mounted theme, then recreate
+only `samma-dev-web` if the runtime environment requires it. Do not run this
+procedure from `experiment/*`, and do not deploy the experiment runtime to the
+DEV hostname.
+
 Back up Caddy's on-disk and loaded config plus the Keycloak client representation
 in a private operator directory before modifying either. Confirm Caddy disk and
 loaded configuration agree. Install `samma-dev.caddy` in the existing include

@@ -4,7 +4,7 @@ export type OnboardingChoice = "PERSON" | "COMPANY";
 export const flowCookieName = "__Host-samma.onboarding-flow";
 export const setupCookieName = "__Host-samma.company-setup";
 export const onboardingLifetime = 15 * 60;
-type FlowState = { purpose: "authentication"; choice: OnboardingChoice; oauthState: string; nonce: string; expires: number };
+type FlowState = { purpose: "authentication"; choice?: OnboardingChoice; loginHint?: string; oauthState: string; nonce: string; expires: number };
 export type CompanySetupState = { purpose: "company"; accountId: string; identityId: string; nonce: string; expires: number };
 type State = FlowState | CompanySetupState;
 
@@ -33,15 +33,16 @@ export function readOnboarding<P extends State["purpose"]>(value: string | undef
         state.expires > now + onboardingLifetime * 1000 || typeof state.nonce !== "string" ||
         !/^[0-9a-f-]{36}$/.test(state.nonce)) return null;
     if (purpose === "authentication") {
-      onboardingChoice(state.choice);
+      if (state.choice !== undefined) onboardingChoice(state.choice);
       if (typeof state.oauthState !== "string" || !state.oauthState) return null;
+      if (state.loginHint !== undefined && (typeof state.loginHint !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.loginHint))) return null;
     } else if (typeof state.accountId !== "string" || !state.accountId || typeof state.identityId !== "string" || !state.identityId) return null;
     return state;
   } catch { return null; }
 }
 
-export function newFlow(choice: OnboardingChoice, oauthState: string): FlowState {
-  return { purpose: "authentication", choice: onboardingChoice(choice), oauthState, nonce: randomUUID(), expires: Date.now() + onboardingLifetime * 1000 };
+export function newFlow(choice: OnboardingChoice | undefined, oauthState: string, loginHint?: string): FlowState {
+  return { purpose: "authentication", ...(choice ? { choice: onboardingChoice(choice) } : {}), ...(loginHint ? { loginHint } : {}), oauthState, nonce: randomUUID(), expires: Date.now() + onboardingLifetime * 1000 };
 }
 export function newCompanySetup(accountId: string, identityId: string, nonce: string, now = Date.now()): CompanySetupState {
   // Registration has its own deadline. Give authenticated workspace setup its

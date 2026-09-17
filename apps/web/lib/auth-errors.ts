@@ -15,3 +15,10 @@ export function authErrorMessage(code: unknown): string {
     ? authMessages[code as AuthFailure]
     : "Sign-in could not be completed. Try again. If a verification or recovery link has expired, request a new one through secure sign-in.";
 }
+
+export function authenticationFailureUrl(baseUrl: string, failure?: AuthFailure, loginHint?: string): string {
+  const target = new URL("/sign-in", baseUrl);
+  if (failure) target.searchParams.set("error", failure);
+  if (loginHint && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginHint)) target.searchParams.set("login_hint", loginHint);
+  return target.href;
+}

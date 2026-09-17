@@ -1,0 +1,13 @@
+# Accepted implementation prompt — DEV Keycloak branding
+
+Implement a SAMMA-branded inherited Keycloak login only for the DEV runtime.
+Keep realm `samma` loginTheme unset, preserve production client `samma-web`
+and its existing callbacks/origins/secret, create `samma-dev-web` with only
+`https://dev.samma.co.za` destinations, and configure only DEV application
+OIDC settings. Mount a small `keycloak.v2` child theme read-only at
+`/opt/keycloak/themes`. Do not change authentication logic, schema, database,
+production runtime, or production appearance.
+
+Accepted boundary: repository work may be prepared on an experiment branch,
+but live DEV Keycloak/client changes require the integrated `dev` branch and
+must not be applied from an experiment checkout.

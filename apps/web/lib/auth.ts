@@ -5,7 +5,7 @@ import { safeAuthenticationRedirect, verifiedOidcClaims } from "@samma/identity"
 import { db } from "./database";
 import { sammaAdapter, resolveDatabaseSession, type LoginContext, type LogoutContext } from "./auth-adapter";
 import { providerLogoutUrl } from "./auth-logout";
-import { AuthEntryError, type AuthFailure } from "./auth-errors";
+import { AuthEntryError, authenticationFailureUrl, type AuthFailure } from "./auth-errors";
 import { resolveOnboardingIdentity } from "./onboarding-service";
 import { flowCookieName, setupCookieName, newFlow, newCompanySetup, companySetupMatches, onboardingChoice, onboardingCookie, readOnboarding, requestCookie, sealOnboarding, type OnboardingChoice } from "./onboarding-state";
 
@@ -121,8 +121,8 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       const authorization = location ? new URL(location, settings.baseUrl) : null;
       // Keep pending setup until success, expiry or explicit sign-out. An
       // ordinary sign-in must not silently discard the Company journey.
-      if (choice && authorization?.origin === new URL(settings.issuer).origin && authorization.searchParams.get("state")) {
-        response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, sealOnboarding(newFlow(choice, authorization.searchParams.get("state")!), settings.secret)));
+      if (authorization?.origin === new URL(settings.issuer).origin && authorization.searchParams.get("state")) {
+        response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, sealOnboarding(newFlow(choice, authorization.searchParams.get("state")!, loginHint || undefined), settings.secret)));
       } else response.headers.append("Set-Cookie", onboardingCookie(flowCookieName, "", 0));
     }
     if (action === "callback/keycloak") {
@@ -144,7 +144,7 @@ export async function handleAuthentication(request: Request): Promise<Response> 
       }
     }
     if (action === "callback/keycloak" && response.headers.get("location")?.includes("error=")) {
-      if (failure) response.headers.set("Location", new URL(`/sign-in?error=${failure}`, settings.baseUrl).href);
+      response.headers.set("Location", authenticationFailureUrl(settings.baseUrl, failure, verifiedFlow?.loginHint));
       await db.activityEvent.create({ data: { type: "AUTH_LOGIN_DENIED", summary: "OIDC login denied" } });
     }
     // Only Auth.js's successful CSRF-validated POST reaches this fixed callback.
