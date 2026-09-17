@@ -1,158 +1,129 @@
-# Code We Can Build Before a Dedicated Law VM
+# SAMMA Hosting Before Dedicated VMs
 
-## Objective
+## Current decision
 
-Build as much of SAMMA as possible from the GitHub repository before a dedicated Law VM is required, while preserving production-grade boundaries.
+Until the client approves a different hosting/VM arrangement, the NUC is the approved temporary host for both SAMMA production and development.
 
-The Document Knowledge Engine V1 architecture is approved. The current goal is implementation, not another architecture hold.
+This supersedes the earlier assumption in this document that the NUC was development-only.
 
-## Repository-first build
-
-The following can be built and validated without any persistent SAMMA runtime host:
-
-- Next.js + React + TypeScript application shell;
-- strict TypeScript/lint/test/CI setup;
-- stable `Account` + `AccountIdentity` identity model;
-- Person, Company, CompanyMember and functional-role model;
-- PersonCompanyRelationship and offboarding model;
-- Governance capabilities and `/governance` shell;
-- RecordDefinition + immutable RecordDefinitionVersion;
-- Record + RecordFile metadata model;
-- retention/review calculation;
-- LegalAccessGrant;
-- permission/policy services;
-- Person and Company Info Center projections;
-- synthetic fixtures/seeds;
-- storage, scan, mail, payment and identity adapter interfaces;
-- focused positive/negative security tests;
-- future social-login and Moodle integration seams.
-
-## Storage before real S3
-
-Before persistent object storage is provisioned, use a provider-neutral `StorageProvider` contract with an in-memory or explicitly development-only adapter.
-
-Domain code must not depend on:
-
-- local absolute filesystem paths;
-- provider-specific S3 URLs;
-- a public bucket;
-- the application VM's filesystem as the production document store.
-
-The production target remains private, separate S3-compatible object storage.
-
-## Optional NUC development runtime
-
-The existing NUC may now be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom.
-
-This is an optional convenience, not an architectural dependency.
-
-### Start small
-
-Prefer this sequence:
+Current runtime:
 
 ```text
-Stage A
-law-web
-+
-PostgreSQL
-
-Stage B — only if resources remain healthy
-+ S3-compatible development storage
-
-Stage C — only when needed and resources permit
-+ Redis/BullMQ
-+ worker
-+ ClamAV
+NUC
+├── production
+│   ├── https://samma.co.za
+│   ├── branch: main
+│   └── PostgreSQL: juanity_law
+│
+└── development
+    ├── https://dev.samma.co.za
+    ├── branch: dev
+    └── PostgreSQL: samma_dev
 ```
 
-Do not start every planned container merely because it exists in the architecture.
+The NUC decision is deliberately small and temporary. Do not add infrastructure merely to imitate a future production topology.
 
-### Resource gate
+## Repository-first remains mandatory
 
-Before adding SAMMA services to the NUC, inspect at minimum:
+The application must remain reproducible from Git and private runtime configuration. Do not make SAMMA dependent on hand-tuned NUC state.
 
-- free disk space and filesystem utilisation;
-- available RAM and swap pressure;
-- current Docker/container memory footprint;
-- CPU/load baseline;
-- current database/storage usage;
-- whether existing production/dev projects are already close to limits.
+Keep infrastructure behind adapters and configuration boundaries:
 
-If SAMMA materially destabilises existing workloads, stop the NUC runtime experiment and continue repository-first until the dedicated Law VM is available.
+- PostgreSQL for metadata, knowledge, access, retention and audit;
+- private S3-compatible object storage for document binaries;
+- OIDC/Keycloak behind the identity boundary;
+- mail behind the mail adapter;
+- future external services behind explicit integration boundaries.
 
-### NUC boundaries
+## Production and development separation
 
-Even if development runs successfully on the NUC:
+Even on one physical NUC, production and development are distinct runtime contexts.
 
-- it is **not** the SAMMA production host;
-- it is **not** the sole backup destination;
-- it is **not** the production object-storage architecture;
-- real client/employee sensitive data must not be loaded into it for development;
-- synthetic data only until the production security/compliance environment is approved;
-- deployments must remain reproducible from Git and configuration rather than hand-tuned to the NUC.
-
-## What can be real on the temporary NUC dev runtime
-
-If resources permit, we may use:
-
-- PostgreSQL for schema/migration/integration validation;
-- the actual Next.js application;
-- synthetic seeded companies/people/relationships;
-- development email capture rather than real sensitive email;
-- development object storage once space permits;
-- focused permission/role/relationship integration tests.
-
-A temporary SQLite substitution is not preferred where it would hide PostgreSQL-specific migration or constraint behaviour.
-
-## Stop line before production-style integration
-
-A dedicated Law development VM remains the preferred environment before declaring these behaviours production-like/integrated:
-
-- real OIDC account recovery and enforced MFA;
-- public internet-facing invitations;
-- real outbound transactional email;
-- persistent separate S3-compatible storage architecture;
-- real quarantine and malware scanning;
-- production-style signed object access;
-- payment sandbox/public webhooks;
-- production-like TLS/domain configuration;
-- automated backup/replication and restore drills;
-- production-like secret management;
-- infrastructure monitoring;
-- production retention execution/destruction;
-- Moodle integration;
-- production social/federated login providers.
-
-## Pre-VM / temporary-NUC implementation milestone
-
-A strong milestone is:
+Production database:
 
 ```text
-Stable Account + email identity
-  ↓
-Company + multi-role members
-  ↓
-Person ↔ Company relationship
-  ↓
-Governance-defined record definition/version
-  ↓
-Company adds synthetic record to employee profile
-  ↓
-RecordFile metadata + opaque storage key + checksum
-  ↓
-Person sees record in Info Center
-  ↓
-Authorised company role sees record
-  ↓
-Unauthorised role is denied
-  ↓
-Legal grant remains scoped
-  ↓
-Retention/review dates + audit events generated
+juanity_law
 ```
 
-If this works cleanly, most of the application domain has been proven before the dedicated Law VM.
+Development database:
+
+```text
+samma_dev
+```
+
+Never point DEV at `juanity_law` to make tests pass. Never copy DEV metadata, users, companies, records or definitions into production as an implicit effect of code promotion.
+
+Production and development currently share some infrastructure. In particular, Keycloak is currently a shared service/realm, and document storage currently uses shared Garage configuration. These are known temporary limitations, not proof of full environment isolation.
+
+## Object storage direction
+
+The NUC should not become the long-term document-binary store.
+
+The intended direction is separate external S3-compatible storage for production and development, with private buckets/credentials and SAMMA authorisation remaining authoritative before object access.
+
+Until that migration is completed:
+
+- do not delete existing Garage objects as part of unrelated work;
+- do not treat the shared Garage bucket as a fully isolated production storage design;
+- do not create a second application storage implementation;
+- continue using the provider-neutral storage adapter.
+
+## Keep the NUC boring
+
+Current production/development hosting should remain intentionally small:
+
+- web application;
+- PostgreSQL;
+- Keycloak;
+- existing reverse proxy/runtime plumbing;
+- only the supporting services actually required.
+
+Do not introduce Kubernetes, microservices, extra orchestration layers, extra preview tiers or duplicate databases merely because they might be useful later.
+
+Temporary experiment/preview runtimes may be created for a specific task and removed when no longer needed.
+
+## Resource gate
+
+Because production and development share one physical host, resource awareness still matters. Before adding a material service, inspect only the relevant capacity:
+
+- disk headroom;
+- RAM/swap pressure;
+- CPU/load;
+- persistent database/storage growth;
+- impact on the other SAMMA runtime.
+
+Do not repeat broad resource audits for ordinary code/UI changes.
+
+## Sensitive data boundary
+
+Development uses synthetic/test data. Do not copy real production employee/client documents or production metadata into DEV for convenience.
+
+Production may contain real data under the approved runtime, but the current NUC arrangement is temporary pending the client infrastructure decision. Backup, storage separation and eventual host migration remain explicit infrastructure work rather than assumptions hidden inside feature development.
+
+## Session validation
+
+Follow `docs/CODEX-SESSION-METHODOLOGY.md`.
+
+Validate the session, not every code block:
+
+```text
+session start baseline
+→ focused implementation checks
+→ session-close validation once
+→ promotion/deployment gate when required
+```
+
+Use stronger checks immediately only when the session crosses a high-risk boundary such as schema/migrations, permissions, authentication, storage migration, destructive data work, secrets or production infrastructure.
+
+## Future VM/hosting change
+
+When the client decides on dedicated VMs or another provider:
+
+1. define the new production/development topology;
+2. update the runtime/branch documentation first;
+3. migrate with explicit database/storage/identity rollback boundaries;
+4. do not assume the old Rackzar proposal or any historical target is still the chosen destination.
 
 ## Guiding rule
 
-**Use the NUC if it helps us move faster, but never let SAMMA become dependent on it.**
+**Use the NUC as the current production + development host, keep it boring, preserve environment boundaries, and be ready to move when the client hosting decision is made.**
