@@ -4,7 +4,16 @@ import { Readable } from "node:stream";
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
 import { S3StorageProvider, type S3Settings } from "./s3";
 import { collect, createRecordObjectKey, createStorageProvider, sha256, storageSettings } from "./index";
+import { validatedS3Settings } from "./config";
 const settings: S3Settings = { endpoint: "http://storage.test:3900", region: "garage", bucket: "synthetic-bucket", accessKeyId: "synthetic", secretAccessKey: "synthetic", forcePathStyle: true, timeoutMs: 1000 };
+
+test("Governance S3 settings require an approved custom endpoint", () => {
+  const input = { ...settings };
+  assert.equal(validatedS3Settings(input, { development: true, allowedHosts: ["storage.test"] }).endpoint, "http://storage.test:3900/");
+  assert.throws(() => validatedS3Settings(input, { development: true, allowedHosts: [] }), /not approved/);
+  assert.throws(() => validatedS3Settings(input, { development: false, allowedHosts: ["storage.test"] }), /Invalid S3 endpoint/);
+  assert.throws(() => validatedS3Settings({ ...input, endpoint: "https://user:secret@storage.test" }, { development: false, allowedHosts: ["storage.test"] }));
+});
 function harness() {
   const objects = new Map<string, { bytes: Uint8Array; Metadata: Record<string, string>; ContentType: string }>();
   let unavailable = false, corrupt = false;

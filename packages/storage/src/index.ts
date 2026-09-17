@@ -88,5 +88,6 @@ export class InMemoryStorageProvider implements StorageProvider {
     object.metadata = { ...object.metadata, state }; return object.metadata;
   }
 }
-export { S3StorageProvider } from "./s3";
-export { storageSettings, createStorageProvider } from "./config";
+export { S3StorageProvider, type S3Settings } from "./s3";
+export { storageSettings, createStorageProvider, validatedS3Settings, type S3ConfigurationInput } from "./config";
+export { decryptStorageCredentials, encryptStorageCredentials, storageConfigurationFingerprint, storageLocation, storageLocationChangeBlocked } from "./config-crypto";

@@ -9,7 +9,7 @@ export async function GET() {
     pending ??= (async () => {
       const results = await Promise.allSettled([
         db.$transaction(async tx => { await tx.$executeRaw`SET LOCAL statement_timeout = '3000ms'`; await tx.$queryRaw`SELECT 1`; }, { maxWait: 3000, timeout: 4000 }),
-        Promise.resolve().then(() => getStorage().ready()),
+        Promise.resolve().then(async () => (await getStorage()).ready()),
       ]);
       cached = { at: Date.now(), database: results[0].status === "fulfilled", storage: results[1].status === "fulfilled" };
     })().finally(() => { pending = undefined; });

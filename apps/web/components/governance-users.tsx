@@ -7,6 +7,7 @@ export const governanceNavigation = [
   { href: "/governance/definitions", label: "Definitions" },
   { href: "/governance#roles", label: "Roles" },
   { href: "/governance/users", label: "Users" },
+  { href: "/governance/storage", label: "Storage" },
   { href: "/governance#audit", label: "Audit / Security" },
 ];
 const usersNavigation = governanceNavigation.map(item => ({ ...item, active: item.label === "Users" }));

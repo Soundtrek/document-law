@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   inFlight++;
   let staged: Awaited<ReturnType<typeof stageUpload>> | undefined;
   try {
-    const storage = getStorage(), directory = process.env.SAMMA_UPLOAD_STAGING_DIR;
+    const storage = await getStorage(), directory = process.env.SAMMA_UPLOAD_STAGING_DIR;
     if (!directory) throw new Error("Staging is not configured");
     staged = await stageUpload(request, directory, uploadLimit());
     // Do not commit after logout/revocation while consuming the upload.

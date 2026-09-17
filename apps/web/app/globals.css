@@ -539,6 +539,8 @@ button:disabled { cursor: default; opacity: 0.65; }
 .governance-definition { display: grid; gap: 4px; }
 .governance-definition .record-meta { color: var(--samma-muted); }
 .governance-activity > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
+.storage-draft { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.storage-draft p { margin: 4px 0 0; }
 
 .employment-invitation { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--samma-border); border-radius: var(--radius-input); background: var(--samma-surface); overflow-wrap: anywhere; }
 .employment-invitation + .employment-invitation { margin-top: var(--space-3); }

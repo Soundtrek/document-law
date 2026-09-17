@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
   }
   if (!await authoriseRecordAccess(db, session.accountId, file.record, "download")) return new Response(null, { status: 404 });
   try {
-    const storage = getStorage(), metadata = await storage.metadata(file.storageKey);
+    const storage = await getStorage(), metadata = await storage.metadata(file.storageKey);
     if (!metadata || metadata.state !== "ACCEPTED" || metadata.checksumSha256 !== file.checksumSha256 || metadata.sizeBytes !== file.sizeBytes || metadata.contentType !== file.contentType) throw new Error("Object mismatch");
     await db.activityEvent.create({ data: { type: "RECORD_FILE_DOWNLOAD", actorAccountId: session.accountId, recordId: file.recordId,
       companyId: file.record.companyId, personId: file.record.personId, relationshipId: file.record.relationshipId, summary: "Authorised private file download requested." } });

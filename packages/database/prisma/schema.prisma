@@ -96,6 +96,12 @@ enum ActionStatus {
   EXPIRED
 }
 
+enum StorageConfigurationStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
 model Account {
   id                  String                         @id @default(cuid())
   primaryEmail        String                         @unique
@@ -117,6 +123,8 @@ model Account {
   governanceGrants    GovernanceCapabilityGrant[]
   requestsAssigned    ActionRequest[]                @relation("RequestAssignee")
   requestsCreated     ActionRequest[]                @relation("RequestCreator")
+  storageConfigurationsCreated   StorageConfiguration[] @relation("StorageConfigurationCreator")
+  storageConfigurationsActivated StorageConfiguration[] @relation("StorageConfigurationActivator")
 }
 
 model AccountIdentity {
@@ -392,6 +400,30 @@ model ActivityEvent {
   @@index([personId, occurredAt])
   @@index([relationshipId, occurredAt])
   @@index([recordId, occurredAt])
+}
+
+model StorageConfiguration {
+  id                   String                     @id
+  label                String
+  provider             String                     @default("S3")
+  endpoint             String?
+  region               String
+  bucket               String
+  forcePathStyle       Boolean
+  requestTimeoutMs     Int                        @default(10000)
+  encryptedCredentials String
+  status               StorageConfigurationStatus @default(DRAFT)
+  lastTestFingerprint  String?
+  lastTestedAt         DateTime?
+  activatedAt          DateTime?
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  createdByAccountId   String
+  activatedByAccountId String?
+  createdBy            Account                    @relation("StorageConfigurationCreator", fields: [createdByAccountId], references: [id], onDelete: Restrict)
+  activatedBy          Account?                   @relation("StorageConfigurationActivator", fields: [activatedByAccountId], references: [id], onDelete: Restrict)
+
+  @@index([status, updatedAt])
 }
 
 model Product {

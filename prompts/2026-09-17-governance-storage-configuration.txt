@@ -1,0 +1,16 @@
+User request
+
+Issue 9 will it solve our storage issue that we have
+
+lets start with issue 9 nuc only for now
+
+Accepted implementation boundary
+
+- Implement GitHub Issue #9 on an isolated experiment branch from current `dev`.
+- Target only the NUC development application at `dev.samma.co.za` and database `samma_dev`.
+- Do not change `main`, `samma.co.za`, `juanity_law`, Caddy, Keycloak, production configuration or existing Garage objects.
+- Add a restricted Governance surface using the existing `platform.system.configure` capability.
+- Support encrypted-at-rest S3-compatible configuration drafts, operator-approved endpoint hosts, safe connection/object-operation testing, non-secret status display and audited activation.
+- Keep the existing environment-backed Garage configuration as the active fallback until a tested draft is explicitly activated.
+- Do not migrate, copy, delete or relabel objects. Block a physical endpoint/bucket/region/path-style change while any `RecordFile` rows exist; that requires a separate migration/reconciliation operation.
+- Apply and validate the new schema only against DEV before any deployment. Production remains untouched.

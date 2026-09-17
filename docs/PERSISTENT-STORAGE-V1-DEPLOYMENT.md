@@ -31,6 +31,32 @@ capture it directly into an operator-only file and parse there. Web gets only
 read/write on its bucket, no owner/create-bucket rights. Do not change bucket
 configuration without migrating existing keys and database linkage.
 
+### Governance storage configuration (Issue #9)
+
+The application may retain tested S3-compatible configuration drafts in
+PostgreSQL. `/governance/storage` requires `platform.system.configure` and the
+normal Governance MFA policy. Add these operator-owned values to the existing
+0600 `/etc/samma-dev/storage.env` before applying migration `0008` or starting
+the feature:
+
+```text
+SAMMA_S3_ALLOWED_HOSTS=juanity-storage
+SAMMA_STORAGE_CONFIG_ENCRYPTION_KEY=<base64 encoding of exactly 32 random bytes>
+```
+
+Generate the encryption key through approved operator tooling and never print it
+into deployment evidence, shell history, Git, logs or audit. Back it up with the
+other protected recovery configuration; losing it makes database-managed
+storage credentials unreadable and readiness fails closed.
+
+The existing environment-backed Garage settings remain active when there is no
+database row with status `ACTIVE`. Saving/testing a draft does not switch the
+provider. The connection test creates and removes one opaque synthetic probe
+object. Activation requires that exact test to have passed within 15 minutes.
+A physical endpoint/bucket/region/path-style change is blocked while any
+`RecordFile` rows exist. Do not bypass this guard: file migration, inventory,
+checksum reconciliation, cutover and rollback are separate high-risk work.
+
 ## Mount guard and startup
 
 The USB must be mounted at `/srv/nuc-archive`, UUID
