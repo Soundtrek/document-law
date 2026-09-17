@@ -55,7 +55,7 @@ services:
     command: ["start"]
     volumes:
       - ../auth/password-blacklists:/opt/keycloak/data/password-blacklists:ro
-      - ../auth/themes:/opt/keycloak/themes:ro
+      - ../auth/themes/samma:/opt/keycloak/themes/samma:ro
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
