@@ -4,9 +4,9 @@ This file governs AI-assisted work in this repository.
 
 ## 0. Mandatory session-start guard
 
-**Before any coding, migration, deployment, database change or infrastructure change, read `docs/CODEX-SESSION-START.md`.**
+**At the start of a coding session, read `docs/CODEX-SESSION-START.md` and `docs/CODEX-SESSION-METHODOLOGY.md`.**
 
-That file is a hard session-start guard. In particular, it defines the current `experiment/* → dev → main` runtime mapping, protects DEV `samma_dev` metadata/database isolation, and forbids treating code promotion as data/catalogue promotion. If the branch, runtime or database target is ambiguous, stop before writing.
+Establish the branch/runtime/database/scope baseline once. During the session use focused checks proportional to the change. Run broad validation once at session close or a genuine promotion/release gate. Do not restart full preflight and broad validation for every prompt or code block unless the risk boundary materially changes.
 
 ## 1. Product boundary
 
@@ -20,17 +20,15 @@ External projects may be used only as design learning unless an explicit extract
 Person  ↔  PersonCompanyRelationship  ↔  Company
 ```
 
-- People have independent accounts and are expected to use the core person experience for free.
-- Companies are the primary paid tenants/workspaces.
+- People have independent accounts.
+- Companies are the primary tenant/workspace context.
 - The relationship is the controlled bridge for employment context, requests, records/documents and audit.
-- Ending a relationship must not delete or transfer the person's account.
-- A generic legal `Matter` is not a mandatory v1 root entity.
+- Ending a relationship must not delete or transfer the Person account.
+- A generic legal `Matter` is not a mandatory V1 root entity.
 
 Do not silently revert to a matter-first architecture.
 
-## 3. Approved Document Knowledge Engine V1
-
-Use:
+## 3. Document Knowledge Engine V1
 
 ```text
 RecordDefinitionVersion
@@ -51,33 +49,30 @@ Rules:
 - record types are Governance-configured and versioned;
 - historic records do not silently inherit changed policy;
 - retention and review/renewal are separate;
-- company users only see records authorised for context/functional roles;
+- company users see only records authorised for context/functional roles;
 - company access never exposes unrelated private-person records;
-- binaries live in private object storage, not PostgreSQL by default;
-- upload acceptance includes quarantine/validation/malware-scan/checksum when real storage is integrated.
+- binaries live in private object storage, not PostgreSQL by default.
 
 See `docs/DOCUMENT-KNOWLEDGE-ENGINE-V1.md`.
 
 ## 4. Storage architecture
-
-Production storage is split:
 
 ```text
 PostgreSQL = knowledge/metadata/access/retention/audit
 S3-compatible object storage = file binaries
 ```
 
-Mandatory rules:
+Mandatory direction:
 
 - object storage is private;
-- production object storage is separate from the application-host failure domain;
 - no permanent public document URLs;
 - SAMMA authorisation occurs before object access;
 - object keys are opaque and contain no person/company/document naming data;
-- real uploads remain untrusted until accepted through quarantine/validation/malware-scan/checksum;
 - primary object storage is not a backup;
 - S3 lifecycle rules do not replace SAMMA retention policy;
-- domain code uses a provider-neutral storage adapter and never depends on local paths or provider URLs.
+- domain code uses the provider-neutral storage adapter.
+
+Current NUC Garage storage is a known temporary arrangement and currently has imperfect prod/dev separation. The intended direction is separate external S3-compatible production and development storage. Do not perform that migration as an unrelated side effect.
 
 See `docs/STORAGE-ARCHITECTURE.md`.
 
@@ -93,29 +88,27 @@ Company membership is separate from functional access. One member may hold sever
 
 Working role concepts include OWNER, HR, PAYROLL, CLERK/records, LEGAL, MANAGER and BILLING.
 
-`OWNER` may manage company membership/roles and assign roles to self, but is not an automatic universal sensitive-record reader.
+`OWNER` may manage company membership/roles but is not an automatic universal sensitive-record reader.
 
 ## 7. External legal access
 
 Lawyers/legal professionals use explicit scoped grants rather than becoming company members by default. Grants are relationship-scoped, revocable, time-bound and auditable.
 
-## 8. Identity: email-first, stable internal account
+## 8. Identity
 
 Email is the primary human-facing login/contact, but never the permanent database identity.
 
-Use stable Account IDs and provider-linked identities behind an OIDC-compatible boundary. Future Google/Microsoft/Apple-style identities attach to the existing Account. Never silently merge accounts solely because provider emails match.
+Use stable Account IDs and provider-linked identities behind an OIDC-compatible boundary. Future external identities attach to the existing Account. Never silently merge accounts solely because provider emails match.
 
 ## 9. Governance, not `/admin`
 
-Do not create a generic `/admin` route. SAMMA-only privileged control is **Governance**, initially `/governance`.
+Do not create a generic `/admin` route. SAMMA privileged control is **Governance**.
 
-Governance requests require verified authentication, Governance capability, MFA in production, deny-by-default server authorisation and audit.
+Governance requests require verified authentication, Governance capability, deny-by-default server authorisation and audit; production security requirements remain explicit policy.
 
-## 10. Future Moodle / learning boundary
+## 10. Future learning boundary
 
-Moodle/company training is a future integration, not V1 runtime. SAMMA remains authoritative for account/company/relationship/access; Moodle owns courses/progress/assessment. Certificates imported into SAMMA use the normal Record/RecordFile path.
-
-See `docs/FUTURE-LEARNING-AND-FEDERATED-IDENTITY.md`.
+Moodle/company training is a future integration, not V1 runtime. SAMMA remains authoritative for account/company/relationship/access; the learning system owns courses/progress/assessment. Certificates imported into SAMMA use the normal Record/RecordFile path.
 
 ## 11. Build style
 
@@ -125,12 +118,11 @@ Prefer a modular monolith first.
 - Keep domain logic out of React components.
 - Keep infrastructure behind adapters.
 - Keep identity, storage, payments, email and future LMS integrations behind explicit boundaries.
-- Treat permissions, role grants, definitions, legal grants, classification and audit/activity as first-class capabilities.
 - Do not introduce microservices, Kubernetes, Elasticsearch or event streaming without demonstrated need.
 
 ## 12. No hard-coded business values
 
-Product-controlled values belong in Governance/configuration data where practical. Security invariants remain code/policy enforced.
+Product-controlled values belong in Governance/configuration where practical. Security invariants remain code/policy enforced.
 
 ## 13. Security and privacy invariants
 
@@ -138,7 +130,7 @@ Never bypass company/tenant, relationship, legal-grant or resource authorisation
 
 Do not trust client-provided company, relationship, role, definition, classification, entitlement or Governance fields.
 
-Use synthetic data only in development. Do not place real employee/client sensitive data in source, fixtures, screenshots or tests. Avoid sensitive content in logs.
+Use synthetic data in development. Do not copy real production employee/client sensitive data into DEV fixtures, screenshots or tests. Avoid sensitive content in logs.
 
 ## 14. Person independence and offboarding
 
@@ -150,33 +142,45 @@ Company-member removal separately revokes company capabilities while preserving 
 
 Frequent routine actions should normally be reachable within three deliberate clicks/taps and about ten seconds, excluding meaningful typing, upload time, legal reading or justified security steps.
 
-Use contextual actions and smart Governance defaults rather than removing controls.
+## 16. Current hosting/runtime
 
-## 16. Development environment
-
-Build repository-first. The NUC may be used as a **temporary development/integration host** if a resource check shows adequate disk, RAM and CPU headroom.
-
-Start small:
+Until the client approves different VMs/hosting, the NUC is the approved temporary host for BOTH production and development.
 
 ```text
-law-web + PostgreSQL
+PRODUCTION
+https://samma.co.za
+branch: main
+database: juanity_law
+
+DEVELOPMENT
+https://dev.samma.co.za
+branch: dev
+database: samma_dev
 ```
 
-Only add S3-compatible dev storage, Redis/BullMQ, worker and ClamAV when required and when resources permit.
+This supersedes the older development-only NUC assumption.
 
-The NUC is not the production host, not the sole backup destination and not the production object-storage architecture. Synthetic data only. If SAMMA destabilises existing workloads, stop the NUC runtime experiment and continue repository-first or move to the dedicated Law VM.
+Keep the NUC boring. Do not add staging tiers, orchestration layers or duplicate infrastructure without a demonstrated need.
 
-See `docs/CODE-BEFORE-VM.md`.
+Production and development currently share some infrastructure, including Keycloak and the current Garage storage configuration. Treat those as explicit shared risk boundaries until separated.
+
+The NUC must not become the permanent object-storage architecture or sole backup destination. The future VM/provider is undecided pending the client decision; do not assume Rackzar or another historical proposal is still selected.
+
+See `docs/CODE-BEFORE-VM.md` and `docs/BRANCH-WORKFLOW.md`.
 
 ## 17. Validation discipline
 
-Use focused validation proportional to the change. Security-sensitive work requires negative tests.
+Follow `docs/CODEX-SESSION-METHODOLOGY.md`.
 
-At minimum verify tenant/person isolation, role revocation, definition-version integrity, Legal Access scope, Governance isolation, stable Account identity and storage-key/access isolation.
+Default rule: **validate the session, not every code block.** Establish the baseline once, use focused checks proportional to each change, and run broad validation once at session close or a real promotion/release gate.
 
-## 18. Approval gates that remain
+High-risk changes—schema/migrations, destructive data, auth/permissions, storage migration, secrets, production infrastructure or major refactors—require deeper validation of the affected boundary. Do not sweep unrelated systems merely because checks exist.
 
-Do not silently expand scope around production identity configuration, social providers, Moodle, payment production wiring, legal retention/destruction values, encryption/key management, production hosting region/provider, privacy/legal wording, e-signature/redaction/OCR or major framework replacement.
+Security-sensitive work requires relevant negative tests when that boundary is touched.
+
+## 18. Approval gates
+
+Do not silently expand scope around production identity configuration, social providers, Moodle, payment production wiring, legal retention/destruction values, encryption/key management, production hosting/provider, privacy/legal wording, e-signature/redaction/OCR or major framework replacement.
 
 ## 19. Prompt and decision capture
 
@@ -184,12 +188,18 @@ Significant implementation prompts and accepted decisions must be captured in `p
 
 ## 20. Branch workflow
 
-Follow `experiment/* → dev → main`. Start isolated work on
-`experiment/<short-name>` from current `dev`; validate before merging to `dev`.
-The NUC normally runs `dev`, where integration, visual and functional approval
-happens. Never develop directly on `main`: it is the stable, deployable RC branch
-and receives only approved, validated `dev` promotions. Prefer normal merges /
-fast-forwards; do not force-push `main` during normal workflow. Failed experiments
-may be abandoned; preserve useful history in archive branches.
+Follow:
 
-See `docs/BRANCH-WORKFLOW.md` for the policy and workflow.
+```text
+experiment/* → dev → main
+```
+
+- start isolated work from current `dev` when an experiment branch is useful;
+- integrate accepted work into `dev`;
+- validate/approve on `dev.samma.co.za`;
+- promote only accepted `dev` state to `main`;
+- `main` currently serves production at `samma.co.za`;
+- never develop directly on `main`;
+- prefer normal merges/fast-forwards and do not force-push shared history.
+
+See `docs/BRANCH-WORKFLOW.md`.

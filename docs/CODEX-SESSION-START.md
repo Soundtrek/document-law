@@ -1,96 +1,144 @@
 # SAMMA — Mandatory Codex Session Start
 
-> **STOP: READ THIS FILE BEFORE ANY CODING, MIGRATION, DEPLOYMENT, DATABASE CHANGE OR INFRASTRUCTURE CHANGE.**
+> **READ THIS FILE ONCE AT THE START OF A CODING SESSION.**
 
-This is a mandatory session-start guard for AI/Codex work in SAMMA. Read this file together with `AGENTS.md`, `docs/BRANCH-WORKFLOW.md`, and the relevant product/domain documents before changing the repository or runtime.
+Read this together with `AGENTS.md`, `docs/CODEX-SESSION-METHODOLOGY.md`, `docs/BRANCH-WORKFLOW.md`, and the relevant domain/security document for the work being done.
 
-## 1. Environment separation is a hard boundary
+The purpose is to establish the session boundary once. Do not repeat this broad preflight before every code block.
 
-SAMMA development and RC are separate deployment contexts even while both currently run on the NUC.
+## 1. Current runtime map
+
+Until the client approves a different VM/hosting arrangement, the NUC is the approved temporary host for both SAMMA production and development.
 
 ```text
-experiment/*  -> 192.168.1.152:2022
-                experiment preview only
+experiment/* -> isolated preview only when explicitly required
 
-dev           -> https://dev.samma.co.za
-                DEV application
-                DEV metadata/database context: samma_dev
+dev          -> https://dev.samma.co.za
+                development application
+                database: samma_dev
 
-main          -> https://samma.co.za
-                RC application
-                RC metadata/database context
-                must not be replaced by DEV metadata/data
-
-future main/RC -> Rackzar
-                separate RC infrastructure later
+main         -> https://samma.co.za
+                current production
+                database: juanity_law
 ```
 
-### Critical rule
+The historical plan for a dedicated/Rackzar production VM is not the current operating decision. Do not assume a future provider until the client decision is made.
 
-**Promoting code from `dev` to `main` does not mean promoting DEV data, metadata, users, companies, records, definitions, Keycloak state, Garage objects or Mailpit messages.**
+## 2. Session baseline — establish once
 
-Code promotion and data movement are separate operations. Never infer one from the other.
+At session start identify:
 
-## 2. `samma_dev` isolation must be preserved
+```text
+BRANCH:
+BASE SHA:
+RUNTIME:
+DATABASE/METADATA TARGET:
+CHANGE SCOPE:
+PROTECTED AREAS:
+MIGRATION EXPECTED: YES/NO
+PRODUCTION TOUCHED: YES/NO
+KNOWN EXISTING BLOCKERS:
+```
 
-DEV currently uses the isolated `samma_dev` metadata/database context.
+If branch/runtime/database target is ambiguous, stop before writing.
 
-Before any task touching database configuration, Prisma, migrations, seeding, definitions, deployment, Compose, environment files or promotion:
+Once this baseline is established, do not repeatedly reconfirm unchanged systems after every small change. Follow `docs/CODEX-SESSION-METHODOLOGY.md`.
 
-1. identify the current branch;
-2. identify the exact database/metadata target;
-3. identify the exact runtime being changed;
-4. confirm DEV changes target `samma_dev`;
-5. confirm the RC metadata/catalogue will remain untouched unless the task explicitly authorises an RC migration/promotion;
-6. never point DEV at the RC database merely to make tests pass;
-7. never copy the DEV catalogue into RC as an implicit side effect of deployment.
+## 3. Environment separation remains a hard boundary
 
-If the target database/environment is ambiguous, **STOP before writing**.
+Even though production and development currently share one physical NUC, they are separate application/data contexts.
 
-## 3. Branch/runtime law
+Production:
+
+```text
+branch: main
+site: samma.co.za
+database: juanity_law
+```
+
+Development:
+
+```text
+branch: dev
+site: dev.samma.co.za
+database: samma_dev
+```
+
+Promoting code from `dev` to `main` does not promote DEV data, users, companies, records, definitions, secrets, Keycloak state or object-storage data.
+
+Never point DEV at `juanity_law` merely to make tests pass.
+
+## 4. Known shared infrastructure
+
+Production and development currently share some infrastructure.
+
+Keycloak:
+
+- shared Keycloak service/realm currently exists;
+- client/config separation may be introduced deliberately;
+- do not assume a DEV identity change is isolated unless the exact client/realm scope is verified.
+
+Object storage:
+
+- current Garage configuration is shared/temporarily imperfect;
+- the intended direction is separate external S3-compatible production and development storage;
+- do not delete/migrate Garage objects as part of unrelated work.
+
+These are known temporary boundaries pending infrastructure changes.
+
+## 5. Branch workflow
 
 ```text
 experiment/* -> dev -> main
 ```
 
-- `experiment/*` is disposable/isolated work and port `2022` is experiment-only.
-- `dev` is the integrated development branch and runs at `dev.samma.co.za`.
-- `main` is the accepted RC branch and runs at `samma.co.za` until RC later moves to Rackzar.
-- Never develop directly on `main`.
-- Normal feature integration happens on DEV before promotion.
-- Use normal merges/fast-forwards. Do not force-push `main` during normal work.
+- `experiment/*`: isolated feature/experiment work when useful.
+- `dev`: integrated development and acceptance; runs at `dev.samma.co.za`.
+- `main`: accepted production branch; runs at `samma.co.za`.
+- never develop directly on `main`;
+- use normal merges/fast-forwards;
+- do not force-push shared history during normal work.
 
-## 4. Promotion law
+See `docs/BRANCH-WORKFLOW.md`.
 
-A `dev -> main` promotion moves accepted repository state.
+## 6. Validation methodology
 
-It does **not** automatically move:
+**Validate the session, not every code block.**
 
-- Accounts or Persons;
-- Companies or memberships;
-- employment relationships;
-- invitations;
-- Records or RecordFiles;
-- Company custom document definitions;
-- DEV seed/test data;
-- Keycloak users/sessions/configuration;
-- Garage objects;
-- Mailpit messages;
-- secrets.
+Normal session:
 
-Migrations required by promoted code may be applied to the RC database only through an explicit, reviewed RC migration step with the RC target verified first.
+```text
+SESSION START
+  establish baseline once
 
-## 5. No-hardcode law
+WORK
+  focused checks proportional to each change
 
-Business document policy must be configuration-driven. Security invariants may be enforced in code.
+SESSION CLOSE
+  inspect accumulated diff
+  typecheck/lint/tests/build as appropriate once
 
-Do not hardcode business document types, company-specific document types, role/document matrices, retention periods, review periods or company personnel assignments into application logic when they belong in Governance or Company configuration.
+DEPLOYMENT
+  short environment/rollback gate
+  focused production acceptance
+```
 
-Governance and authorised Companies must be able to create/configure document types and allowed functional roles without a developer code change.
+Do not run the whole release suite after every tiny correction.
 
-See `docs/DOCUMENT-SHARING-PRINCIPLES.md`.
+Use stronger immediate checks when touching high-risk boundaries such as:
 
-## 6. Identity and relationship law
+- schema/migrations;
+- destructive data operations;
+- authentication/authorization;
+- permissions/access isolation;
+- storage/file migration;
+- secrets;
+- production infrastructure;
+- major refactors.
+
+Even then, validate the affected risk boundary rather than sweeping unrelated systems without reason.
+
+## 7. Identity and relationship law
 
 Keep these concepts separate:
 
@@ -100,22 +148,22 @@ CompanyMember
 PersonCompanyRelationship
 ```
 
-- `Person` is the human identity/account context.
-- `CompanyMember` is someone who operates SAMMA for a Company.
-- `PersonCompanyRelationship` is the employment/person-company relationship.
-- Adding a Person must not automatically create Company membership.
-- Adding a team member must not automatically create an employment relationship.
-- Ending employment must not delete the Person account.
+- Person is the human identity/account context.
+- CompanyMember is someone who operates SAMMA for a Company.
+- PersonCompanyRelationship is the employment/person-company relationship.
+- adding a Person must not automatically create Company membership;
+- adding a team member must not automatically create an employment relationship;
+- ending employment must not delete the Person account.
 
-## 7. Role/access law
+## 8. Role/access law
 
 `OWNER` is company governance, not a universal sensitive-document bypass.
 
-Document access is driven by the pinned Record Definition policy and the member's active functional roles.
+Document access is driven by pinned Record Definition policy and active functional roles.
 
-Do not bypass role/tenant/relationship checks for convenience, testing or UI simplicity.
+Never bypass tenant/relationship/role/legal-grant checks for convenience, testing or UI simplicity.
 
-## 8. Record-definition law
+## 9. Record-definition law
 
 Records pin an exact `RecordDefinitionVersion`.
 
@@ -129,70 +177,61 @@ Directions remain policy-driven:
 - `PERSON_TO_COMPANY`
 - `INTERNAL_COMPANY`
 
-## 9. Storage law
+## 10. No-hardcode law
 
-File binaries remain in private S3-compatible storage through the existing provider-neutral storage path.
+Business document policy must be configuration-driven. Security invariants may be enforced in code.
+
+Do not hardcode business document types, company-specific document types, role/document matrices, retention periods, review periods or company personnel assignments when they belong in Governance or Company configuration.
+
+## 11. Storage law
+
+File binaries use the existing provider-neutral private S3-compatible storage path.
 
 Do not create a second upload/storage implementation.
 
-Current NUC DEV storage remains synthetic and explicitly `NOT_SCANNED_DEV` until malware scanning is deliberately implemented.
+Do not represent DEV files as production-safe merely because the storage API is shared.
 
-Do not represent DEV files as production-safe.
+Storage migration is a high-risk session and requires explicit source/destination integrity and rollback checks.
 
-## 10. Mail/auth law for current NUC development
+## 12. Mail/auth law
 
-Current NUC authentication/application test mail uses Mailpit.
+Do not redesign Keycloak/auth as part of unrelated work.
 
-Do not restore or introduce real SMTP during ordinary DEV work unless explicitly requested.
+Development/test mail and production mail configuration are separate concerns. Do not introduce real outbound mail into DEV merely to make a test realistic.
 
-Do not redesign Keycloak/auth as part of unrelated features.
+## 13. Promotion law
 
-Future Rackzar RC configuration is a separate deployment project.
+A `dev -> main` promotion moves accepted repository state only.
 
-## 11. Validation law — proportional checks
+It does not automatically move:
 
-Do not run the entire release suite after every tiny correction.
+- Accounts/Persons;
+- Companies/memberships;
+- employment relationships;
+- invitations;
+- Records/RecordFiles;
+- definitions;
+- DEV test data;
+- Keycloak users/sessions/configuration;
+- object-storage data;
+- secrets.
 
-Use validation proportional to risk:
+Migrations required by promoted code require an explicit production migration step with the production target verified first.
 
-- small UI/local change -> focused tests/checks;
-- feature/domain change -> targeted integration/security checks;
-- auth/schema/storage/permission change -> deeper relevant checks;
-- `dev -> main` promotion -> comprehensive release validation once.
+## 14. Required reading
 
-Do not repeat an unchanged large test suite on the same branch unless the new change intersects that risk area or the work is at a promotion gate.
-
-## 12. Before writing anything
-
-At the start of every coding session, state/verify internally:
-
-```text
-BRANCH:
-RUNTIME:
-DATABASE/METADATA TARGET:
-CHANGE SCOPE:
-MIGRATION EXPECTED: YES/NO
-MAIN/RC TOUCHED: YES/NO
-```
-
-Then inspect only what is necessary for the task.
-
-If any of these are unclear, stop before making changes.
-
-## 13. Required reading
-
-Before coding, read at minimum:
+At session start read at minimum:
 
 1. `AGENTS.md`
-2. `docs/CODEX-SESSION-START.md` (this file)
-3. `docs/BRANCH-WORKFLOW.md`
-4. `docs/DOCUMENT-SHARING-PRINCIPLES.md` for document/record work
-5. relevant current architecture/security/domain document for the task
+2. `docs/CODEX-SESSION-START.md`
+3. `docs/CODEX-SESSION-METHODOLOGY.md`
+4. `docs/BRANCH-WORKFLOW.md`
+5. relevant domain/security document for the task
 
-## 14. Purpose
+Do this once per session unless the scope materially changes.
 
-This guard exists to prevent the most dangerous development mistake in the current NUC setup: treating branch promotion, deployment, schema migration and data movement as the same operation.
+## 15. Purpose
 
-They are not.
+This guard exists to prevent the dangerous mistakes that matter while avoiding validation theatre.
 
-**Preserve environment isolation first. Change only the intended layer.**
+**Establish the environment and risk boundary once, change only the intended layer, use focused checks while working, and validate the accumulated session at the close/promotion gate.**
