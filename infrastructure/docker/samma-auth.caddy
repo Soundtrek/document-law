@@ -8,6 +8,13 @@ auth.samma.co.za {
 		header_up -Authorization
 		header_up X-Forwarded-Uri /check
 	}
+	@devSammaThemeCss path /resources/rnr7p/login/samma/css/samma.css
+	handle @devSammaThemeCss {
+		reverse_proxy samma-keycloak:8080 {
+			header_up Accept-Encoding identity
+			header_down Cache-Control "no-store, max-age=0"
+		}
+	}
 	@oidc path /realms/samma/* /resources/* /robots.txt
 	handle @oidc {
 		reverse_proxy samma-keycloak:8080

@@ -23,25 +23,60 @@ body {
 }
 
 .pf-v5-c-login {
+  display: block;
+  background: var(--samma-background);
+  min-height: 100vh;
+  padding: 0;
+}
+
+.samma-auth-header {
+  width: 100%;
+  min-height: 88px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--samma-border);
   background: var(--samma-background);
 }
 
-#kc-header,
-#kc-header-wrapper {
-  color: var(--samma-primary);
-  font-weight: 750;
-  letter-spacing: -0.02em;
+.samma-auth-header-inner {
+  width: min(calc(100% - 22px), 1040px);
+  min-height: 88px;
+  box-sizing: border-box;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  margin: 0 auto;
 }
 
-#kc-header-wrapper {
-  padding: 2rem 0 1rem;
+.samma-auth-brand {
+  color: var(--samma-primary);
+  font-size: 1.1rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+}
+
+.samma-auth-tagline {
+  color: var(--samma-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .pf-v5-c-login__container {
+  display: block;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+.samma-auth-main {
+  width: min(calc(100% - 22px), 29rem);
   max-width: 29rem;
+  margin: 2rem auto;
 }
 
 .pf-v5-c-login__main {
+  box-sizing: border-box;
   background: var(--samma-surface);
   border: 1px solid var(--samma-border);
   border-radius: 16px;
@@ -109,9 +144,5 @@ a:focus {
 @media (max-width: 480px) {
   .pf-v5-c-login__main {
     border-radius: 12px;
-  }
-
-  #kc-header-wrapper {
-    padding-top: 1rem;
   }
 }
