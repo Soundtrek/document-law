@@ -4,9 +4,11 @@ This file governs AI-assisted work in this repository.
 
 ## 0. Mandatory session-start guard
 
-**Before any coding, migration, deployment, database change or infrastructure change, read `docs/CODEX-SESSION-START.md`.**
+**Before any coding, migration, deployment, database change or infrastructure change, read `docs/CODEX-SESSION-START.md` and `docs/CODEX-SESSION-METHODOLOGY.md`.**
 
-That file is a hard session-start guard. In particular, it defines the current `experiment/* → dev → main` runtime mapping, protects DEV `samma_dev` metadata/database isolation, and forbids treating code promotion as data/catalogue promotion. If the branch, runtime or database target is ambiguous, stop before writing.
+`docs/CODEX-SESSION-START.md` is the hard environment/session guard. In particular, it defines the current `experiment/* → dev → main` runtime mapping, protects DEV `samma_dev` metadata/database isolation, and forbids treating code promotion as data/catalogue promotion. If the branch, runtime or database target is ambiguous, stop before writing.
+
+`docs/CODEX-SESSION-METHODOLOGY.md` defines the validation workflow for the whole coding session: establish the baseline once, use focused checks during implementation, and perform broad validation once at session close or a genuine promotion/release gate. Do not restart full preflight and broad validation for every prompt or code block unless the risk boundary materially changes.
 
 ## 1. Product boundary
 
@@ -170,9 +172,11 @@ See `docs/CODE-BEFORE-VM.md`.
 
 ## 17. Validation discipline
 
-Use focused validation proportional to the change. Security-sensitive work requires negative tests.
+Follow `docs/CODEX-SESSION-METHODOLOGY.md`.
 
-At minimum verify tenant/person isolation, role revocation, definition-version integrity, Legal Access scope, Governance isolation, stable Account identity and storage-key/access isolation.
+Default rule: **validate the session, not every code block.** Establish the baseline once, use focused checks proportional to each change, and run broad validation once at session close or a real promotion/release gate. High-risk changes still require deeper validation of the affected risk boundary.
+
+Security-sensitive work requires negative tests. At minimum verify tenant/person isolation, role revocation, definition-version integrity, Legal Access scope, Governance isolation, stable Account identity and storage-key/access isolation when the current session actually touches those boundaries.
 
 ## 18. Approval gates that remain
 
