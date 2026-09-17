@@ -117,8 +117,11 @@ def main():
         'standardFlowEnabled': source.get('standardFlowEnabled', True),
         'implicitFlowEnabled': False, 'directAccessGrantsEnabled': False,
         'serviceAccountsEnabled': False, 'redirectUris': [CALLBACK], 'webOrigins': [DEV_ORIGIN],
-        'attributes': {'pkce.code.challenge.method': 'S256', 'post.logout.redirect.uris': DEV_ORIGIN + '/'},
-        'loginTheme': 'samma',
+        'attributes': {
+            'pkce.code.challenge.method': 'S256',
+            'post.logout.redirect.uris': DEV_ORIGIN + '/',
+            'login_theme': 'samma',
+        },
     }
     if dev:
         kc.request('PUT', '/admin/realms/samma/clients/' + dev[0]['id'], representation, token=token)
@@ -132,7 +135,7 @@ def main():
         raise RuntimeError('Shared realm or production client read-back failed')
     if safe_client(after_production[0]) != safe_client(production[0]):
         raise RuntimeError('Production client changed; refusing successful completion')
-    if len(after_dev) != 1 or after_dev[0].get('loginTheme') != 'samma' or \
+    if len(after_dev) != 1 or after_dev[0].get('attributes', {}).get('login_theme') != 'samma' or \
             after_dev[0].get('redirectUris') != [CALLBACK] or after_dev[0].get('webOrigins') != [DEV_ORIGIN]:
         raise RuntimeError('DEV client read-back failed')
     write_private_env(replace_env(lines, {'SAMMA_OIDC_CLIENT_ID': DEV_CLIENT_ID,
